@@ -82,17 +82,47 @@ with tabs[0]:
                         st.error(f"Yuki pusing: {e}")
 
 # -------------------------------------------------------------
-# TAB 2: Text-to-Image (Buat Gambar dari Teks)
+# TAB 1: Text-to-Image (Dengan Pilihan Ukuran & Model Flux HD)
 # -------------------------------------------------------------
 with tabs[1]:
-    st.subheader("Buat Gambar dari Teks")
+    st.subheader("Buat Gambar dari Teks (HD & Custom Ratio)")
+    
     prompt = st.text_input("Deskripsikan gambar impianmu:", key="gen_prompt")
+    
+    # Pilihan Ukuran / Rasio Gambar agar tidak portrait terus
+    col1, col2 = st.columns(2)
+    with col1:
+        aspect_ratio = st.selectbox(
+            "Pilih Format / Rasio:", 
+            ["Square (Kotak 1:1)", "Landscape (Mendatar 16:9)", "Portrait (Berdiri 9:16)"]
+        )
+    with col2:
+        ai_model = st.selectbox(
+            "Pilih Mesin AI:", 
+            ["flux (Sangat Detail & Jernih)", "seedling (Standar / Kreatif)"]
+        )
+    
     if st.button("✨ Generate Gambar", use_container_width=True) and prompt:
-        with st.spinner("🌸 Yuki sedang meracik gambar..."):
-            encoded = requests.utils.quote(prompt)
-            img_url = f"https://image.pollinations.ai/prompt/{encoded}?nologo=true"
-            st.image(img_url, caption=f"Prompt: {prompt}", use_container_width=True)
-
+        with st.spinner("🌸 Yuki sedang meracik gambar beresolusi tinggi..."):
+            # Tentukan ukuran piksel berdasarkan pilihan user
+            if "Landscape" in aspect_ratio:
+                width, height = 1280, 720
+            elif "Portrait" in aspect_ratio:
+                width, height = 720, 1280
+            else:
+                width, height = 1024, 1024
+                
+            # Ambil nama model yang dipilih
+            model_name = "flux" if "flux" in ai_model else "seedling"
+            
+            # Otomatis tambahkan kata kunci detail agar tidak blur
+            enhanced_prompt = f"{prompt}, highly detailed, sharp focus, masterpiece, 8k resolution"
+            
+            encoded = requests.utils.quote(enhanced_prompt)
+            img_url = f"https://image.pollinations.ai/prompt/{encoded}?width={width}&height={height}&model={model_name}&nologo=true"
+            
+            st.success("Berhasil dibuat!")
+            st.image(img_url, caption=f"Format: {aspect_ratio} | Model: {model_name}", use_container_width=True)
 # -------------------------------------------------------------
 # TAB 3: AI Style (Transformasi Gaya Foto + Groq Vision)
 # -------------------------------------------------------------
