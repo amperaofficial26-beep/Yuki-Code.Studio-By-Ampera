@@ -119,33 +119,51 @@ with tabs[1]:
             st.image(img_url, caption=f"Format: {aspect_ratio} | Model: {model_name}", use_container_width=True)
 
 # -------------------------------------------------------------
-# TAB 3: AI Style (Transformasi Gaya Seni - Stabil & Anti Error)
+# TAB 3: AI Style (Transformasi Foto Asli dengan Efek Artistik)
 # -------------------------------------------------------------
 with tabs[2]:
-    st.subheader("Transformasi Gaya Seni Foto")
-    st.write("Pilih gaya artistik untuk menciptakan gambar baru yang terinspirasi dari tema pilihanmu.")
+    st.subheader("Transformasi Gaya Foto Asli")
+    st.write("Mengubah foto yang kamu upload secara langsung ke dalam berbagai gaya artistik.")
     
-    style_file = st.file_uploader("Upload foto referensi (opsional):", type=["jpg", "png", "jpeg"], key="trans_file")
+    style_file = st.file_uploader("Upload foto kamu:", type=["jpg", "png", "jpeg"], key="trans_file")
     style_choice = st.selectbox(
-        "Pilih Gaya AI:", 
-        ["Anime Masterpiece", "Cyberpunk Neon", "Oil Painting Classic", "Pixel Art 8-bit", "Fantasy Concept Art", "Studio Ghibli Style"]
+        "Pilih Efek Gaya:", 
+        ["Anime / Posterized", "Classic Sketch (Sketsa Pensil)", "Oil Painting Smooth", "Cyberpunk Neon Glow"]
     )
-    custom_desc = st.text_input("Tambahkan detail subjek (contoh: a cute cat wearing a hoodie):", key="custom_desc")
     
     if style_file:
-        st.image(style_file, caption="Foto Referensi", width=300)
+        img_original = Image.open(style_file).convert("RGB")
+        st.image(img_original, caption="Foto Asli", width=300)
         
-    if st.button("🪄 Ubah & Buat Gaya Baru", use_container_width=True):
-        with st.spinner("🌸 Yuki sedang merender gaya artistiknya..."):
-            base_prompt = custom_desc if custom_desc else "a portrait"
-            final_prompt = f"{style_choice}, {base_prompt}, masterpiece, highly detailed, sharp focus, 8k"
-            
-            encoded = requests.utils.quote(final_prompt)
-            img_url = f"https://image.pollinations.ai/prompt/{encoded}?model=flux&nologo=true"
-            
-            st.success("Transformasi Gaya Selesai!")
-            st.image(img_url, caption="Gaya: {style_choice}", use_container_width=True)
-
+        if st.button("🪄 Terapkan Gaya ke Foto", use_container_width=True):
+            with st.spinner("🌸 Yuki sedang mengubah gaya fotomu..."):
+                # Proses transformasi berdasarkan pilihan gaya menggunakan PIL
+                if "Posterized" in style_choice:
+                    # Efek ala anime / cel-shaded
+                    img_processed = ImageOps.posterize(img_original, bits=3)
+                    enhancer = ImageEnhance.Color(img_processed)
+                    img_processed = enhancer.enhance(1.5)
+                elif "Sketch" in style_choice:
+                    # Efek sketsa pensil hitam putih
+                    gray = img_original.convert("L")
+                    inverted = ImageOps.invert(gray)
+                    blurred = inverted.filter(ImageFilter.GaussianBlur(radius=5))
+                    img_processed = Image.blend(gray, blurred, alpha=0.5)
+                elif "Oil Painting" in style_choice:
+                    # Efek lukisan cat minyak halus
+                    img_processed = img_original.filter(ImageFilter.SMOOTH_MORE)
+                    img_processed = img_processed.filter(ImageFilter.SMOOTH_MORE)
+                    enhancer = ImageEnhance.Contrast(img_processed)
+                    img_processed = enhancer.enhance(1.2)
+                else:
+                    # Efek Cyberpunk Neon (Kontras & Warna Tajam)
+                    enhancer_color = ImageEnhance.Color(img_original)
+                    colored = enhancer_color.enhance(2.0)
+                    enhancer_bright = ImageEnhance.Brightness(colored)
+                    img_processed = enhancer_bright.enhance(1.1)
+                
+                st.success("Transformasi Selesai!")
+                st.image(img_processed, caption=f"Hasil Gaya: {style_choice}", use_container_width=True)
 # -------------------------------------------------------------
 # TAB 4: HD Upscale & Enhancer
 # -------------------------------------------------------------
