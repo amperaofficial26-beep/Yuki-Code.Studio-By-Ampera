@@ -151,9 +151,8 @@ def main():
                         res_img = Image.open(BytesIO(result_bytes))
                         st.success("Background Berhasil Dihapus!")
                         st.image(res_img, caption="Hasil Transparan", use_container_width=True)
-
-    # -------------------------------------------------------------
-    # TAB 5: Chat with Yuki (Google Gemini)
+# -------------------------------------------------------------
+    # TAB 5: Chat with Yuki (Diagnostic Mode)
     # -------------------------------------------------------------
     with tabs[4]:
         st.subheader("💬 Ngobrol dengan Yuki")
@@ -169,22 +168,39 @@ def main():
         if chat_input := st.chat_input("Ketik pesan ke Yuki..."):
             if not google_key:
                 st.error("GOOGLE_API_KEY belum diatur di Streamlit Secrets!")
-            elif not model_chat:
-                st.error("Model Gemini tidak dapat dimuat. Periksa kembali GOOGLE_API_KEY kamu.")
             else:
                 st.session_state.messages.append({"role": "user", "content": chat_input})
                 with st.chat_message("user"):
                     st.markdown(chat_input)
                 
                 with st.chat_message("assistant"):
-                    with st.spinner("Yuki sedang mengetik..."):
-                        try:
-                            system_prompt = "Kamu adalah Yuki, asisten AI pribadi yang ramah, hangat, sedikit bergaya anime/cyberpunk, dan siap membantu pengguna dengan kreatif."
-                            full_prompt = f"{system_prompt}\nPesan pengguna: {chat_input}"
-                            response = model_chat.generate_content(full_prompt)
-                            reply = response.text
-                        except Exception as e:
-                            reply = f"Maaf, Yuki lagi pusing nih: {e}"
+                    with st.spinner("Yuki sedang memeriksa model..."):
+                        reply = ""
+                        system_prompt = "Kamu adalah Yuki, asisten AI pribadi yang ramah, hangat, dan siap membantu."
+                        full_prompt = f"{system_prompt}\nPesan pengguna: {chat_input}"
+                        
+                        success = False
+                        # Daftar percobaan model alternatif
+                        try_models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro', 'gemini-2.0-flash']
+                        
+                        for m_name in try_models:
+                            try:
+                                chat_model = genai.GenerativeModel(m_name)
+                                response = chat_model.generate_content(full_prompt)
+                                reply = response.text
+                                success = True
+                                break
+                            except Exception:
+                                continue
+                        
+                        if not success:
+                            # Jika semuanya gagal, tampilkan daftar model yang diizinkan oleh API Key ini
+                            try:
+                                available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+                                reply = f"Maaf, Yuki pusing! API Key kamu tidak mendeteksi model standar.\n\n**Model yang tersedia di akunmu:**\n{available_models}"
+                            except Exception as list_err:
+                                reply = f"Maaf, Yuki gagal membaca daftar model: {list_err}"
+                                
                         st.markdown(reply)
                 st.session_state.messages.append({"role": "assistant", "content": reply})
 
