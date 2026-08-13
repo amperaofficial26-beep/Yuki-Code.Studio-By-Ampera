@@ -174,6 +174,14 @@ def main():
                         reply = response.text
                         st.markdown(reply)
                 st.session_state.messages.append({"role": "assistant", "content": reply})
+                # Tambahkan ini untuk debug model
+if google_key:
+    try:
+        models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_methods]
+        st.sidebar.write("Model yang tersedia:")
+        st.sidebar.write(models)
+    except Exception as e:
+        st.sidebar.error(f"Error cek model: {e}")
 
 if __name__ == "__main__":
     main()
