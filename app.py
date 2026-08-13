@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-app_yuki.py
-===========
+app.py
+======
 Yuki AI Studio & Chat - Powered by DeepAI, Pollinations, & Google Gemini
 """
 
@@ -18,19 +18,16 @@ st.set_page_config(page_title="Yuki - AI Studio & Chat", page_icon="🌸", layou
 # Inisialisasi API Gemini secara aman
 google_key = st.secrets.get("GOOGLE_API_KEY", "")
 model_chat = None
-
 if google_key:
     genai.configure(api_key=google_key)
-    # Daftar model cadangan yang dicoba secara otomatis
-    model_candidates = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro']
-    
-    for m_name in model_candidates:
+    try:
+        model_chat = genai.GenerativeModel('gemini-1.5-flash')
+    except Exception:
         try:
-            model_chat = genai.GenerativeModel(m_name)
-            break # Berhenti jika berhasil menemukan model yang aktif
+            model_chat = genai.GenerativeModel('gemini-1.5-pro')
         except Exception:
-            continue
-            
+            model_chat = None
+
 # Styling Tema Cyberpunk Anime Glassmorphism
 def set_ui_style():
     st.markdown("""
@@ -148,7 +145,7 @@ def main():
                         st.image(res_img, caption="Hasil Transparan", use_container_width=True)
 
     # -------------------------------------------------------------
-    # TAB 5: Chat with Yuki (Google Gemini Flash)
+    # TAB 5: Chat with Yuki (Google Gemini)
     # -------------------------------------------------------------
     with tabs[4]:
         st.subheader("💬 Ngobrol dengan Yuki")
@@ -164,6 +161,8 @@ def main():
         if chat_input := st.chat_input("Ketik pesan ke Yuki..."):
             if not google_key:
                 st.error("GOOGLE_API_KEY belum diatur di Streamlit Secrets!")
+            elif not model_chat:
+                st.error("Model Gemini tidak dapat dimuat. Periksa kembali GOOGLE_API_KEY kamu.")
             else:
                 st.session_state.messages.append({"role": "user", "content": chat_input})
                 with st.chat_message("user"):
@@ -171,20 +170,15 @@ def main():
                 
                 with st.chat_message("assistant"):
                     with st.spinner("Yuki sedang mengetik..."):
-                        system_prompt = "Kamu adalah Yuki, asisten AI pribadi yang ramah, hangat, sedikit bergaya anime/cyberpunk, dan siap membantu pengguna dengan kreatif."
-                        full_prompt = f"{system_prompt}\nPesan pengguna: {chat_input}"
-                        response = model_chat.generate_content(full_prompt)
-                        reply = response.text
+                        try:
+                            system_prompt = "Kamu adalah Yuki, asisten AI pribadi yang ramah, hangat, sedikit bergaya anime/cyberpunk, dan siap membantu pengguna dengan kreatif."
+                            full_prompt = f"{system_prompt}\nPesan pengguna: {chat_input}"
+                            response = model_chat.generate_content(full_prompt)
+                            reply = response.text
+                        except Exception as e:
+                            reply = f"Maaf, Yuki lagi pusing nih: {e}"
                         st.markdown(reply)
                 st.session_state.messages.append({"role": "assistant", "content": reply})
-                # Tambahkan ini untuk debug model
-if google_key:
-    try:
-        models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_methods]
-        st.sidebar.write("Model yang tersedia:")
-        st.sidebar.write(models)
-    except Exception as e:
-        st.sidebar.error(f"Error cek model: {e}")
 
 if __name__ == "__main__":
     main()
