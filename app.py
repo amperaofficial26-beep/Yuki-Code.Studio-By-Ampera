@@ -15,18 +15,27 @@ from io import BytesIO
 # Konfigurasi Halaman
 st.set_page_config(page_title="Yuki - AI Studio & Chat", page_icon="🌸", layout="centered")
 
-# Inisialisasi API Gemini secara aman
+# Inisialisasi API Gemini secara otomatis (Mencari model yang aktif di akunmu)
 google_key = st.secrets.get("GOOGLE_API_KEY", "")
 model_chat = None
+
 if google_key:
     genai.configure(api_key=google_key)
     try:
-        model_chat = genai.GenerativeModel('gemini-1.5-flash')
+        # Otomatis cari model pertama yang mendukung generateContent
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                model_chat = genai.GenerativeModel(m.name)
+                break
     except Exception:
+        pass
+    
+    # Fallback darurat jika pemindaian gagal
+    if not model_chat:
         try:
-            model_chat = genai.GenerativeModel('gemini-1.5-pro')
+            model_chat = genai.GenerativeModel('gemini-1.5-flash')
         except Exception:
-            model_chat = None
+            pass
 
 # Styling Tema Cyberpunk Anime Glassmorphism
 def set_ui_style():
