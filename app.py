@@ -125,7 +125,7 @@ hf_key = st.secrets.get("HF_TOKEN", "")
 hf_client = InferenceClient(token=hf_key) if hf_key else None
 
 # -------------------------------------------------------------
-# TAB 3: AI Style (True Image-to-Image via Hugging Face)
+# TAB 3: AI Style (Hugging Face AI dengan Error Handling)
 # -------------------------------------------------------------
 with tabs[2]:
     st.subheader("Transformasi Gaya Foto (Hugging Face AI)")
@@ -142,11 +142,11 @@ with tabs[2]:
             if not hf_key:
                 st.error("HF_TOKEN belum diatur di Streamlit Secrets!")
             else:
-                with st.spinner("🌸 Yuki sedang memproses foto dengan AI Hugging Face..."):
+                with st.spinner("🌸 Yuki sedang menghubungkan ke server AI Hugging Face (mohon tunggu sebentar jika model sedang memuat)..."):
                     try:
                         image_bytes = style_file.getvalue()
                         
-                        # Menggunakan model InstructPix2Pix yang mendukung image-to-image
+                        # Memanggil model InstructPix2Pix
                         output_image = hf_client.image_to_image(
                             image=image_bytes,
                             prompt=style_prompt,
@@ -156,7 +156,8 @@ with tabs[2]:
                         st.success("Berhasil diubah oleh AI!")
                         st.image(output_image, caption=f"Hasil: {style_prompt}", use_container_width=True)
                     except Exception as e:
-                        st.error(f"Gagal memproses AI: {e}")
+                        # Menampilkan detail error asli dari sistem agar kita tahu kendalanya
+                        st.error(f"Gagal memproses AI. Detail Error: {str(e)}")
 # -------------------------------------------------------------
 # TAB 4: HD Upscale & Enhancer
 # -------------------------------------------------------------
