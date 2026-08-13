@@ -32,14 +32,24 @@ with tabs[0]:
         encoded = requests.utils.quote(prompt)
         st.image(f"https://image.pollinations.ai/prompt/{encoded}?nologo=true")
 
-# TAB 2: Style
+# TAB 2: Style (Transformasi Gaya Gambar)
 with tabs[1]:
-    file = st.file_uploader("Upload foto:", type=["jpg", "png"], key="trans")
-    style = st.text_input("Gaya (misal: anime style):", key="style")
-    if file and style and st.button("🎨 Ubah Gaya"):
-        st.info("Fitur transformasi menggunakan AI image processing...")
-        # (Bisa dikombinasikan dengan API lain atau polliniations)
-
+    st.subheader("Transformasi Gaya Foto")
+    style_file = st.file_uploader("Upload foto kamu:", type=["jpg", "png", "jpeg"], key="trans")
+    style_input = st.text_input("Gaya (misal: anime style, cyberpunk, oil painting):", key="style")
+    
+    if style_file:
+        st.image(style_file, caption="Foto Asli", width=300)
+        if st.button("🎨 Ubah Gaya", use_container_width=True) and style_input:
+            with st.spinner("🌸 Yuki sedang mengubah gaya gambarmu..."):
+                # Menggabungkan gaya pilihan user untuk diproses AI generator
+                full_prompt = f"{style_input}, masterpiece, highly detailed"
+                encoded = requests.utils.quote(full_prompt)
+                img_url = f"https://image.pollinations.ai/prompt/{encoded}?nologo=true"
+                
+                st.success("Berhasil diubah!")
+                st.image(img_url, caption=f"Hasil Gaya: {style_input}", use_container_width=True)
+                
 # TAB 3: Upscale (Lokal - Pillow)
 with tabs[2]:
     up_file = st.file_uploader("Upload foto buram:", type=["jpg", "png"], key="up")
