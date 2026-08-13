@@ -144,7 +144,7 @@ with tabs[2]:
             img_url = f"https://image.pollinations.ai/prompt/{encoded}?model=flux&nologo=true"
             
             st.success("Transformasi Gaya Selesai!")
-            st.image(img_url, caption=𝚏"Gaya: {style_choice}", use_container_width=True)
+            st.image(img_url, caption="Gaya: {style_choice}", use_container_width=True)
 
 # -------------------------------------------------------------
 # TAB 4: HD Upscale & Enhancer
