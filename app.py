@@ -4,6 +4,7 @@ import requests
 from PIL import Image, ImageEnhance
 from io import BytesIO
 from rembg import remove
+from PIL import Image, ImageEnhance, ImageOps, ImageFilter
 
 # Konfigurasi Halaman
 st.set_page_config(page_title="Yuki AI Studio", page_icon="🌸", layout="centered")
@@ -125,39 +126,48 @@ hf_key = st.secrets.get("HF_TOKEN", "")
 hf_client = InferenceClient(token=hf_key) if hf_key else None
 
 # -------------------------------------------------------------
-# TAB 3: AI Style (Hugging Face AI dengan Error Handling)
+# TAB 3: AI Style (Transformasi Foto Asli - Stabil & Anti Error)
 # -------------------------------------------------------------
 with tabs[2]:
-    st.subheader("Transformasi Gaya Foto (Hugging Face AI)")
-    st.write("Mengubah foto asli secara akurat menggunakan model AI open-source gratis.")
+    st.subheader("Transformasi Gaya Foto Asli")
+    st.write("Mengubah foto aslimu secara instan ke berbagai gaya artistik tanpa kendala server.")
     
-    style_file = st.file_uploader("Upload foto kamu:", type=["jpg", "png", "jpeg"], key="hf_trans")
-    style_prompt = st.text_input("Instruksi gaya (contoh: turn into anime style, make it an oil painting):", key="hf_style")
+    style_file = st.file_uploader("Upload foto kamu:", type=["jpg", "png", "jpeg"], key="trans_file_local")
+    style_choice = st.selectbox(
+        "Pilih Gaya Efek:", 
+        ["Anime Cel-Shaded", "Cyberpunk Neon", "Oil Painting Smooth", "Classic Pencil Sketch"]
+    )
     
     if style_file:
         img_original = Image.open(style_file).convert("RGB")
         st.image(img_original, caption="Foto Asli", width=300)
         
-        if st.button("🪄 Ubah Gaya dengan AI", use_container_width=True) and style_prompt:
-            if not hf_key:
-                st.error("HF_TOKEN belum diatur di Streamlit Secrets!")
-            else:
-                with st.spinner("🌸 Yuki sedang menghubungkan ke server AI Hugging Face (mohon tunggu sebentar jika model sedang memuat)..."):
-                    try:
-                        image_bytes = style_file.getvalue()
-                        
-                        # Memanggil model InstructPix2Pix
-                        output_image = hf_client.image_to_image(
-                            image=image_bytes,
-                            prompt=style_prompt,
-                            model="timbrooks/instruct-pix2pix"
-                        )
-                        
-                        st.success("Berhasil diubah oleh AI!")
-                        st.image(output_image, caption=f"Hasil: {style_prompt}", use_container_width=True)
-                    except Exception as e:
-                        # Menampilkan detail error asli dari sistem agar kita tahu kendalanya
-                        st.error(f"Gagal memproses AI. Detail Error: {str(e)}")
+        if st.button("🪄 Terapkan Gaya", use_container_width=True):
+            with st.spinner("🌸 Yuki sedang memproses gaya fotomu..."):
+                if "Anime" in style_choice:
+                    # Efek Anime / Cel-Shaded dengan warna tajam
+                    img_proc = ImageOps.posterize(img_original, bits=4)
+                    img_proc = ImageEnhance.Color(img_proc).enhance(1.8)
+                    img_proc = ImageEnhance.Contrast(img_proc).enhance(1.2)
+                elif "Cyberpunk" in style_choice:
+                    # Efek Cyberpunk Neon (Kontras tinggi & warna mencolok)
+                    img_proc = ImageEnhance.Color(img_original).enhance(2.2)
+                    img_proc = ImageEnhance.Brightness(img_proc).enhance(1.1)
+                    img_proc = ImageEnhance.Contrast(img_proc).enhance(1.4)
+                elif "Oil Painting" in style_choice:
+                    # Efek Lukisan Cat Minyak Halus
+                    img_proc = img_original.filter(ImageFilter.SMOOTH_MORE)
+                    img_proc = img_proc.filter(ImageFilter.SMOOTH_MORE)
+                    img_proc = ImageEnhance.Color(img_proc).enhance(1.3)
+                else:
+                    # Sketsa Pensil Klasik
+                    gray = img_original.convert("L")
+                    inverted = ImageOps.invert(gray)
+                    blurred = inverted.filter(ImageFilter.GaussianBlur(radius=6))
+                    img_proc = Image.blend(gray, blurred, alpha=0.6)
+                
+                st.success("Berhasil diubah!")
+                st.image(img_proc, caption=f"Hasil Gaya: {style_choice}", use_container_width=True)
 # -------------------------------------------------------------
 # TAB 4: HD Upscale & Enhancer
 # -------------------------------------------------------------
