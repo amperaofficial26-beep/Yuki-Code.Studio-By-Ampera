@@ -181,7 +181,7 @@ def main():
                         
                         success = False
                         # Daftar percobaan model alternatif
-                        try_models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro', 'gemini-2.0-flash']
+                        try_models = ['gemini-3-flash-preview', 'gemini-1.5-pro', 'emini-3.1-flash-lite-preview']
                         
                         for m_name in try_models:
                             try:
