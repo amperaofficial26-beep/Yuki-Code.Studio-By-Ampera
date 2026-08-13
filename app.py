@@ -132,7 +132,7 @@ with tabs[2]:
     st.write("Mengubah foto asli secara akurat menggunakan model AI open-source gratis.")
     
     style_file = st.file_uploader("Upload foto kamu:", type=["jpg", "png", "jpeg"], key="hf_trans")
-    style_prompt = st.text_input("Gaya yang diinginkan (contoh: anime style, studio ghibli, oil painting):", key="hf_style")
+    style_prompt = st.text_input("Instruksi gaya (contoh: turn into anime style, make it an oil painting):", key="hf_style")
     
     if style_file:
         img_original = Image.open(style_file).convert("RGB")
@@ -142,18 +142,15 @@ with tabs[2]:
             if not hf_key:
                 st.error("HF_TOKEN belum diatur di Streamlit Secrets!")
             else:
-                with st.spinner("🌸 Yuki sedang mengirim foto ke server AI Hugging Face..."):
+                with st.spinner("🌸 Yuki sedang memproses foto dengan AI Hugging Face..."):
                     try:
-                        # Menggunakan model Stable Diffusion Image-to-Image gratis
-                        # Model: stabilityai/stable-diffusion-xl-base-1.0 atau yang khusus img2img
                         image_bytes = style_file.getvalue()
                         
-                        # Memanggil API Hugging Face untuk Image-to-Image
-                        # Menggunakan model open-source populer yang mendukung img2img
+                        # Menggunakan model InstructPix2Pix yang mendukung image-to-image
                         output_image = hf_client.image_to_image(
                             image=image_bytes,
-                            prompt=f"{style_prompt}, masterpiece, highly detailed",
-                            model="stabilityai/stable-diffusion-xl-base-1.0"
+                            prompt=style_prompt,
+                            model="timbrooks/instruct-pix2pix"
                         )
                         
                         st.success("Berhasil diubah oleh AI!")
