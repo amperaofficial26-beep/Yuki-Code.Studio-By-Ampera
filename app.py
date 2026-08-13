@@ -22,7 +22,7 @@ model_chat = None
 if google_key:
     genai.configure(api_key=google_key)
     # Coba gunakan model yang stabil dan ramah akun baru
-    for m_name in ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro']:
+    for m_name in ['gemini-3-flash-preview', 'gemini-1.5-pro', 'emini-3.1-flash-lite-preview']:
         try:
             model_chat = genai.GenerativeModel(m_name)
             break
