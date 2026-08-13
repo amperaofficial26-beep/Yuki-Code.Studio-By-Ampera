@@ -15,20 +15,19 @@ from io import BytesIO
 # Konfigurasi Halaman
 st.set_page_config(page_title="Yuki - AI Studio & Chat", page_icon="🌸", layout="centered")
 
-# Inisialisasi API Gemini secara otomatis (Mencari model yang aktif di akunmu)
+# Inisialisasi API Gemini secara langsung ke model stabil
 google_key = st.secrets.get("GOOGLE_API_KEY", "")
 model_chat = None
 
 if google_key:
     genai.configure(api_key=google_key)
-    try:
-        # Otomatis cari model pertama yang mendukung generateContent
-        for m in genai.list_models():
-            if 'generateContent' in m.supported_generation_methods:
-                model_chat = genai.GenerativeModel(m.name)
-                break
-    except Exception:
-        pass
+    # Coba gunakan model yang stabil dan ramah akun baru
+    for m_name in ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro']:
+        try:
+            model_chat = genai.GenerativeModel(m_name)
+            break
+        except Exception:
+            continue
     
     # Fallback darurat jika pemindaian gagal
     if not model_chat:
