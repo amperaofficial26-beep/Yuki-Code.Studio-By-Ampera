@@ -118,52 +118,48 @@ with tabs[1]:
             st.success("Berhasil dibuat!")
             st.image(img_url, caption=f"Format: {aspect_ratio} | Model: {model_name}", use_container_width=True)
 
+from huggingface_hub import InferenceClient
+
+# Inisialisasi Hugging Face Client dengan token gratis
+hf_key = st.secrets.get("HF_TOKEN", "")
+hf_client = InferenceClient(token=hf_key) if hf_key else None
+
 # -------------------------------------------------------------
-# TAB 3: AI Style (Transformasi Foto Asli dengan Efek Artistik)
+# TAB 3: AI Style (True Image-to-Image via Hugging Face)
 # -------------------------------------------------------------
 with tabs[2]:
-    st.subheader("Transformasi Gaya Foto Asli")
-    st.write("Mengubah foto yang kamu upload secara langsung ke dalam berbagai gaya artistik.")
+    st.subheader("Transformasi Gaya Foto (Hugging Face AI)")
+    st.write("Mengubah foto asli secara akurat menggunakan model AI open-source gratis.")
     
-    style_file = st.file_uploader("Upload foto kamu:", type=["jpg", "png", "jpeg"], key="trans_file")
-    style_choice = st.selectbox(
-        "Pilih Efek Gaya:", 
-        ["Anime / Posterized", "Classic Sketch (Sketsa Pensil)", "Oil Painting Smooth", "Cyberpunk Neon Glow"]
-    )
+    style_file = st.file_uploader("Upload foto kamu:", type=["jpg", "png", "jpeg"], key="hf_trans")
+    style_prompt = st.text_input("Gaya yang diinginkan (contoh: anime style, studio ghibli, oil painting):", key="hf_style")
     
     if style_file:
         img_original = Image.open(style_file).convert("RGB")
         st.image(img_original, caption="Foto Asli", width=300)
         
-        if st.button("🪄 Terapkan Gaya ke Foto", use_container_width=True):
-            with st.spinner("🌸 Yuki sedang mengubah gaya fotomu..."):
-                # Proses transformasi berdasarkan pilihan gaya menggunakan PIL
-                if "Posterized" in style_choice:
-                    # Efek ala anime / cel-shaded
-                    img_processed = ImageOps.posterize(img_original, bits=3)
-                    enhancer = ImageEnhance.Color(img_processed)
-                    img_processed = enhancer.enhance(1.5)
-                elif "Sketch" in style_choice:
-                    # Efek sketsa pensil hitam putih
-                    gray = img_original.convert("L")
-                    inverted = ImageOps.invert(gray)
-                    blurred = inverted.filter(ImageFilter.GaussianBlur(radius=5))
-                    img_processed = Image.blend(gray, blurred, alpha=0.5)
-                elif "Oil Painting" in style_choice:
-                    # Efek lukisan cat minyak halus
-                    img_processed = img_original.filter(ImageFilter.SMOOTH_MORE)
-                    img_processed = img_processed.filter(ImageFilter.SMOOTH_MORE)
-                    enhancer = ImageEnhance.Contrast(img_processed)
-                    img_processed = enhancer.enhance(1.2)
-                else:
-                    # Efek Cyberpunk Neon (Kontras & Warna Tajam)
-                    enhancer_color = ImageEnhance.Color(img_original)
-                    colored = enhancer_color.enhance(2.0)
-                    enhancer_bright = ImageEnhance.Brightness(colored)
-                    img_processed = enhancer_bright.enhance(1.1)
-                
-                st.success("Transformasi Selesai!")
-                st.image(img_processed, caption=f"Hasil Gaya: {style_choice}", use_container_width=True)
+        if st.button("🪄 Ubah Gaya dengan AI", use_container_width=True) and style_prompt:
+            if not hf_key:
+                st.error("HF_TOKEN belum diatur di Streamlit Secrets!")
+            else:
+                with st.spinner("🌸 Yuki sedang mengirim foto ke server AI Hugging Face..."):
+                    try:
+                        # Menggunakan model Stable Diffusion Image-to-Image gratis
+                        # Model: stabilityai/stable-diffusion-xl-base-1.0 atau yang khusus img2img
+                        image_bytes = style_file.getvalue()
+                        
+                        # Memanggil API Hugging Face untuk Image-to-Image
+                        # Menggunakan model open-source populer yang mendukung img2img
+                        output_image = hf_client.image_to_image(
+                            image=image_bytes,
+                            prompt=f"{style_prompt}, masterpiece, highly detailed",
+                            model="stabilityai/stable-diffusion-xl-base-1.0"
+                        )
+                        
+                        st.success("Berhasil diubah oleh AI!")
+                        st.image(output_image, caption=f"Hasil: {style_prompt}", use_container_width=True)
+                    except Exception as e:
+                        st.error(f"Gagal memproses AI: {e}")
 # -------------------------------------------------------------
 # TAB 4: HD Upscale & Enhancer
 # -------------------------------------------------------------
