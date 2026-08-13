@@ -1,52 +1,81 @@
 import streamlit as st
 from openai import OpenAI
+import requests
+from PIL import Image, ImageEnhance
+from io import BytesIO
+from rembg import remove
 
 # Konfigurasi Page
-st.set_page_config(page_title="Yuki AI", page_icon="🌸")
+st.set_page_config(page_title="Yuki AI Studio", page_icon="🌸", layout="centered")
 
-# Inisialisasi Client OpenAI (Universal untuk Groq)
+# Inisialisasi Groq API (Chat)
 groq_key = st.secrets.get("GROQ_API_KEY")
-client = OpenAI(
-    api_key=groq_key,
-    base_url="https://api.groq.com/openai/v1"
-)
+client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1")
 
-# UI Dasar
+# Styling Glassmorphism
+st.markdown("""
+    <style>
+    [data-testid="stAppViewContainer"] { background-color: #080514; }
+    .stTabs [data-baseweb="tab"] { background: rgba(20, 15, 35, 0.8) !important; color: #ff0080 !important; }
+    div.stButton > button { background: rgba(25, 15, 40, 0.9) !important; border: 1px solid #ff0080 !important; color: #ff0080 !important; }
+    </style>
+""", unsafe_allow_html=True)
+
+# Main App
 st.title("🌸 Yuki AI Studio")
+tabs = st.tabs(["✨ Generate", "🎨 Style", "⚡ Upscale", "✂️ Remove BG", "💬 Chat"])
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# TAB 1: Generate
+with tabs[0]:
+    prompt = st.text_input("Deskripsikan gambar:", key="gen")
+    if st.button("✨ Generate Gambar") and prompt:
+        encoded = requests.utils.quote(prompt)
+        st.image(f"https://image.pollinations.ai/prompt/{encoded}?nologo=true")
 
-# Tampilkan chat history
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+# TAB 2: Style
+with tabs[1]:
+    file = st.file_uploader("Upload foto:", type=["jpg", "png"], key="trans")
+    style = st.text_input("Gaya (misal: anime style):", key="style")
+    if file and style and st.button("🎨 Ubah Gaya"):
+        st.info("Fitur transformasi menggunakan AI image processing...")
+        # (Bisa dikombinasikan dengan API lain atau polliniations)
 
-# Input Chat
-if chat_input := st.chat_input("Ngobrol sama Yuki..."):
-    if not groq_key:
-        st.error("API Key belum diset di Streamlit Secrets!")
-        st.stop()
-        
-    # Tambah pesan user
-    st.session_state.messages.append({"role": "user", "content": chat_input})
-    with st.chat_message("user"):
-        st.markdown(chat_input)
+# TAB 3: Upscale (Lokal - Pillow)
+with tabs[2]:
+    up_file = st.file_uploader("Upload foto buram:", type=["jpg", "png"], key="up")
+    if up_file and st.button("⚡ Upscale"):
+        with st.spinner("Memperjelas..."):
+            img = Image.open(up_file).convert("RGB")
+            img = img.resize((img.width * 2, img.height * 2), Image.Resampling.LANCZOS)
+            img = ImageEnhance.Sharpness(img).enhance(2.0)
+            st.image(img, caption="Hasil Lebih Tajam")
+
+# TAB 4: Remove BG (Lokal - Rembg)
+with tabs[3]:
+    bg_file = st.file_uploader("Upload foto:", type=["jpg", "png"], key="bg")
+    if bg_file and st.button("✂️ Hapus Background"):
+        with st.spinner("Memotong..."):
+            res = remove(bg_file.getvalue())
+            st.image(res, caption="Hasil Transparan")
+
+# TAB 5: Chat (Groq - Anti Error)
+with tabs[4]:
+    if "messages" not in st.session_state: st.session_state.messages = []
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]): st.markdown(msg["content"])
     
-    # Respon AI
-    with st.chat_message("assistant"):
-        with st.spinner("Yuki sedang berpikir..."):
+    if chat_input := st.chat_input("Ngobrol..."):
+        st.session_state.messages.append({"role": "user", "content": chat_input})
+        with st.chat_message("user"): st.markdown(chat_input)
+        
+        with st.chat_message("assistant"):
             try:
-                # Menggunakan model llama-3.3-70b-versatile (Sangat pintar & cepat)
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
-                    messages=[
-                        {"role": "system", "content": "Kamu adalah Yuki, asisten AI pribadi yang ramah, hangat, dan sedikit bergaya anime/cyberpunk."},
-                        *st.session_state.messages
-                    ]
+                    messages=[{"role": "system", "content": "Kamu adalah Yuki."}, *st.session_state.messages]
                 )
                 reply = response.choices[0].message.content
                 st.markdown(reply)
                 st.session_state.messages.append({"role": "assistant", "content": reply})
             except Exception as e:
-                st.error(f"Waduh, Yuki pusing! {e}")
+                st.error(f"Yuki pusing: {e}")
