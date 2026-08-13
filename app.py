@@ -19,7 +19,7 @@ st.set_page_config(page_title="Yuki - AI Studio & Chat", page_icon="🌸", layou
 google_key = st.secrets.get("GOOGLE_API_KEY", "")
 if google_key:
     genai.configure(api_key=google_key)
-    model_chat = genai.GenerativeModel('gemini-1.5-flash')
+    model_chat = genai.GenerativeModel('gemini-2.0-flash')
 
 # Styling Tema Cyberpunk Anime Glassmorphism
 def set_ui_style():
