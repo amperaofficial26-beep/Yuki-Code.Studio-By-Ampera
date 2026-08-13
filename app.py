@@ -4,12 +4,11 @@ import requests
 from PIL import Image, ImageEnhance
 from io import BytesIO
 from rembg import remove
-import base64
 
 # Konfigurasi Halaman
 st.set_page_config(page_title="Yuki AI Studio", page_icon="🌸", layout="centered")
 
-# Inisialisasi Groq API (Chat & Vision)
+# Inisialisasi Groq API (Chat)
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
@@ -82,14 +81,13 @@ with tabs[0]:
                         st.error(f"Yuki pusing: {e}")
 
 # -------------------------------------------------------------
-# TAB 1: Text-to-Image (Dengan Pilihan Ukuran & Model Flux HD)
+# TAB 2: Text-to-Image (Dengan Pilihan Ukuran & Model Flux HD)
 # -------------------------------------------------------------
 with tabs[1]:
     st.subheader("Buat Gambar dari Teks (HD & Custom Ratio)")
     
     prompt = st.text_input("Deskripsikan gambar impianmu:", key="gen_prompt")
     
-    # Pilihan Ukuran / Rasio Gambar agar tidak portrait terus
     col1, col2 = st.columns(2)
     with col1:
         aspect_ratio = st.selectbox(
@@ -104,7 +102,6 @@ with tabs[1]:
     
     if st.button("✨ Generate Gambar", use_container_width=True) and prompt:
         with st.spinner("🌸 Yuki sedang meracik gambar beresolusi tinggi..."):
-            # Tentukan ukuran piksel berdasarkan pilihan user
             if "Landscape" in aspect_ratio:
                 width, height = 1280, 720
             elif "Portrait" in aspect_ratio:
@@ -112,10 +109,7 @@ with tabs[1]:
             else:
                 width, height = 1024, 1024
                 
-            # Ambil nama model yang dipilih
             model_name = "flux" if "flux" in ai_model else "seedling"
-            
-            # Otomatis tambahkan kata kunci detail agar tidak blur
             enhanced_prompt = f"{prompt}, highly detailed, sharp focus, masterpiece, 8k resolution"
             
             encoded = requests.utils.quote(enhanced_prompt)
@@ -123,47 +117,34 @@ with tabs[1]:
             
             st.success("Berhasil dibuat!")
             st.image(img_url, caption=f"Format: {aspect_ratio} | Model: {model_name}", use_container_width=True)
+
 # -------------------------------------------------------------
-# TAB 3: AI Style (Transformasi Gaya Foto + Groq Vision)
+# TAB 3: AI Style (Transformasi Gaya Seni - Stabil & Anti Error)
 # -------------------------------------------------------------
 with tabs[2]:
-    st.subheader("Transformasi Gaya Foto")
-    style_file = st.file_uploader("Upload foto kamu:", type=["jpg", "png", "jpeg"], key="trans_file")
-    style_input = st.text_input("Gaya (misal: anime style, cyberpunk, oil painting):", key="style_input")
+    st.subheader("Transformasi Gaya Seni Foto")
+    st.write("Pilih gaya artistik untuk menciptakan gambar baru yang terinspirasi dari tema pilihanmu.")
+    
+    style_file = st.file_uploader("Upload foto referensi (opsional):", type=["jpg", "png", "jpeg"], key="trans_file")
+    style_choice = st.selectbox(
+        "Pilih Gaya AI:", 
+        ["Anime Masterpiece", "Cyberpunk Neon", "Oil Painting Classic", "Pixel Art 8-bit", "Fantasy Concept Art", "Studio Ghibli Style"]
+    )
+    custom_desc = st.text_input("Tambahkan detail subjek (contoh: a cute cat wearing a hoodie):", key="custom_desc")
     
     if style_file:
-        st.image(style_file, caption="Foto Asli", width=300)
-        if st.button("🎨 Ubah Gaya", use_container_width=True) and style_input:
-            if not groq_key:
-                st.error("GROQ_API_KEY diperlukan untuk menganalisis foto!")
-            else:
-                with st.spinner("🌸 Yuki sedang menganalisis foto dan mengubah gayanya..."):
-                    try:
-                        bytes_data = style_file.getvalue()
-                        base64_image = base64.b64encode(bytes_data).decode('utf-8')
-                        data_url = f"data:image/jpeg;base64,{base64_image}"
-                        
-                        vision_response = client.chat.completions.create(
-                            model="llama-3.2-11b-vision-preview",
-                            messages=[
-                                {
-                                    "role": "user",
-                                    "content": [
-                                        {"type": "text", "text": "Describe this image in detail (subjects, action, setting, composition) for an art generator prompt."},
-                                        {"type": "image_url", "image_url": {"url": data_url}}
-                                    ]
-                                }
-                            ]
-                        )
-                        photo_desc = vision_response.choices[0].message.content
-                        final_prompt = f"{style_input}, {photo_desc}, masterpiece, highly detailed"
-                        encoded = requests.utils.quote(final_prompt)
-                        img_url = f"https://image.pollinations.ai/prompt/{encoded}?nologo=true"
-                        
-                        st.success("Berhasil diubah!")
-                        st.image(img_url, caption=f"Hasil Gaya: {style_input}", use_container_width=True)
-                    except Exception as e:
-                        st.error(f"Gagal memproses gaya foto: {e}")
+        st.image(style_file, caption="Foto Referensi", width=300)
+        
+    if st.button("🪄 Ubah & Buat Gaya Baru", use_container_width=True):
+        with st.spinner("🌸 Yuki sedang merender gaya artistiknya..."):
+            base_prompt = custom_desc if custom_desc else "a portrait"
+            final_prompt = f"{style_choice}, {base_prompt}, masterpiece, highly detailed, sharp focus, 8k"
+            
+            encoded = requests.utils.quote(final_prompt)
+            img_url = f"https://image.pollinations.ai/prompt/{encoded}?model=flux&nologo=true"
+            
+            st.success("Transformasi Gaya Selesai!")
+            st.image(img_url, caption=𝚏"Gaya: {style_choice}", use_container_width=True)
 
 # -------------------------------------------------------------
 # TAB 4: HD Upscale & Enhancer
@@ -198,7 +179,7 @@ with tabs[4]:
     bg_file = st.file_uploader("Upload foto untuk hapus background:", type=["jpg", "png", "jpeg"], key="bg_file")
     
     if bg_file:
-        st.image(style_file if 'style_file' in locals() else bg_file, caption="Foto Asli", width=300) # Fallback preview check
+        st.image(bg_file, caption="Foto Asli", width=300)
         if st.button("✂️ Hapus Background", use_container_width=True):
             with st.spinner("🌸 Yuki sedang memotong background dengan presisi..."):
                 input_bytes = bg_file.getvalue()
