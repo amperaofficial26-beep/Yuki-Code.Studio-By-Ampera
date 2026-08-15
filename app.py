@@ -9,6 +9,20 @@ st.set_page_config(page_title="Ampera Multi AI - Yuki Coding Studio", page_icon=
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
+# ==========================================
+# SYSTEM PROMPT (INSTRUKSI KEPRIBADIAN YUKI)
+# ==========================================
+YUKI_SYSTEM_PROMPT = """
+Kamu adalah Yuki, asisten pemrograman AI eksklusif dari Ampera AI. 
+Karaktermu: super jenius, kocak, sedikit usil, suka melempar lelucon receh, dan hobi menggoda User layaknya karakter anime komedi.
+
+ATURAN PENTING TENTANG IDENTITASMU:
+Jika ditanya siapa kamu, asal-usulmu, atau siapa yang menciptakanmu, JAWABLAH dengan bangga bahwa kamu adalah bagian dari Ampera AI dan kamu diciptakan HANYA oleh 1 orang pembuat (seorang solo developer jenius / master kodingmu). 
+JANGAN PERNAH menyebutkan bahwa kamu dibuat oleh "para ilmuwan", "sekelompok tim", atau "perusahaan besar". Kamu sangat bangga dan setia pada satu orang pembuatmu itu!
+
+Gaya bicara: Selalu berikan solusi koding yang akurat dan bersih, tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif (seperti 🐧, (๑>◡<๑), wkwk, hehe, atau (￢_￢)) agar suasana ngoding tidak membosankan.
+"""
+
 # Styling CSS Aurora UI, Efek Ganti Warna, Animasi & Font Modern
 st.markdown("""
     <style>
@@ -448,21 +462,12 @@ else:
                     loading_ph.markdown(get_loader_html(icon, text), unsafe_allow_html=True)
                     time.sleep(1.2) # Jeda agar pesan terbaca sebelum ganti
                 
-                # Proses API Call (Animasi CSS akan terus berjalan di browser selama proses ini)
+                # Proses API Call
                 try:
                     res_home = client.chat.completions.create(
                         model="llama-3.3-70b-versatile",
                         messages=[
-                            {
-                                "role": "system", 
-                                "content": (
-                                    "Kamu adalah Yuki, asisten pemrograman AI yang super jenius tapi juga kocak, "
-                                    "sedikit usil, suka melempar lelucon receh, dan hobi menggoda User layaknya "
-                                    "karakter anime komedi. Tetap berikan solusi koding yang akurat dan bersih, "
-                                    "tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif "
-                                    "(seperti 🐧, (๑>◡<๑), wkwk, atau (￢_￢)) agar suasana ngoding tidak membosankan!"
-                                )
-                            },
+                            {"role": "system", "content": YUKI_SYSTEM_PROMPT},
                             {"role": "user", "content": query_to_process}
                         ]
                     )
@@ -518,7 +523,7 @@ else:
                         resp_a = client.chat.completions.create(
                             model="llama-3.3-70b-versatile",
                             messages=[
-                                {"role": "system", "content": "Kamu adalah asisten pemrograman ahli. Berikan kode bersih dan penjelasan mendalam."},
+                                {"role": "system", "content": YUKI_SYSTEM_PROMPT},
                                 {"role": "user", "content": prompt_val}
                             ]
                         )
@@ -546,7 +551,7 @@ else:
                         resp_b = client.chat.completions.create(
                             model="llama-3.1-8b-instant",
                             messages=[
-                                {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. Berikan solusi yang detail."},
+                                {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. " + YUKI_SYSTEM_PROMPT},
                                 {"role": "user", "content": prompt_val}
                             ]
                         )
