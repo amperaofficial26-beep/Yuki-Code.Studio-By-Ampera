@@ -9,7 +9,7 @@ st.set_page_config(page_title="Yuki Coding Studio - Aurora Arena", page_icon="�
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS Aurora UI, Efek Ganti Warna Judul, & Pembersihan Total Background Bawah
+# Styling CSS Aurora UI, Efek Ganti Warna, Animasi Masuk Memukau, & Logo Arena
 st.markdown("""
     <style>
     @keyframes auroraBG {
@@ -24,6 +24,25 @@ st.markdown("""
         color: #f1f5f9;
     }
     
+    /* ANIMASI MASUK YANG MEMUKAU (ENTRANCE ANIMATION) */
+    @keyframes entranceAnim {
+        0% {
+            opacity: 0;
+            transform: translateY(25px) scale(0.98);
+            filter: blur(8px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0px);
+        }
+    }
+    
+    /* Menerapkan animasi masuk ke seluruh konten utama & elemen */
+    .main .block-container, [data-testid="stSidebar"] {
+        animation: entranceAnim 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
     /* ANIMASI JUDUL BERGANTI WARNA OTOMATIS */
     @keyframes colorShift {
         0% { color: #818cf8; }
@@ -31,8 +50,40 @@ st.markdown("""
         66% { color: #38bdf8; }
         100% { color: #818cf8; }
     }
-    h1, h2, h3, .sidebar-title {
+    h1, h2, h3 {
         animation: colorShift 6s ease infinite !important;
+    }
+    
+    /* STYLING LOGO & NAMA ARENA */
+    .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 6px 4px;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 14px;
+    }
+    @keyframes pulseGlow {
+        0%, 100% { box-shadow: 0 0 15px rgba(129, 140, 248, 0.4); border-color: rgba(129, 140, 248, 0.4); }
+        50% { box-shadow: 0 0 25px rgba(236, 72, 153, 0.7); border-color: rgba(236, 72, 153, 0.7); }
+    }
+    .logo-img {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        object-fit: cover;
+        animation: pulseGlow 3s infinite;
+        border: 1px solid rgba(129, 140, 248, 0.4);
+    }
+    .logo-text {
+        font-size: 1.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 0.08em;
+        font-family: monospace;
     }
     
     /* Sidebar Lembut & Tidak Kaku (Aurora Glassmorphism) */
@@ -44,16 +95,6 @@ st.markdown("""
     }
     [data-testid="stSidebar"] * {
         color: #e2e8f0 !important;
-    }
-    
-    .sidebar-title {
-        font-size: 1.2rem;
-        font-weight: 700;
-        margin-bottom: 1.2rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding-left: 4px;
     }
     
     .sidebar-section-header {
@@ -187,9 +228,11 @@ if "current_page" not in st.session_state:
 # SIDEBAR
 # -------------------------------------------------------------
 with st.sidebar:
+    # KOMPONEN LOGO DAN NAMA ARENA (Ganti URL src dengan gambar lokal/online logo Senpai)
     st.markdown("""
-        <div class="sidebar-title">
-            🏛️ Yuki Studio <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 400;">▼</span>
+        <div class="logo-container">
+            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop" class="logo-img" alt="Logo Arena">
+            <div class="logo-text">ARENA</div>
         </div>
     """, unsafe_allow_html=True)
     
@@ -268,7 +311,6 @@ if selected_menu == "🏠 Home Dashboard":
         if not groq_key:
             st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
         else:
-            # PROSES BERPIKIR SEKITAR 7 DETIK DENGAN KARAKTER ALYA YANG LUCU
             with st.status("🧠 Alya lagi nyari contekan dulu buat Senpai...", expanded=True) as status:
                 st.write("🔍 Menganalisis niat dan struktur koding Senpai...")
                 time.sleep(1.8)
@@ -302,7 +344,6 @@ if selected_menu == "🏠 Home Dashboard":
                     status.update(label="❌ Terjadi kesalahan saat memproses.", state="error", expanded=True)
                     response_text = f"Error: {e}"
             
-            # TEKS MUNCUL PERLAHAN (STREAMING TYPEWRITER EFFECT)
             st.markdown("---")
             stream_response(response_text)
 
