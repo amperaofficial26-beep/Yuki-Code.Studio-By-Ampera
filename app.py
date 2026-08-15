@@ -242,6 +242,50 @@ st.markdown("""
         font-size: 0.95rem;
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
     }
+    /* ========================================= */
+    /* ANIMASI LOADING KEREN (THINKING PROCESS)  */
+    /* ========================================= */
+    
+    /* Animasi muncul halus dari bawah (Fade In Up) */
+    @keyframes fadeInUp {
+        0% { opacity: 0; transform: translateY(15px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Animasi rotasi lambat untuk ikon gir */
+    @keyframes spinSlow {
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Animasi denyut bersinar untuk ikon lampu */
+    @keyframes pulseGlowIcon {
+        0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.4)); transform: scale(1); }
+        50% { filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9)); transform: scale(1.15); }
+    }
+    
+    /* Styling kontainer setiap langkah loading */
+    .loading-step {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.95rem;
+        color: #e2e8f0;
+        padding: 8px 0;
+        animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    .loading-icon {
+        font-size: 1.1rem;
+        display: inline-block;
+    }
+    
+    .icon-spin {
+        animation: spinSlow 3s linear infinite;
+    }
+    
+    .icon-pulse {
+        animation: pulseGlowIcon 1.5s ease-in-out infinite;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -290,7 +334,7 @@ else:
         st.markdown("""
             <div class="logo-container">
                 <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop" class="logo-img" alt="Logo Arena">
-                <div class="logo-text">ARENA</div>
+                <div class="logo-text">AMPERA MULTI AI</div>
             </div>
         """, unsafe_allow_html=True)
         
@@ -365,18 +409,47 @@ else:
         home_input = st.chat_input("Ask anything...")
         query_to_process = home_input if home_input else default_val
         
-        if query_to_process:
+      if query_to_process:
             if not groq_key:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             else:
+                # Mengganti nama Yuki menjadi Alya di status bar
                 with st.status("🧠 Yuki lagi nyari contekan dulu buat Kamu...", expanded=True) as status:
-                    st.write("🔍 Menganalisis niat dan struktur koding Kamu...")
+                    
+                    # Langkah 1: Normal Fade-in
+                    st.markdown("""
+                        <div class='loading-step'>
+                            <span class='loading-icon'>🔍</span> 
+                            <span>Menganalisis niat dan struktur koding Kamu...</span>
+                        </div>
+                    """, unsafe_allow_html=True)
                     time.sleep(1.8)
-                    st.write("⚙️ Memproses logika algoritma melalui Llama 3.3 (70B)...")
+                    
+                    # Langkah 2: Fade-in dengan ikon berputar (Gear)
+                    st.markdown("""
+                        <div class='loading-step'>
+                            <span class='loading-icon icon-spin'>⚙️</span> 
+                            <span>Memproses logika algoritma melalui Llama 3.3 (70B)...</span>
+                        </div>
+                    """, unsafe_allow_html=True)
                     time.sleep(2.0)
-                    st.write("💡 Aha! Ketemu celahnya (atau malah nambah bug baru, hehe)...")
+                    
+                    # Langkah 3: Fade-in dengan ikon menyala (Lamp)
+                    st.markdown("""
+                        <div class='loading-step'>
+                            <span class='loading-icon icon-pulse'>💡</span> 
+                            <span>Aha! Ketemu celahnya (atau malah nambah bug baru, hehe)...</span>
+                        </div>
+                    """, unsafe_allow_html=True)
                     time.sleep(2.0)
-                    st.write("✨ Persiapan akhir selesai.")
+                    
+                    # Langkah 4: Normal Fade-in
+                    st.markdown("""
+                        <div class='loading-step'>
+                            <span class='loading-icon'>✨</span> 
+                            <span>Persiapan akhir selesai.</span>
+                        </div>
+                    """, unsafe_allow_html=True)
                     time.sleep(1.2)
                     
                     try:
@@ -386,6 +459,7 @@ else:
                                 {
                                     "role": "system", 
                                     "content": (
+                                        # Nama diubah menjadi Alya
                                         "Kamu adalah Yuki, asisten pemrograman AI yang super jenius tapi juga kocak, "
                                         "sedikit usil, suka melempar lelucon receh, dan hobi menggoda User layaknya "
                                         "karakter anime komedi. Tetap berikan solusi koding yang akurat dan bersih, "
