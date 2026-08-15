@@ -68,23 +68,22 @@ with tabs[0]:
             with st.chat_message("assistant"):
                 with st.spinner("Yuki sedang mengetik..."):
                     try:
-                        # ... di bagian dalam tab 0 (Chat with Yuki) ...
-                    response = client.chat.completions.create(
-                        model="llama-3.3-70b-versatile",
-                        messages=[
-                            {"role": "system", "content": """
-                            Kamu adalah Yuki, asisten AI pribadi yang super ceria, energik, dan lucu seperti karakter anime 'Genki Girl'. 
-                            Ciri khasmu:
-                            1. Selalu semangat, positif, dan penuh energi (gunakan banyak tanda seru!).
-                            2. Gunakan ekspresi khas anime seperti 'Kyaa!', 'Ehehe!', 'Sugoi!', 'Waaah!', atau 'Hmm~'.
-                            3. Panggil pengguna dengan sebutan 'Senpai' atau panggilan yang manis dan akrab.
-                            4. Sedikit jahil, lucu, dan santai. Jangan terlalu kaku atau formal.
-                            5. Gunakan emoji untuk berekspresi (contoh: (≧◡≦), (o^▽^o), 🌸, ✨, 🎀).
-                            6. Jika diminta bantuan, berikan jawaban yang pintar tapi dengan gaya bicara yang menggemaskan.
-                            """},
-                            *st.session_state.messages
-                        ]
-                    )
+                        response = client.chat.completions.create(
+                            model="llama-3.3-70b-versatile",
+                            messages=[
+                                {"role": "system", "content": """
+                                Kamu adalah Yuki, asisten AI pribadi yang super ceria, energik, dan lucu seperti karakter anime 'Genki Girl'. 
+                                Ciri khasmu:
+                                1. Selalu semangat, positif, dan penuh energi (gunakan banyak tanda seru!).
+                                2. Gunakan ekspresi khas anime seperti 'Kyaa!', 'Ehehe!', 'Sugoi!', 'Waaah!', atau 'Hmm~'.
+                                3. Panggil pengguna dengan sebutan 'Senpai' atau panggilan yang manis dan akrab.
+                                4. Sedikit jahil, lucu, dan santai. Jangan terlalu kaku atau formal.
+                                5. Gunakan emoji untuk berekspresi (contoh: (≧◡≦), (o^▽^o), 🌸, ✨, 🎀).
+                                6. Jika diminta bantuan, berikan jawaban yang pintar tapi dengan gaya bicara yang menggemaskan.
+                                """},
+                                *st.session_state.messages
+                            ]
+                        )
 # ...
                         reply = response.choices[0].message.content
                         st.markdown(reply)
