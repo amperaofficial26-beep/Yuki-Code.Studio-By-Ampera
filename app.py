@@ -3,13 +3,13 @@ from openai import OpenAI
 import time
 
 # Konfigurasi Halaman
-st.set_page_config(page_title="Yuki Coding Studio - Aurora Arena", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Yuki Coding Studio - Ampera Multi AI", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
 
 # Inisialisasi Groq API
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS Aurora UI, Efek Ganti Warna, & Animasi Intro Pembuka
+# Styling CSS Aurora UI & Animasi Intro Pembuka
 st.markdown("""
     <style>
     @keyframes auroraBG {
@@ -47,28 +47,20 @@ st.markdown("""
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        height: 75vh;
+        height: 65vh;
         text-align: center;
         animation: splashIntro 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    .splash-logo {
-        width: 90px;
-        height: 90px;
-        border-radius: 22px;
-        object-fit: cover;
-        box-shadow: 0 0 35px rgba(129, 140, 248, 0.6);
-        border: 2px solid rgba(129, 140, 248, 0.5);
-        margin-bottom: 1.5rem;
-        animation: pulseGlow 3s infinite;
-    }
+    
     .splash-title {
-        font-size: 3rem;
+        font-size: 2.5rem;
         font-weight: 900;
         background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        letter-spacing: 0.15em;
+        letter-spacing: 0.1em;
         font-family: monospace;
+        margin-top: 1rem;
         margin-bottom: 0.5rem;
     }
     .splash-subtitle {
@@ -88,7 +80,7 @@ st.markdown("""
         animation: colorShift 6s ease infinite !important;
     }
     
-    /* STYLING LOGO & NAMA ARENA DI SIDEBAR */
+    /* STYLING LOGO & NAMA AMPERA DI SIDEBAR */
     .logo-container {
         display: flex;
         align-items: center;
@@ -102,21 +94,13 @@ st.markdown("""
         0%, 100% { box-shadow: 0 0 15px rgba(129, 140, 248, 0.4); border-color: rgba(129, 140, 248, 0.4); }
         50% { box-shadow: 0 0 25px rgba(236, 72, 153, 0.7); border-color: rgba(236, 72, 153, 0.7); }
     }
-    .logo-img {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        object-fit: cover;
-        animation: pulseGlow 3s infinite;
-        border: 1px solid rgba(129, 140, 248, 0.4);
-    }
     .logo-text {
-        font-size: 1.5rem;
+        font-size: 1.2rem;
         font-weight: 800;
         background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.05em;
         font-family: monospace;
     }
     
@@ -262,22 +246,30 @@ if "current_page" not in st.session_state:
     st.session_state["current_page"] = "🏠 Home Dashboard"
 
 # -------------------------------------------------------------
-# 1. HALAMAN INTRO PEMBUKA (SPLASH SCREEN DENGAN ANIMASI MASUK)
+# 1. HALAMAN INTRO PEMBUKA (SPLASH SCREEN DENGAN LOGO LOKAL PNG)
 # -------------------------------------------------------------
 if not st.session_state["has_entered"]:
+    st.markdown('<div class="splash-container">', unsafe_allow_html=True)
+    
+    # Menampilkan file logo.png lokal menggunakan Streamlit agar dijamin tampil
+    col_l1, col_l2, col_l3 = st.columns([3, 1.2, 3])
+    with col_l2:
+        try:
+            st.image("logo.png", width=100)
+        except Exception:
+            st.warning("⚠️ File 'logo.png' belum dimasukkan ke direktori proyek!")
+
     st.markdown("""
-        <div class="splash-container">
-            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&h=200&fit=crop" class="splash-logo" alt="Logo Arena">
-            <div class="splash-title">ARENA</div>
-            <div class="splash-subtitle">Yuki Coding Studio & AI Neural Engine</div>
+            <div class="splash-title">AMPERA MULTI AI</div>
+            <div class="splash-subtitle">Yuki Coding Studio & Neural Engine</div>
         </div>
     """, unsafe_allow_html=True)
     
     col_space1, col_btn, col_space2 = st.columns([2, 2, 2])
     with col_btn:
-        if st.button("🚀 MASUK KE ARENA", use_container_width=True):
+        if st.button("🚀 MASUK KE AMPERA", use_container_width=True):
             st.session_state["has_entered"] = True
-            st.rerun()  # Diperbaiki dari st.reruns() = st.rerun()
+            st.rerun()
             
 # -------------------------------------------------------------
 # 2. APLIKASI UTAMA SETELAH MASUK
@@ -287,12 +279,16 @@ else:
     # SIDEBAR
     # -------------------------------------------------------------
     with st.sidebar:
-        st.markdown("""
-            <div class="logo-container">
-                <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop" class="logo-img" alt="Logo Arena">
-                <div class="logo-text">ARENA</div>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div class="logo-container">', unsafe_allow_html=True)
+        col_s1, col_s2 = st.columns([1, 3])
+        with col_s1:
+            try:
+                st.image("logo.png", width=36)
+            except Exception:
+                st.write("🏛️")
+        with col_s2:
+            st.markdown('<div class="logo-text">AMPERA AI</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
         
         if st.button("🏠  Home Dashboard", use_container_width=True):
             st.session_state["current_page"] = "🏠 Home Dashboard"
@@ -409,7 +405,7 @@ else:
     # HALAMAN 2: ARENA BATTLE
     # -------------------------------------------------------------
     elif selected_menu == "⚔️ Arena Battle":
-        st.title("⚔️ Yuki Coding Arena (Model Battle)")
+        st.title("⚔️ Ampera Model Battle Arena")
         st.caption("Ketik perintah koding di bawah dan tekan **Enter** untuk menguji Llama 3.3 (70B) vs Llama 3.1 (8B) secara head-to-head!")
         
         arena_input = st.chat_input("Kirim pesan ke Arena Battle...")
@@ -504,7 +500,7 @@ else:
     # HALAMAN 3: LEADERBOARD
     # -------------------------------------------------------------
     elif selected_menu == "📊 Leaderboard":
-        st.title("📊 Arena Leaderboard")
+        st.title("📊 Ampera Leaderboard")
         st.write("Peringkat model AI berdasarkan performa koding dan voting pengguna:")
         st.markdown("""
         | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
