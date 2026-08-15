@@ -9,7 +9,7 @@ st.set_page_config(page_title="Yuki Coding Studio - Ampera.AI", page_icon="🏛�
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS Aurora UI & Kartu Login Tengah
+# Styling CSS Aurora UI & Kartu Menyatu Sempurna
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Cinzel:wght@700&display=swap');
@@ -35,6 +35,7 @@ st.markdown("""
         min-height: 85vh;
     }
     
+    /* KARTU LOGIN UTAMA (SEMUA ELEMEN DI DALAM SATU PERSEGI) */
     .login-card-box {
         background: rgba(15, 23, 42, 0.85);
         backdrop-filter: blur(20px);
@@ -53,6 +54,18 @@ st.markdown("""
         100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0px); }
     }
     
+    .login-logo-container {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        background: rgba(30, 41, 59, 0.9);
+        border-radius: 18px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        margin-bottom: 1.2rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+    
     .login-title-text {
         font-family: 'Cinzel', serif;
         font-size: 2.2rem;
@@ -61,7 +74,6 @@ st.markdown("""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         letter-spacing: 0.05em;
-        margin-top: 1rem;
         margin-bottom: 0.4rem;
     }
     .login-sub-text {
@@ -244,29 +256,34 @@ if "current_page" not in st.session_state:
     st.session_state["current_page"] = "🏠 Home Dashboard"
 
 # -------------------------------------------------------------
-# 1. HALAMAN INTRO PEMBUKA (KARTU LOGIN TENGAH RAPI)
+# 1. HALAMAN INTRO PEMBUKA (SEMUA DI DALAM SATU KARTU PERSEGI)
 # -------------------------------------------------------------
 if not st.session_state["has_entered"]:
-    # Menggunakan container tunggal agar terpusat sempurna
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
+        # Buka satu kotak kartu utama
         st.markdown('<div class="login-card-box">', unsafe_allow_html=True)
         
-        # Logo di tengah kartu
+        # Logo di dalam kartu
+        st.markdown('<div class="login-logo-container">', unsafe_allow_html=True)
         try:
-            st.image("logo.png", width=70)
+            st.image("logo.png", width=65)
         except Exception:
-            st.markdown("<div style='font-size: 2.5rem;'>🏛️</div>", unsafe_allow_html=True)
+            st.markdown("<span style='font-size: 2rem;'>🏛️</span>", unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
+        # Judul & Subteks di dalam kartu
         st.markdown("""
             <div class="login-title-text">Ampera.AI</div>
             <div class="login-sub-text">Masuk untuk melanjutkan ke Generator Laporan Otomatis</div>
         """, unsafe_allow_html=True)
         
+        # Tombol Masuk di dalam kartu
         if st.button("Masuk", use_container_width=True):
             st.session_state["has_entered"] = True
             st.rerun()
             
+        # Tutup kotak kartu utama
         st.markdown('</div>', unsafe_allow_html=True)
             
 # -------------------------------------------------------------
@@ -274,7 +291,7 @@ if not st.session_state["has_entered"]:
 # -------------------------------------------------------------
 else:
     # -------------------------------------------------------------
-    # SIDEBAR (PROFIL KARTU BUNDAR + VERSI v1.0.0)
+    # SIDEBAR (PROFIL KARTU BUNDAR DI DALAM SIDEBAR)
     # -------------------------------------------------------------
     with st.sidebar:
         st.markdown("""
