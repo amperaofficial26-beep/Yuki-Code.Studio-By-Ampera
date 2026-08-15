@@ -32,8 +32,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("💻 Yuki Dual-AI Coding Studio (DeepSeek + Mixtral)")
-st.write("Studio pemrograman dengan tenaga 2 AI cerdas khusus logika dan optimasi kode untuk Senpai! (≧◡≦) ✨")
+st.title("💻 Yuki Dual-AI Coding Studio")
+st.write("Studio pemrograman dengan tenaga 2 AI cerdas untuk Senpai! (≧◡≦) ✨")
 
 # Navigasi Tab
 tabs = st.tabs(["⚡ Dual AI Code Chat", "🛠️ Dual AI Code Debugger", "🚀 Quick Code Generator"])
@@ -42,8 +42,8 @@ tabs = st.tabs(["⚡ Dual AI Code Chat", "🛠️ Dual AI Code Debugger", "🚀 
 # TAB 1: Dual AI Code Chat
 # -------------------------------------------------------------
 with tabs[0]:
-    st.subheader("⚡ Tanya Coding ke DeepSeek & Mixtral")
-    st.write("DeepSeek-R1 akan memberikan penalaran logika mendalam, sementara Mixtral memberikan alternatif optimal!")
+    st.subheader("⚡ Tanya Coding ke 2 AI Sekaligus")
+    st.write("Dua model AI aktif akan memberikan analisis dan solusi kode terbaik dari sudut pandang berbeda!")
     
     code_prompt = st.text_area("Tuliskan pertanyaan atau masalah codingmu:", key="dual_chat_input", placeholder="Contoh: Buatkan algoritma QuickSort di Python beserta penjelasannya")
     
@@ -53,15 +53,15 @@ with tabs[0]:
         else:
             col1, col2 = st.columns(2)
             
-            # AI 1: DeepSeek-R1 (Master of Logic & Reasoning)
+            # AI 1: Llama 3.3 70B (Master of Logic & Reasoning)
             with col1:
-                st.markdown("### 🌸 AI 1: Yuki-DeepSeek (Logic & Code)")
-                with st.spinner("DeepSeek sedang berpikir dan merancang logika..."):
+                st.markdown("### 🌸 AI 1: Yuki-Llama 70B (Logic & Code)")
+                with st.spinner("AI 1 sedang berpikir dan merancang logika..."):
                     try:
                         res1 = client.chat.completions.create(
-                            model="deepseek-r1-distill-llama-70b",
+                            model="llama-3.3-70b-versatile",
                             messages=[
-                                {"role": "system", "content": "Kamu adalah Yuki versi Code Master yang didukung DeepSeek. Berikan penalaran logika yang matang, kode bersih, dan penjelasan terstruktur."},
+                                {"role": "system", "content": "Kamu adalah Yuki versi Code Master. Berikan penalaran logika yang matang, kode bersih, dan penjelasan terstruktur."},
                                 {"role": "user", "content": code_prompt}
                             ]
                         )
@@ -69,13 +69,13 @@ with tabs[0]:
                     except Exception as e:
                         st.error(f"Error AI 1: {e}")
             
-            # AI 2: Mixtral (Code Reviewer & Optimizer)
+            # AI 2: Llama 3.1 8B / Model Alternatif (Optimizer)
             with col2:
-                st.markdown("### ⚡ AI 2: Yuki-Mixtral (Optimizer)")
-                with st.spinner("Mixtral sedang mereview alternatif kode..."):
+                st.markdown("### ⚡ AI 2: Yuki-Llama 8B (Optimizer)")
+                with st.spinner("AI 2 sedang mereview alternatif kode..."):
                     try:
                         res2 = client.chat.completions.create(
-                            model="mixtral-8x7b-32768",
+                            model="llama-3.1-8b-instant",
                             messages=[
                                 {"role": "system", "content": "Kamu adalah Yuki versi Optimizer. Berikan sudut pandang alternatif, tips performa, atau ringkasan efisiensi dari kodingan tersebut."},
                                 {"role": "user", "content": code_prompt}
@@ -89,8 +89,8 @@ with tabs[0]:
 # TAB 2: Dual AI Code Debugger
 # -------------------------------------------------------------
 with tabs[1]:
-    st.subheader("🛠️ Debugging Kode dengan DeepSeek & Mixtral")
-    st.write("Temukan dan perbaiki bug dengan analisis tingkat tinggi dari dua model AI!")
+    st.subheader("🛠️ Debugging Kode dengan 2 AI")
+    st.write("Temukan dan perbaiki bug dengan analisis tingkat tinggi!")
     
     buggy_code = st.text_area("Paste kode yang error di sini:", key="buggy_code_input", height=150)
     error_desc = st.text_input("Pesan error (opsional):", key="error_desc_input", placeholder="Contoh: NameError: name 'x' is not defined")
@@ -104,11 +104,11 @@ with tabs[1]:
             col1, col2 = st.columns(2)
             
             with col1:
-                st.markdown("### 🌸 Solusi dari DeepSeek-R1")
+                st.markdown("### 🌸 Solusi dari AI 1 (70B)")
                 with st.spinner("Menganalisis akar masalah bug..."):
                     try:
                         fix1 = client.chat.completions.create(
-                            model="deepseek-r1-distill-llama-70b",
+                            model="llama-3.3-70b-versatile",
                             messages=[
                                 {"role": "system", "content": "Kamu adalah expert debugger. Analisis letak error secara mendalam, berikan kode yang sudah diperbaiki, dan jelaskan alasannya."},
                                 {"role": "user", "content": full_query}
@@ -119,11 +119,11 @@ with tabs[1]:
                         st.error(f"Error: {e}")
             
             with col2:
-                st.markdown("### ⚡ Solusi dari Mixtral")
+                st.markdown("### ⚡ Solusi dari AI 2 (8B)")
                 with st.spinner("Mengecek sudut pandang lain..."):
                     try:
                         fix2 = client.chat.completions.create(
-                            model="mixtral-8x7b-32768",
+                            model="llama-3.1-8b-instant",
                             messages=[
                                 {"role": "system", "content": "Kamu adalah expert code reviewer. Berikan cara pencegahan error serupa dan tips clean code."},
                                 {"role": "user", "content": full_query}
@@ -137,7 +137,7 @@ with tabs[1]:
 # TAB 3: Quick Code Generator
 # -------------------------------------------------------------
 with tabs[2]:
-    st.subheader("🚀 Generator Kode Cepat (DeepSeek)")
+    st.subheader("🚀 Generator Kode Cepat")
     st.write("Buat kerangka program atau fungsi spesifik secara instan.")
     
     lang = st.selectbox("Pilih Bahasa Pemrograman:", ["Python", "JavaScript / Node.js", "C++", "HTML/CSS/JS", "SQL"])
@@ -147,10 +147,10 @@ with tabs[2]:
         if not groq_key:
             st.error("API Key belum diatur!")
         else:
-            with st.spinner("🌸 DeepSeek sedang meracik kodenya untuk Senpai... (o^▽^o)"):
+            with st.spinner("🌸 Yuki sedang meracik kodenya untuk Senpai... (o^▽^o)"):
                 try:
                     res = client.chat.completions.create(
-                        model="deepseek-r1-distill-llama-70b",
+                        model="llama-3.3-70b-versatile",
                         messages=[
                             {"role": "system", "content": f"Kamu adalah AI pembuat kode handal. Berikan kode {lang} yang bersih, efisien, dan siap pakai."},
                             {"role": "user", "content": project_desc}
