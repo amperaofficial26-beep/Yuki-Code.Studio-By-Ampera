@@ -2,28 +2,39 @@ import streamlit as st
 from openai import OpenAI
 
 # Konfigurasi Halaman
-st.set_page_config(page_title="Yuki Coding Studio", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Yuki Coding Studio - Aurora Arena", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
 
 # Inisialisasi Groq API
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS agar kotak AI mirip Arena card dan gelembung chat user di kanan
+# Styling CSS Aurora UI, Background Berubah Lembut, & Tombol Bersinar
 st.markdown("""
     <style>
-    [data-testid="stSidebar"] {
-        background-color: #f9f9fb;
-        border-right: 1px solid #e5e7eb;
-        padding-top: 10px;
+    @keyframes auroraBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
     [data-testid="stAppViewContainer"] {
-        background-color: #ffffff;
-        color: #1f2937;
+        background: linear-gradient(-45deg, #0f172a, #1e1b4b, #312e81, #090d16);
+        background-size: 400% 400%;
+        animation: auroraBG 16s ease infinite;
+        color: #f1f5f9;
+    }
+    [data-testid="stSidebar"] {
+        background-color: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(12px);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 10px;
+    }
+    [data-testid="stSidebar"] * {
+        color: #e2e8f0 !important;
     }
     .sidebar-title {
         font-size: 1.25rem;
         font-weight: 700;
-        color: #111827;
+        color: #f8fafc;
         margin-bottom: 1rem;
         display: flex;
         align-items: center;
@@ -32,35 +43,57 @@ st.markdown("""
     .sidebar-menu-item {
         padding: 8px 12px;
         border-radius: 6px;
-        color: #374151;
+        color: #cbd5e1;
         font-weight: 500;
         cursor: pointer;
         display: flex;
         align-items: center;
         gap: 10px;
         margin-bottom: 4px;
+        transition: background 0.2s;
     }
     .sidebar-menu-item:hover {
-        background-color: #f3f4f6;
-        color: #111827;
+        background-color: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
     }
     .history-header {
         font-size: 0.85rem;
         font-weight: 600;
-        color: #6b7280;
+        color: #94a3b8;
         margin-top: 1.5rem;
         margin-bottom: 0.5rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
+    
+    /* Tombol Timbul & Bersinar (Aurora Glow Button) */
+    div.stButton > button {
+        background: rgba(30, 41, 59, 0.7) !important;
+        border: 1px solid rgba(129, 140, 248, 0.3) !important;
+        color: #f8fafc !important;
+        border-radius: 10px !important;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+    div.stButton > button:hover {
+        transform: translateY(-3px) scale(1.02);
+        border-color: #818cf8 !important;
+        color: #ffffff !important;
+        background: rgba(49, 46, 129, 0.85) !important;
+        box-shadow: 0 0 20px rgba(129, 140, 248, 0.6), 0 0 40px rgba(99, 102, 241, 0.4) !important;
+    }
+
     /* Styling Kartu Arena */
     .arena-card {
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 16px;
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        padding: 18px;
         margin-bottom: 16px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
     }
     .arena-header {
         display: flex;
@@ -69,11 +102,12 @@ st.markdown("""
         font-family: monospace;
         font-size: 0.95rem;
         font-weight: 600;
-        color: #1f2937;
-        border-bottom: 1px solid #f3f4f6;
+        color: #cbd5e1;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         padding-bottom: 10px;
         margin-bottom: 12px;
     }
+    
     /* Gelembung User di Kanan */
     .user-bubble-container {
         display: flex;
@@ -81,22 +115,13 @@ st.markdown("""
         margin-bottom: 20px;
     }
     .user-bubble {
-        background-color: #f3f4f6;
-        color: #1f2937;
-        padding: 10px 16px;
-        border-radius: 12px;
+        background: linear-gradient(135deg, #3b82f6, #6366f1);
+        color: #ffffff;
+        padding: 12px 18px;
+        border-radius: 14px;
         max-width: 70%;
         font-size: 0.95rem;
-    }
-    div.stButton > button {
-        background: #2563eb !important;
-        border: 1px solid #1d4ed8 !important;
-        color: #ffffff !important;
-        border-radius: 6px !important;
-        font-weight: 600;
-    }
-    div.stButton > button:hover {
-        background: #1d4ed8 !important;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
     }
     </style>
 """, unsafe_allow_html=True)
@@ -107,7 +132,7 @@ st.markdown("""
 with st.sidebar:
     st.markdown("""
         <div class="sidebar-title">
-            🏛️ Yuki Studio <span style="font-size: 0.9rem; color: #6b7280; font-weight: 400;">▼</span>
+            🏛️ Yuki Studio <span style="font-size: 0.9rem; color: #94a3b8; font-weight: 400;">▼</span>
         </div>
     """, unsafe_allow_html=True)
     
@@ -126,10 +151,10 @@ with st.sidebar:
 # HALAMAN 1: HOME DASHBOARD
 # -------------------------------------------------------------
 if selected_menu == "🏠 Home Dashboard":
-    st.markdown("<h1 style='text-align: center; color: #111827; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #6b7280; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; color: #f8fafc; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
     
-    st.markdown("<h4 style='color: #374151; font-weight: 600;'>Get started</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color: #e2e8f0; font-weight: 600;'>Get started</h4>", unsafe_allow_html=True)
     gc1, gc2, gc3 = st.columns(3)
     
     with gc1:
@@ -173,7 +198,7 @@ if selected_menu == "🏠 Home Dashboard":
                     st.error(f"Error: {e}")
 
 # -------------------------------------------------------------
-# HALAMAN 2: ARENA BATTLE (Model A vs Model B Cards)
+# HALAMAN 2: ARENA BATTLE
 # -------------------------------------------------------------
 elif selected_menu == "⚔️ Arena Battle":
     st.title("⚔️ Yuki Coding Arena (Model Battle)")
@@ -182,10 +207,8 @@ elif selected_menu == "⚔️ Arena Battle":
     arena_input = st.chat_input("Kirim pesan ke Arena Battle...")
     
     if arena_input:
-        # Simpan prompt user ke session state agar tetap tampil
         st.session_state["last_arena_prompt"] = arena_input
 
-    # Tampilkan prompt user dalam gelembung kanan jika ada
     if "last_arena_prompt" in st.session_state:
         prompt_val = st.session_state["last_arena_prompt"]
         st.markdown(f"""
