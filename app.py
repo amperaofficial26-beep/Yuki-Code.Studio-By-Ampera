@@ -277,7 +277,7 @@ if not st.session_state["has_entered"]:
     with col_btn:
         if st.button("🚀 MASUK KE ARENA", use_container_width=True):
             st.session_state["has_entered"] = True
-            st.reruns() = st.rerun() # type: ignore
+            st.rerun()  # Diperbaiki dari st.reruns() = st.rerun()
             
 # -------------------------------------------------------------
 # 2. APLIKASI UTAMA SETELAH MASUK
