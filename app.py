@@ -8,7 +8,7 @@ st.set_page_config(page_title="Yuki Coding Studio - Aurora Arena", page_icon="ðŸ
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS Aurora UI & Pembersihan Background Chat Input
+# Styling CSS Aurora UI & Pembersihan Total Background Bawah
 st.markdown("""
     <style>
     @keyframes auroraBG {
@@ -75,14 +75,17 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(129, 140, 248, 0.5), 0 0 35px rgba(99, 102, 241, 0.3) !important;
     }
 
-    /* MENGHILANGKAN GARIS/KOTAK HITAM DI BAWAH & MEMBUAT CHAT INPUT LONJONG ESTETIK */
+    /* MENYINGKIRKAN TOTAL BACKGROUND HITAM DI AREA BAWAH STREAMLIT */
+    [data-testid="stBottom"], 
+    [data-testid="stBottomBlockContainer"], 
     [data-testid="stChatInputContainer"] {
         background: transparent !important;
+        background-color: transparent !important;
         border-top: none !important;
+        box-shadow: none !important;
     }
-    [data-testid="stBottom"] {
-        background: transparent !important;
-    }
+    
+    /* KOTAK INPUT CHAT LONJONG ESTETIK */
     [data-testid="stChatInput"] {
         background: rgba(15, 23, 42, 0.85) !important;
         backdrop-filter: blur(16px) !important;
