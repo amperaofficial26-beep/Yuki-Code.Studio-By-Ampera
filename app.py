@@ -249,13 +249,16 @@ if selected_menu == "🏠 Home Dashboard":
         if not groq_key:
             st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
         else:
-            # TAMPILAN PROSES BERPIKIR AI (PROFESSIONAL THINKING PROCESS)
-            with st.status("🧠 Yuki sedang menganalisis perintah Senpai...", expanded=True) as status:
-                st.write("🔍 Menganalisis konteks dan struktur koding...")
-                time.sleep(0.6)
-                st.write("⚙️ Memuat model Llama 3.3 (70B) Groq Engine...")
-                time.sleep(0.6)
-                st.write("✨ Menyusun solusi terbaik dan bersih...")
+            # PROSES BERPIKIR TERPISAH DENGAN DELAY SEKITAR 7 DETIK
+            with st.status("🧠 Yuki sedang berpikir secara mendalam...", expanded=True) as status:
+                st.write("🔍 Menganalisis niat dan struktur koding Senpai...")
+                time.sleep(1.8)
+                st.write("⚙️ Memproses logika algoritma melalui Llama 3.3 (70B)...")
+                time.sleep(2.0)
+                st.write("🎨 Menyesuaikan tata letak dan praktik terbaik...")
+                time.sleep(2.0)
+                st.write("✨ Persiapan akhir selesai.")
+                time.sleep(1.2)
                 
                 try:
                     res_home = client.chat.completions.create(
@@ -265,11 +268,16 @@ if selected_menu == "🏠 Home Dashboard":
                             {"role": "user", "content": query_to_process}
                         ]
                     )
-                    status.update(label="✨ Berpikir selesai! Solusi siap disajikan.", state="complete", expanded=False)
-                    st.markdown(res_home.choices[0].message.content)
+                    status.update(label="✨ Proses berpikir selesai! Menampilkan jawaban...", state="complete", expanded=False)
+                    response_text = res_home.choices[0].message.content
                 except Exception as e:
                     status.update(label="❌ Terjadi kesalahan saat memproses.", state="error", expanded=True)
-                    st.error(f"Error: {e}")
+                    response_text = f"Error: {e}"
+            
+            # JAWABAN DITAMPILKAN TERPISAH DI BAWAH SETELAH PROSES BERPIKIR SELESAI
+            st.markdown("---")
+            st.markdown("### 💡 Hasil & Solusi:")
+            st.markdown(response_text)
 
 # -------------------------------------------------------------
 # HALAMAN 2: ARENA BATTLE
@@ -305,7 +313,9 @@ elif selected_menu == "⚔️ Arena Battle":
                         </div>
                 """, unsafe_allow_html=True)
                 
-                with st.status("🧠 Model A Thinking...", expanded=False) as status_a:
+                with st.status("🧠 Model A Thinking...", expanded=True) as status_a:
+                    st.write("Analisis mendalam model A...")
+                    time.sleep(3.0)
                     try:
                         resp_a = client.chat.completions.create(
                             model="llama-3.3-70b-versatile",
@@ -314,11 +324,14 @@ elif selected_menu == "⚔️ Arena Battle":
                                 {"role": "user", "content": prompt_val}
                             ]
                         )
-                        status_a.update(label="Model A Ready", state="complete")
-                        st.markdown(resp_a.choices[0].message.content)
+                        status_a.update(label="Model A Ready", state="complete", expanded=False)
+                        text_a = resp_a.choices[0].message.content
                     except Exception as e:
-                        status_a.update(label="Error", state="error")
-                        st.error(f"Error: {e}")
+                        status_a.update(label="Error", state="error", expanded=True)
+                        text_a = f"Error: {e}"
+                
+                st.markdown("---")
+                st.markdown(text_a)
                 st.markdown("</div>", unsafe_allow_html=True)
             
             with col_b:
@@ -330,7 +343,9 @@ elif selected_menu == "⚔️ Arena Battle":
                         </div>
                 """, unsafe_allow_html=True)
                 
-                with st.status("⚡ Model B Thinking...", expanded=False) as status_b:
+                with st.status("⚡ Model B Thinking...", expanded=True) as status_b:
+                    st.write("Analisis kilat model B...")
+                    time.sleep(2.0)
                     try:
                         resp_b = client.chat.completions.create(
                             model="llama-3.1-8b-instant",
@@ -339,11 +354,14 @@ elif selected_menu == "⚔️ Arena Battle":
                                 {"role": "user", "content": prompt_val}
                             ]
                         )
-                        status_b.update(label="Model B Ready", state="complete")
-                        st.markdown(resp_b.choices[0].message.content)
+                        status_b.update(label="Model B Ready", state="complete", expanded=False)
+                        text_b = resp_b.choices[0].message.content
                     except Exception as e:
-                        status_b.update(label="Error", state="error")
-                        st.error(f"Error: {e}")
+                        status_b.update(label="Error", state="error", expanded=True)
+                        text_b = f"Error: {e}"
+                
+                st.markdown("---")
+                st.markdown(text_b)
                 st.markdown("</div>", unsafe_allow_html=True)
             
             st.markdown("---")
