@@ -8,7 +8,7 @@ st.set_page_config(page_title="Yuki Coding Studio - Aurora Arena", page_icon="�
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS Aurora UI, Background Berubah Lembut, & Tombol Bersinar
+# Styling CSS Aurora UI & Sidebar Baru
 st.markdown("""
     <style>
     @keyframes auroraBG {
@@ -22,54 +22,44 @@ st.markdown("""
         animation: auroraBG 16s ease infinite;
         color: #f1f5f9;
     }
+    
+    /* Sidebar Lembut & Tidak Kaku (Aurora Glassmorphism) */
     [data-testid="stSidebar"] {
-        background-color: rgba(15, 23, 42, 0.85);
-        backdrop-filter: blur(12px);
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        background: linear-gradient(180deg, rgba(30, 27, 75, 0.55) 0%, rgba(15, 23, 42, 0.75) 100%);
+        backdrop-filter: blur(16px);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
         padding-top: 10px;
     }
     [data-testid="stSidebar"] * {
         color: #e2e8f0 !important;
     }
+    
     .sidebar-title {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
         font-weight: 700;
         color: #f8fafc;
-        margin-bottom: 1rem;
+        margin-bottom: 1.2rem;
         display: flex;
         align-items: center;
         gap: 8px;
-    }
-    .sidebar-menu-item {
-        padding: 8px 12px;
-        border-radius: 6px;
-        color: #cbd5e1;
-        font-weight: 500;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 4px;
-        transition: background 0.2s;
-    }
-    .sidebar-menu-item:hover {
-        background-color: rgba(255, 255, 255, 0.08);
-        color: #ffffff;
-    }
-    .history-header {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #94a3b8;
-        margin-top: 1.5rem;
-        margin-bottom: 0.5rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        padding-left: 4px;
     }
     
+    .sidebar-section-header {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #94a3b8;
+        margin-top: 1.8rem;
+        margin-bottom: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding-left: 4px;
+    }
+
     /* Tombol Timbul & Bersinar (Aurora Glow Button) */
     div.stButton > button {
-        background: rgba(30, 41, 59, 0.7) !important;
-        border: 1px solid rgba(129, 140, 248, 0.3) !important;
+        background: rgba(30, 41, 59, 0.65) !important;
+        border: 1px solid rgba(129, 140, 248, 0.25) !important;
         color: #f8fafc !important;
         border-radius: 10px !important;
         font-weight: 600;
@@ -78,11 +68,11 @@ st.markdown("""
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
     }
     div.stButton > button:hover {
-        transform: translateY(-3px) scale(1.02);
+        transform: translateY(-2px) scale(1.01);
         border-color: #818cf8 !important;
         color: #ffffff !important;
         background: rgba(49, 46, 129, 0.85) !important;
-        box-shadow: 0 0 20px rgba(129, 140, 248, 0.6), 0 0 40px rgba(99, 102, 241, 0.4) !important;
+        box-shadow: 0 0 20px rgba(129, 140, 248, 0.5), 0 0 35px rgba(99, 102, 241, 0.3) !important;
     }
 
     /* Styling Kartu Arena */
@@ -126,26 +116,53 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Inisialisasi Session State untuk navigasi
+if "current_page" not in st.session_state:
+    st.session_state["current_page"] = "🏠 Home Dashboard"
+
 # -------------------------------------------------------------
-# SIDEBAR ALA ARENA
+# SIDEBAR ALA GAMBAR REFERENSI (Clean & Modern Aurora)
 # -------------------------------------------------------------
 with st.sidebar:
     st.markdown("""
         <div class="sidebar-title">
-            🏛️ Yuki Studio <span style="font-size: 0.9rem; color: #94a3b8; font-weight: 400;">▼</span>
+            🏛️ Yuki Studio <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 400;">▼</span>
         </div>
     """, unsafe_allow_html=True)
     
-    selected_menu = st.radio(
-        "Menu Utama",
-        ["🏠 Home Dashboard", "⚔️ Arena Battle", "📊 Leaderboard", "🔍 Search"],
-        label_visibility="collapsed"
-    )
+    # Tombol Menu Utama Sidebar
+    if st.button("🏠  Home Dashboard", use_container_width=True):
+        st.session_state["current_page"] = "🏠 Home Dashboard"
+        st.rerun()
+        
+    if st.button("⚔️  Arena Battle", use_container_width=True):
+        st.session_state["current_page"] = "⚔️ Arena Battle"
+        st.rerun()
+        
+    if st.button("📊  Leaderboard", use_container_width=True):
+        st.session_state["current_page"] = "📊 Leaderboard"
+        st.rerun()
+        
+    if st.button("🔍  Search", use_container_width=True):
+        st.session_state["current_page"] = "🔍 Search"
+        st.rerun()
     
-    st.markdown("---")
-    st.markdown('<div class="history-header">Yesterday</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sidebar-menu-item">⚡ Python Binary Search</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sidebar-menu-item">🛠️ Fix Bug Index Error</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-section-header">Notebook</div>', unsafe_allow_html=True)
+    if st.button("➕  Notebook baru", use_container_width=True):
+        st.info("Fitur Notebook baru dipilih!")
+
+    st.markdown('<div class="sidebar-section-header">Yesterday</div>', unsafe_allow_html=True)
+    if st.button("⚡  Python Binary Search", use_container_width=True):
+        st.session_state["current_page"] = "🏠 Home Dashboard"
+        st.session_state["shortcut_prompt"] = "Jelaskan kembali tentang Python Binary Search."
+        st.rerun()
+        
+    if st.button("🛠️  Fix Bug Index Error", use_container_width=True):
+        st.session_state["current_page"] = "🏠 Home Dashboard"
+        st.session_state["shortcut_prompt"] = "Bagaimana cara mengatasi IndexError di Python?"
+        st.rerun()
+
+selected_menu = st.session_state["current_page"]
 
 # -------------------------------------------------------------
 # HALAMAN 1: HOME DASHBOARD
@@ -160,20 +177,26 @@ if selected_menu == "🏠 Home Dashboard":
     with gc1:
         if st.button("🌐 **Landing Page**\n\nCreate a modern landing page", use_container_width=True):
             st.session_state["shortcut_prompt"] = "Buatkan kode landing page modern menggunakan HTML dan Tailwind CSS."
+            st.rerun()
         if st.button("💻 **Design to Code**\n\nUpload an image and convert", use_container_width=True):
             st.session_state["shortcut_prompt"] = "Bagaimana cara mengubah desain UI menjadi kode program?"
+            st.rerun()
             
     with gc2:
         if st.button("📊 **Dashboard**\n\nInteractive charts & tables", use_container_width=True):
             st.session_state["shortcut_prompt"] = "Buatkan kerangka aplikasi dashboard interaktif menggunakan Python Streamlit."
+            st.rerun()
         if st.button("📦 **Fullstack App**\n\nCreate templated full-stack app", use_container_width=True):
             st.session_state["shortcut_prompt"] = "Berikan arsitektur dasar untuk aplikasi web fullstack."
+            st.rerun()
             
     with gc3:
         if st.button("🎮 **Make a Game**\n\nPlayable browser game", use_container_width=True):
             st.session_state["shortcut_prompt"] = "Buatkan game sederhana menggunakan HTML5 Canvas dan JavaScript."
+            st.rerun()
         if st.button("🏪 **Storefront**\n\nCreate online shop layout", use_container_width=True):
             st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
+            st.rerun()
 
     default_val = st.session_state.pop("shortcut_prompt", "")
     home_input = st.chat_input("Ask anything... (Tekan Enter untuk mengirim)")
