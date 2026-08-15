@@ -111,29 +111,28 @@ st.markdown("""
         object-fit: cover;
         animation: pulseGlow 3s infinite;
         border: 1px solid rgba(129, 140, 248, 0.4);
-        flex-shrink: 0; /* Mencegah gambar mengecil */
+        flex-shrink: 0;
     }
     .logo-text {
-        font-size: 1.25rem; /* Ukuran diperkecil agar muat 1 baris */
+        font-size: 1.25rem;
         font-weight: 700;
         background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         font-family: 'Poppins', sans-serif;
         line-height: 1.2;
-        white-space: nowrap; /* Memaksa teks tetap dalam 1 baris */
+        white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis; /* Menambahkan titik-titik jika masih kepanjangan di layar sangat sempit */
+        text-overflow: ellipsis;
     }
     
-    /* Sidebar Lembut & Tidak Kaku (Aurora Glassmorphism) */
+    /* Sidebar Lembut & Tidak Kaku */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, rgba(30, 27, 75, 0.55) 0%, rgba(15, 23, 42, 0.75) 100%);
         backdrop-filter: blur(16px);
         border-right: 1px solid rgba(255, 255, 255, 0.08);
         padding-top: 10px;
     }
-    /* Set warna teks di sidebar, kecuali untuk tombol collapse */
     [data-testid="stSidebar"] div:not(.st-emotion-cache-1104q3y):not([data-testid="stSidebarCollapseButton"]) {
         color: #e2e8f0;
     }
@@ -150,7 +149,7 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
 
-    /* Tombol Timbul & Bersinar (Aurora Glow Button) */
+    /* Tombol Timbul & Bersinar */
     div.stButton > button {
         background: rgba(30, 41, 59, 0.65) !important;
         border: 1px solid rgba(129, 140, 248, 0.25) !important;
@@ -170,10 +169,8 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(129, 140, 248, 0.5), 0 0 35px rgba(99, 102, 241, 0.3) !important;
     }
 
-    /* MEMAKSA SEMUA PEMBUNGKUS BAWAH MENJADI TRANSPARAN TOTAL */
-    [data-testid="stBottom"], 
-    [data-testid="stBottomBlockContainer"], 
-    [data-testid="stChatInputContainer"] {
+    /* Memaksa pembungkus bawah menjadi transparan */
+    [data-testid="stBottom"], [data-testid="stBottomBlockContainer"], [data-testid="stChatInputContainer"] {
         background: transparent !important;
         background-color: transparent !important;
         border-top: none !important;
@@ -254,49 +251,66 @@ st.markdown("""
     }
     
     /* ========================================= */
-    /* ANIMASI LOADING KEREN (THINKING PROCESS)  */
+    /* ANIMASI LOADING BAR BERJALAN (TANPA KOTAK)*/
     /* ========================================= */
     
-    @keyframes fadeInUp {
-        0% { opacity: 0; transform: translateY(15px); }
-        100% { opacity: 1; transform: translateY(0); }
+    .dynamic-loader-wrapper {
+        margin: 20px 0 30px 0;
+        padding: 0 10px;
     }
-    
-    @keyframes spinSlow {
-        100% { transform: rotate(360deg); }
-    }
-    
-    @keyframes pulseGlowIcon {
-        0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.4)); transform: scale(1); }
-        50% { filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9)); transform: scale(1.15); }
-    }
-    
-    .loading-step {
+    .dynamic-loader-text {
+        font-family: 'Inter', sans-serif;
+        color: #e2e8f0;
+        font-size: 0.95rem;
+        margin-bottom: 12px;
         display: flex;
         align-items: center;
         gap: 12px;
-        font-size: 0.95rem;
-        color: #e2e8f0;
-        padding: 8px 0;
-        animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation: fadeInText 0.4s ease-in-out;
+    }
+    .dynamic-loader-track {
+        width: 100%;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+    }
+    .dynamic-loader-runner {
+        position: absolute;
+        width: 35%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, #818cf8, #ec4899, #38bdf8, transparent);
+        border-radius: 4px;
+        animation: runnerDash 1.5s infinite linear;
     }
     
-    .loading-icon {
-        font-size: 1.1rem;
-        display: inline-block;
+    @keyframes runnerDash {
+        0% { left: -35%; }
+        100% { left: 100%; }
     }
-    
-    .icon-spin {
-        animation: spinSlow 3s linear infinite;
-    }
-    
-    .icon-pulse {
-        animation: pulseGlowIcon 1.5s ease-in-out infinite;
+    @keyframes fadeInText {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Fungsi untuk efek teks muncul perlahan (Typewriter Effect)
+# Fungsi untuk memunculkan HTML Loader
+def get_loader_html(icon, text):
+    return f"""
+        <div class="dynamic-loader-wrapper">
+            <div class="dynamic-loader-text">
+                <span style="font-size: 1.3rem;">{icon}</span>
+                <span>{text}</span>
+            </div>
+            <div class="dynamic-loader-track">
+                <div class="dynamic-loader-runner"></div>
+            </div>
+        </div>
+    """
+
+# Fungsi untuk efek teks muncul perlahan
 def stream_response(text):
     placeholder = st.empty()
     streamed = ""
@@ -305,15 +319,16 @@ def stream_response(text):
         placeholder.markdown(streamed)
         time.sleep(0.015)
 
-# Inisialisasi Session State untuk Intro & Navigasi
+# Inisialisasi Session State
 if "has_entered" not in st.session_state:
     st.session_state["has_entered"] = False
 
 if "current_page" not in st.session_state:
     st.session_state["current_page"] = "🏠 Home Dashboard"
 
+
 # -------------------------------------------------------------
-# 1. HALAMAN INTRO PEMBUKA (SPLASH SCREEN DENGAN ANIMASI MASUK)
+# 1. HALAMAN INTRO PEMBUKA
 # -------------------------------------------------------------
 if not st.session_state["has_entered"]:
     st.markdown("""
@@ -334,9 +349,6 @@ if not st.session_state["has_entered"]:
 # 2. APLIKASI UTAMA SETELAH MASUK
 # -------------------------------------------------------------
 else:
-    # -------------------------------------------------------------
-    # SIDEBAR
-    # -------------------------------------------------------------
     with st.sidebar:
         st.markdown("""
             <div class="logo-container">
@@ -420,63 +432,48 @@ else:
             if not groq_key:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             else:
-                with st.status("🧠 Yuki lagi nyari contekan dulu buat Kamu...", expanded=True) as status:
-                    
-                    st.markdown("""
-                        <div class='loading-step'>
-                            <span class='loading-icon'>🔍</span> 
-                            <span>Menganalisis niat dan struktur koding Kamu...</span>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    time.sleep(1.8)
-                    
-                    st.markdown("""
-                        <div class='loading-step'>
-                            <span class='loading-icon icon-spin'>⚙️</span> 
-                            <span>Memproses logika algoritma melalui Llama 3.3 (70B)...</span>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    time.sleep(2.0)
-                    
-                    st.markdown("""
-                        <div class='loading-step'>
-                            <span class='loading-icon icon-pulse'>💡</span> 
-                            <span>Aha! Ketemu celahnya (atau malah nambah bug baru, hehe)...</span>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    time.sleep(2.0)
-                    
-                    st.markdown("""
-                        <div class='loading-step'>
-                            <span class='loading-icon'>✨</span> 
-                            <span>Persiapan akhir selesai.</span>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    time.sleep(1.2)
-                    
-                    try:
-                        res_home = client.chat.completions.create(
-                            model="llama-3.3-70b-versatile",
-                            messages=[
-                                {
-                                    "role": "system", 
-                                    "content": (
-                                        "Kamu adalah Yuki, asisten pemrograman AI yang super jenius tapi juga kocak, "
-                                        "sedikit usil, suka melempar lelucon receh, dan hobi menggoda User layaknya "
-                                        "karakter anime komedi. Tetap berikan solusi koding yang akurat dan bersih, "
-                                        "tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif "
-                                        "(seperti 🐧, (๑>◡<๑), wkwk, atau (￢_￢)) agar suasana ngoding tidak membosankan!"
-                                    )
-                                },
-                                {"role": "user", "content": query_to_process}
-                            ]
-                        )
-                        status.update(label="✨ Proses berpikir selesai!", state="complete", expanded=False)
-                        response_text = res_home.choices[0].message.content
-                    except Exception as e:
-                        status.update(label="❌ Terjadi kesalahan saat memproses.", state="error", expanded=True)
-                        response_text = f"Error: {e}"
+                # Membuat tempat kosong (placeholder) untuk animasi loading
+                loading_ph = st.empty()
                 
+                # Daftar pesan loading
+                loading_steps = [
+                    ("🔍", "Menganalisis niat dan struktur koding Kamu..."),
+                    ("⚙️", "Memproses logika algoritma melalui Llama 3.3 (70B)..."),
+                    ("💡", "Aha! Menyelaraskan referensi sintaksis dengan database..."),
+                    ("✨", "Menulis baris kode terbaik untukmu...")
+                ]
+                
+                # Looping pesan agar bergantian satu per satu
+                for icon, text in loading_steps:
+                    loading_ph.markdown(get_loader_html(icon, text), unsafe_allow_html=True)
+                    time.sleep(1.2) # Jeda agar pesan terbaca sebelum ganti
+                
+                # Proses API Call (Animasi CSS akan terus berjalan di browser selama proses ini)
+                try:
+                    res_home = client.chat.completions.create(
+                        model="llama-3.3-70b-versatile",
+                        messages=[
+                            {
+                                "role": "system", 
+                                "content": (
+                                    "Kamu adalah Yuki, asisten pemrograman AI yang super jenius tapi juga kocak, "
+                                    "sedikit usil, suka melempar lelucon receh, dan hobi menggoda User layaknya "
+                                    "karakter anime komedi. Tetap berikan solusi koding yang akurat dan bersih, "
+                                    "tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif "
+                                    "(seperti 🐧, (๑>◡<๑), wkwk, atau (￢_￢)) agar suasana ngoding tidak membosankan!"
+                                )
+                            },
+                            {"role": "user", "content": query_to_process}
+                        ]
+                    )
+                    response_text = res_home.choices[0].message.content
+                except Exception as e:
+                    response_text = f"❌ Ups, terjadi kesalahan: {e}"
+                
+                # Setelah selesai, hilangkan animasi loading sepenuhnya
+                loading_ph.empty()
+                
+                # Tampilkan garis batas dan output
                 st.markdown("---")
                 stream_response(response_text)
 
@@ -514,24 +511,22 @@ else:
                             </div>
                     """, unsafe_allow_html=True)
                     
-                    with st.status("🧠 Model A Thinking...", expanded=True) as status_a:
-                        st.write("Analisis mendalam model A...")
-                        time.sleep(3.0)
-                        try:
-                            resp_a = client.chat.completions.create(
-                                model="llama-3.3-70b-versatile",
-                                messages=[
-                                    {"role": "system", "content": "Kamu adalah asisten pemrograman ahli. Berikan kode bersih dan penjelasan mendalam."},
-                                    {"role": "user", "content": prompt_val}
-                                ]
-                            )
-                            status_a.update(label="Model A Ready", state="complete", expanded=False)
-                            text_a = resp_a.choices[0].message.content
-                        except Exception as e:
-                            status_a.update(label="Error", state="error", expanded=True)
-                            text_a = f"Error: {e}"
+                    loading_a = st.empty()
+                    loading_a.markdown(get_loader_html("🧠", "Model A sedang berpikir keras..."), unsafe_allow_html=True)
                     
-                    st.markdown("---")
+                    try:
+                        resp_a = client.chat.completions.create(
+                            model="llama-3.3-70b-versatile",
+                            messages=[
+                                {"role": "system", "content": "Kamu adalah asisten pemrograman ahli. Berikan kode bersih dan penjelasan mendalam."},
+                                {"role": "user", "content": prompt_val}
+                            ]
+                        )
+                        text_a = resp_a.choices[0].message.content
+                    except Exception as e:
+                        text_a = f"Error: {e}"
+                        
+                    loading_a.empty()
                     st.markdown(text_a)
                     st.markdown("</div>", unsafe_allow_html=True)
                 
@@ -544,24 +539,22 @@ else:
                             </div>
                     """, unsafe_allow_html=True)
                     
-                    with st.status("⚡ Model B Thinking...", expanded=True) as status_b:
-                        st.write("Analisis kilat model B...")
-                        time.sleep(2.0)
-                        try:
-                            resp_b = client.chat.completions.create(
-                                model="llama-3.1-8b-instant",
-                                messages=[
-                                    {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. Berikan solusi yang detail."},
-                                    {"role": "user", "content": prompt_val}
-                                ]
-                            )
-                            status_b.update(label="Model B Ready", state="complete", expanded=False)
-                            text_b = resp_b.choices[0].message.content
-                        except Exception as e:
-                            status_b.update(label="Error", state="error", expanded=True)
-                            text_b = f"Error: {e}"
+                    loading_b = st.empty()
+                    loading_b.markdown(get_loader_html("⚡", "Model B sedang menyusun kode..."), unsafe_allow_html=True)
                     
-                    st.markdown("---")
+                    try:
+                        resp_b = client.chat.completions.create(
+                            model="llama-3.1-8b-instant",
+                            messages=[
+                                {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. Berikan solusi yang detail."},
+                                {"role": "user", "content": prompt_val}
+                            ]
+                        )
+                        text_b = resp_b.choices[0].message.content
+                    except Exception as e:
+                        text_b = f"Error: {e}"
+                        
+                    loading_b.empty()
                     st.markdown(text_b)
                     st.markdown("</div>", unsafe_allow_html=True)
                 
