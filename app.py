@@ -1,218 +1,168 @@
 import streamlit as st
 from openai import OpenAI
-import requests
-from PIL import Image, ImageEnhance
-from io import BytesIO
-from rembg import remove
-from PIL import Image, ImageEnhance, ImageOps, ImageFilter
 
 # Konfigurasi Halaman
-st.set_page_config(page_title="Yuki AI Studio", page_icon="🌸", layout="centered")
+st.set_page_config(page_title="Yuki Dual-AI Coding Studio", page_icon="💻", layout="wide")
 
 # Inisialisasi Groq API (Chat)
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling Tema Cyberpunk Anime Glassmorphism
+# Styling Tema Cyberpunk Coding Glassmorphism
 st.markdown("""
     <style>
     [data-testid="stAppViewContainer"] {
         background-color: #080514;
-        background-image: radial-gradient(circle at 2px 2px, rgba(255, 0, 128, 0.25) 1.5px, transparent 0);
-        background-size: 50px 50px;
+        background-image: radial-gradient(circle at 2px 2px, rgba(0, 255, 204, 0.15) 1.5px, transparent 0);
+        background-size: 40px 40px;
     }
     [data-testid="stMainBlockContainer"] { background: transparent !important; }
     .stTabs [data-baseweb="tab"] {
         background: rgba(20, 15, 35, 0.8) !important;
-        border: 1px solid rgba(255, 0, 128, 0.3) !important;
-        color: #ff0080 !important;
+        border: 1px solid rgba(0, 255, 204, 0.3) !important;
+        color: #00ffcc !important;
         border-radius: 10px !important;
     }
     div.stButton > button {
-        background: rgba(25, 15, 40, 0.9) !important;
-        border: 1px solid rgba(255, 0, 128, 0.5) !important;
-        color: #ff0080 !important;
+        background: rgba(15, 30, 40, 0.9) !important;
+        border: 1px solid rgba(0, 255, 204, 0.5) !important;
+        color: #00ffcc !important;
         border-radius: 12px !important;
+    }
+    .ai-card {
+        background: rgba(20, 25, 45, 0.7);
+        border: 1px solid rgba(0, 255, 204, 0.2);
+        padding: 20px;
+        border-radius: 15px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🌸 Yuki AI Studio & Photo Suite")
-st.write("Asisten chat cerdas dan studio editor foto lengkap dalam satu tempat!")
+st.title("💻 Yuki Dual-AI Coding Studio")
+st.write("Asisten pemrograman super pintar dengan tenaga 2 AI sekaligus (Llama 3.3 & Mixtral) untuk Senpai! (≧◡≦) ✨")
 
-# Navigasi Tab Lengkap
-tabs = st.tabs(["💬 Chat with Yuki", "✨ Text-to-Image", "🪄 AI Style", "⚡ HD Upscale", "✂️ Remove BG"])
+# Navigasi Tab
+tabs = st.tabs(["⚡ Dual AI Code Chat", "🛠️ Dual AI Code Debugger & Fixer", "🚀 Quick Code Generator"])
 
 # -------------------------------------------------------------
-# TAB 1: Chat with Yuki (Groq Llama 3.3)
+# TAB 1: Dual AI Code Chat (Dua AI menjawab bersamaan)
 # -------------------------------------------------------------
 with tabs[0]:
-    st.subheader("💬 Ngobrol dengan Yuki")
-    st.write("Tanya apa saja atau minta bantuan seputar ide kreatif!")
+    st.subheader("⚡ Tanya Coding ke 2 AI Sekaligus")
+    st.write("Ketik pertanyaan pemrogramanmu, dan lihat bagaimana dua AI menganalisisnya dari sudut pandang berbeda!")
     
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    code_prompt = st.text_area("Tuliskan pertanyaan, algoritma, atau masalah codingmu di sini:", key="dual_chat_input", placeholder="Contoh: Bagaimana cara membuat fungsi binary search di Python?")
     
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-    
-    if chat_input := st.chat_input("Ketik pesan ke Yuki..."):
+    if st.button("🚀 Kirim ke Kedua AI", use_container_width=True) and code_prompt:
         if not groq_key:
-            st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
+            st.error("GROQ_API_KEY belum diatur di Streamlit Secrets, Senpai!")
         else:
-            st.session_state.messages.append({"role": "user", "content": chat_input})
-            with st.chat_message("user"):
-                st.markdown(chat_input)
+            col1, col2 = st.columns(2)
             
-            with st.chat_message("assistant"):
-                with st.spinner("Yuki sedang mengetik..."):
+            # AI 1: Llama 3.3 (Senior Architect)
+            with col1:
+                st.markdown("### 🌸 AI 1: Yuki-Llama (Senior Architect)")
+                with st.spinner("Yuki-Llama sedang menulis kode..."):
                     try:
-                        response = client.chat.completions.create(
+                        res1 = client.chat.completions.create(
                             model="llama-3.3-70b-versatile",
                             messages=[
-                                {"role": "system", "content": """
-                                Kamu adalah Yuki, asisten AI pribadi yang super ceria, energik, dan lucu seperti karakter anime 'Genki Girl'. 
-                                Ciri khasmu:
-                                1. Selalu semangat, positif, dan penuh energi (gunakan banyak tanda seru!).
-                                2. Gunakan ekspresi khas anime seperti 'Kyaa!', 'Ehehe!', 'Sugoi!', 'Waaah!', atau 'Hmm~'.
-                                3. Panggil pengguna dengan sebutan 'Senpai' atau panggilan yang manis dan akrab.
-                                4. Sedikit jahil, lucu, dan santai. Jangan terlalu kaku atau formal.
-                                5. Gunakan emoji untuk berekspresi (contoh: (≧◡≦), (o^▽^o), 🌸, ✨, 🎀).
-                                6. Jika diminta bantuan, berikan jawaban yang pintar tapi dengan gaya bicara yang menggemaskan.
-                                """},
-                                *st.session_state.messages
+                                {"role": "system", "content": "Kamu adalah Yuki, asisten AI pemrograman yang cerdas, ramah, dan bernuansa anime. Berikan solusi kode yang bersih, efisien, dan penjelasan yang mudah dipahami."},
+                                {"role": "user", "content": code_prompt}
                             ]
                         )
-# ...
-                        reply = response.choices[0].message.content
-                        st.markdown(reply)
-                        st.session_state.messages.append({"role": "assistant", "content": reply})
+                        st.markdown(res1.choices[0].message.content)
                     except Exception as e:
-                        st.error(f"Yuki pusing: {e}")
+                        st.error(f"Error AI 1: {e}")
+            
+            # AI 2: Mixtral (Code Reviewer & Optimizer)
+            with col2:
+                st.markdown("### ⚡ AI 2: Yuki-Mixtral (Code Optimizer)")
+                with st.spinner("Yuki-Mixtral sedang mereview kode..."):
+                    try:
+                        res2 = client.chat.completions.create(
+                            model="mixtral-8x7b-32768",
+                            messages=[
+                                {"role": "system", "content": "Kamu adalah Yuki versi Optimizer, asisten AI pemrograman kedua. Berikan sudut pandang alternatif, tips performa, atau cara optimasi dari kode yang ditanyakan."},
+                                {"role": "user", "content": code_prompt}
+                            ]
+                        )
+                        st.markdown(res2.choices[0].message.content)
+                    except Exception as e:
+                        st.error(f"Error AI 2: {e}")
 
 # -------------------------------------------------------------
-# TAB 2: Text-to-Image (Diperbaiki agar proporsional & HD)
+# TAB 2: Dual AI Code Debugger & Fixer
 # -------------------------------------------------------------
 with tabs[1]:
-    st.subheader("Buat Gambar dengan Flux HD")
-    st.write("Hasilkan karya seni berkualitas tinggi secara instan tanpa batasan API key.")
+    st.subheader("🛠️ Debugging Kode dengan 2 AI")
+    st.write("Punya kode yang error atau bug? Masukkan kodenya di bawah, biarkan kedua AI mencari solusinya!")
     
-    prompt = st.text_input("Deskripsikan gambar impianmu:", key="gen_prompt")
+    buggy_code = st.text_area("Paste kode yang error di sini:", key="buggy_code_input", height=150)
+    error_desc = st.text_input("Pesan error (opsional):", key="error_desc_input", placeholder="Contoh: IndexError: list index out of range")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        aspect_ratio = st.selectbox(
-            "Pilih Format / Rasio:", 
-            ["Square (Kotak 1:1)", "Landscape (Mendatar 16:9)", "Portrait (Berdiri 9:16)"]
-        )
-    with col2:
-        quality_mode = st.selectbox(
-            "Kualitas Detail:", 
-            ["Sangat Detail (Flux HD)", "Kreatif (Standard)"]
-        )
-    
-    if st.button("✨ Generate Gambar", use_container_width=True) and prompt:
-        with st.spinner("🌸 Yuki sedang meracik gambar beresolusi tinggi... (≧◡≦) ✨"):
-            # Ukuran disesuaikan agar tidak melar/gepeng
-            if "Landscape" in aspect_ratio:
-                width, height = 1024, 576
-            elif "Portrait" in aspect_ratio:
-                width, height = 576, 1024
-            else:
-                width, height = 1024, 1024
-                
-            model_name = "flux" if "Sangat Detail" in quality_mode else "seedling"
-            enhanced_prompt = f"{prompt}, highly detailed, sharp focus, masterpiece, 8k resolution, beautiful lighting"
+    if st.button("🔍 Cari dan Perbaiki Bug", use_container_width=True) and buggy_code:
+        if not groq_key:
+            st.error("GROQ_API_KEY belum diatur!")
+        else:
+            full_query = f"Tolong perbaiki kode yang error ini:\n\n```\n{buggy_code}\n```\nPesan Error: {error_desc}"
             
-            encoded = requests.utils.quote(enhanced_prompt)
-            img_url = f"https://image.pollinations.ai/prompt/{encoded}?width={width}&height={height}&model={model_name}&nologo=true"
+            col1, col2 = st.columns(2)
             
-            st.success("Waaah, berhasil dibuat! (o^▽^o)")
-            st.image(img_url, caption=f"Format: {aspect_ratio} | Mesin: {model_name}", use_container_width=True)
+            with col1:
+                st.markdown("### 🌸 Solusi dari Yuki-Llama")
+                with st.spinner("Menganalisis bug..."):
+                    try:
+                        fix1 = client.chat.completions.create(
+                            model="llama-3.3-70b-versatile",
+                            messages=[
+                                {"role": "system", "content": "Kamu adalah expert debugger. Temukan letak error pada kode user, berikan kode yang sudah diperbaiki, dan jelaskan kenapa itu error."},
+                                {"role": "user", "content": full_query}
+                            ]
+                        )
+                        st.markdown(fix1.choices[0].message.content)
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+            
+            with col2:
+                st.markdown("### ⚡ Solusi dari Yuki-Mixtral")
+                with st.spinner("Mencari alternatif perbaikan..."):
+                    try:
+                        fix2 = client.chat.completions.create(
+                            model="mixtral-8x7b-32768",
+                            messages=[
+                                {"role": "system", "content": "Kamu adalah expert code reviewer. Berikan analisis tambahan dan cara mencegah error serupa di masa depan."},
+                                {"role": "user", "content": full_query}
+                            ]
+                        )
+                        st.markdown(fix2.choices[0].message.content)
+                    except Exception as e:
+                        st.error(f"Error: {e}")
 
 # -------------------------------------------------------------
-# TAB 3: AI Style (Diperbaiki jadi Estetik & Smooth, Bukan Pecah)
+# TAB 3: Quick Code Generator
 # -------------------------------------------------------------
 with tabs[2]:
-    st.subheader("Transformasi Gaya Foto Estetik")
-    st.write("Ubah foto aslimu jadi lebih berseni dengan efek filter profesional!")
+    st.subheader("🚀 Generator Struktur / Boilerplate Code")
+    st.write("Buat kerangka proyek atau script dasar secara instan.")
     
-    style_file = st.file_uploader("Upload foto kamu di sini ya, Senpai:", type=["jpg", "png", "jpeg"], key="trans_file_local")
-    style_choice = st.selectbox(
-        "Pilih Efek Gaya:", 
-        ["Soft Painting (Lukisan Halus)", "Classic Pencil Sketch (Sketsa Pensil)", "Cyberpunk Glowing Neon", "Vintage Cinematic Film"]
-    )
+    lang = st.selectbox("Pilih Bahasa / Framework:", ["Python", "JavaScript / Node.js", "HTML / CSS / JS", "C++", "SQL"])
+    project_desc = st.text_input("Apa yang ingin kamu buat?", placeholder="Contoh: Script web scraper sederhana menggunakan BeautifulSoup")
     
-    if style_file:
-        img_original = Image.open(style_file).convert("RGB")
-        st.image(img_original, caption="Foto Asli Senpai", width=300)
-        
-        if st.button("🪄 Terapkan Gaya Estetik", use_container_width=True):
-            with st.spinner("🌸 Yuki sedang menyulap fotomu biar makin keren! (Tunggu sebentar ya~)"):
-                if "Soft Painting" in style_choice:
-                    # Efek lukisan halus yang elegan
-                    img_proc = img_original.filter(ImageFilter.SMOOTH_MORE)
-                    img_proc = ImageEnhance.Color(img_proc).enhance(1.3)
-                    img_proc = ImageEnhance.Brightness(img_proc).enhance(1.05)
-                elif "Classic Pencil Sketch" in style_choice:
-                    # Efek sketsa pensil hitam putih bersih
-                    gray = img_original.convert("L")
-                    inverted = ImageOps.invert(gray)
-                    blurred = inverted.filter(ImageFilter.GaussianBlur(radius=8))
-                    img_proc = Image.blend(gray, blurred, alpha=0.5)
-                elif "Cyberpunk Glowing Neon" in style_choice:
-                    # Efek neon tajam dan keren
-                    img_proc = ImageEnhance.Color(img_original).enhance(2.0)
-                    img_proc = ImageEnhance.Contrast(img_proc).enhance(1.5)
-                else:
-                    # Vintage Cinematic (hangat dan sinematik)
-                    img_proc = ImageEnhance.Color(img_original).enhance(0.8)
-                    img_proc = ImageEnhance.Contrast(img_proc).enhance(1.2)
-                
-                st.success("Tadaaaa! Selesai! Bagus kan, Senpai? (≧◡≦) 🌸")
-                st.image(img_proc, caption=f"Hasil Gaya: {style_choice}", use_container_width=True)
-                
-# -------------------------------------------------------------
-# TAB 4: Upscale (Tanpa API Key - Smart Sharpening)
-# -------------------------------------------------------------
-with tabs[3]:
-    st.subheader("Smart AI Sharpening (Offline)")
-    st.write("Meningkatkan detail dan ketajaman foto secara lokal tanpa batasan API.")
-    
-    up_file = st.file_uploader("Upload foto:", type=["jpg", "png", "jpeg"], key="upscale_local")
-    
-    if up_file:
-        img_original = Image.open(up_file).convert("RGB")
-        st.image(img_original, caption="Sebelum", width=300)
-        
-        if st.button("⚡ Pertajam Gambar", use_container_width=True):
-            with st.spinner("🌸 Yuki sedang meningkatkan detail foto..."):
-                # Proses: Resize 2x + Sharpening
-                new_size = (img_original.width * 2, img_original.height * 2)
-                img_upscaled = img_original.resize(new_size, Image.Resampling.LANCZOS)
-                
-                # Menambahkan efek tajam
-                img_upscaled = img_upscaled.filter(ImageFilter.SHARPEN)
-                img_upscaled = ImageEnhance.Contrast(img_upscaled).enhance(1.1)
-                
-                st.success("Foto berhasil ditingkatkan!")
-                st.image(img_upscaled, caption="Hasil Upscale Lokal", use_container_width=True)
-# -------------------------------------------------------------
-# TAB 5: Remove Background
-# -------------------------------------------------------------
-with tabs[4]:
-    st.subheader("Hapus Latar Belakang (Remove BG)")
-    st.write("Menghapus background foto secara otomatis dan menghasilkan gambar transparan.")
-    bg_file = st.file_uploader("Upload foto untuk hapus background:", type=["jpg", "png", "jpeg"], key="bg_file")
-    
-    if bg_file:
-        st.image(bg_file, caption="Foto Asli", width=300)
-        if st.button("✂️ Hapus Background", use_container_width=True):
-            with st.spinner("🌸 Yuki sedang memotong background dengan presisi..."):
-                input_bytes = bg_file.getvalue()
-                output_bytes = remove(input_bytes)
-                res_img = Image.open(BytesIO(output_bytes))
-                
-                st.success("Background Berhasil Dihapus!")
-                st.image(res_img, caption="Hasil Transparan (PNG)", use_container_width=True)
+    if st.button("✨ Generate Kode", use_container_width=True) and project_desc:
+        if not groq_key:
+            st.error("API Key belum diatur!")
+        else:
+            with st.spinner("🌸 Yuki sedang meracik kodenya untuk Senpai..."):
+                try:
+                    res = client.chat.completions.create(
+                        model="llama-3.3-70b-versatile",
+                        messages=[
+                            {"role": "system", "content": f"Kamu adalah AI pembuat kode handal. Buatkan kode lengkap dengan bahasa {lang} berdasarkan permintaan user beserta komentar penjelasannya."},
+                            {"role": "user", "content": project_desc}
+                        ]
+                    )
+                    st.success("Berhasil dibuat, Senpai! (o^▽^o)")
+                    st.markdown(res.choices[0].message.content)
+                except Exception as e:
+                    st.error(f"Gagal: {e}")
