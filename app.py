@@ -1,162 +1,189 @@
 import streamlit as st
 from openai import OpenAI
 
-# Konfigurasi Halaman
-st.set_page_config(page_title="Yuki Dual-AI Coding Studio", page_icon="💻", layout="wide")
+# Konfigurasi Halaman (Lebar agar mirip Arena)
+st.set_page_config(page_title="Yuki Arena Coding Studio", page_icon="⚔️", layout="wide")
 
-# Inisialisasi Groq API (Chat)
+# Inisialisasi Groq API
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling Tema Cyberpunk Coding Glassmorphism
+# Styling Tema Chatbot Arena (Clean, Dark, Modern Tech)
 st.markdown("""
     <style>
     [data-testid="stAppViewContainer"] {
-        background-color: #080514;
-        background-image: radial-gradient(circle at 2px 2px, rgba(0, 255, 204, 0.15) 1.5px, transparent 0);
-        background-size: 40px 40px;
+        background-color: #0e1117;
+        color: #c9d1d9;
     }
-    [data-testid="stMainBlockContainer"] { background: transparent !important; }
+    [data-testid="stMainBlockContainer"] { 
+        background: #0e1117 !important; 
+        max-width: 100% !important;
+        padding-top: 2rem;
+    }
     .stTabs [data-baseweb="tab"] {
-        background: rgba(20, 15, 35, 0.8) !important;
-        border: 1px solid rgba(0, 255, 204, 0.3) !important;
-        color: #00ffcc !important;
-        border-radius: 10px !important;
+        background: #161b22 !important;
+        border: 1px solid #30363d !important;
+        color: #58a6ff !important;
+        border-radius: 6px !important;
+        font-weight: 600;
     }
     div.stButton > button {
-        background: rgba(15, 30, 40, 0.9) !important;
-        border: 1px solid rgba(0, 255, 204, 0.5) !important;
-        color: #00ffcc !important;
-        border-radius: 12px !important;
+        background: #238636 !important;
+        border: 1px solid #2ea043 !important;
+        color: #ffffff !important;
+        border-radius: 6px !important;
+        font-weight: 600;
+    }
+    div.stButton > button:hover {
+        background: #2ea043 !important;
+    }
+    .arena-box {
+        background: #161b22;
+        border: 1px solid #30363d;
+        padding: 20px;
+        border-radius: 8px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("💻 Yuki Dual-AI Coding Studio")
-st.write("Studio pemrograman dengan tenaga 2 AI cerdas untuk Senpai! (≧◡≦) ✨")
+# Header ala Arena
+st.title("⚔️ Yuki Coding Arena (Model Battle)")
+st.caption("Uji dan bandingkan performa dua model AI pemrograman secara head-to-head, ala Chatbot Arena! (o^▽^o)")
 
-# Navigasi Tab
-tabs = st.tabs(["⚡ Dual AI Code Chat", "🛠️ Dual AI Code Debugger", "🚀 Quick Code Generator"])
+# Navigasi Tab Utama
+tabs = st.tabs(["⚔️ Arena Battle (Side-by-Side)", "🛠️ Debugger & Optimizer Arena", "🚀 Quick Generator"])
 
 # -------------------------------------------------------------
-# TAB 1: Dual AI Code Chat
+# TAB 1: Arena Battle (Side-by-Side Comparison)
 # -------------------------------------------------------------
 with tabs[0]:
-    st.subheader("⚡ Tanya Coding ke 2 AI Sekaligus")
-    st.write("Dua model AI aktif akan memberikan analisis dan solusi kode terbaik dari sudut pandang berbeda!")
+    st.markdown("### 🤖 Blind / Head-to-Head Model Comparison")
+    st.write("Kirimkan satu perintah koding, dan lihat bagaimana **Llama 3.3 (70B)** dan **Llama 3.1 (8B)** menyelesaikan masalah tersebut secara bersamaan.")
     
-    code_prompt = st.text_area("Tuliskan pertanyaan atau masalah codingmu:", key="dual_chat_input", placeholder="Contoh: Buatkan algoritma QuickSort di Python beserta penjelasannya")
+    prompt_arena = st.text_area("Masukkan prompt atau masalah koding Senpai di sini:", key="arena_prompt", placeholder="Contoh: Buatkan implementasi Linked List sederhana dalam bahasa Python.")
     
-    if st.button("🚀 Kirim ke Kedua AI", use_container_width=True) and code_prompt:
+    if st.button("⚔️ Mulai Battle!", use_container_width=True) and prompt_arena:
         if not groq_key:
-            st.error("GROQ_API_KEY belum diatur di Streamlit Secrets, Senpai!")
+            st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
         else:
-            col1, col2 = st.columns(2)
+            col_a, col_b = st.columns(2)
             
-            # AI 1: Llama 3.3 70B (Master of Logic & Reasoning)
-            with col1:
-                st.markdown("### 🌸 AI 1: Yuki-Llama 70B (Logic & Code)")
-                with st.spinner("AI 1 sedang berpikir dan merancang logika..."):
+            # Kolom Model A (Llama 3.3 70B)
+            with col_a:
+                st.markdown("### 🧬 Model A (Llama 3.3 - 70B)")
+                with st.spinner("Model A sedang meracik kode..."):
                     try:
-                        res1 = client.chat.completions.create(
+                        resp_a = client.chat.completions.create(
                             model="llama-3.3-70b-versatile",
                             messages=[
-                                {"role": "system", "content": "Kamu adalah Yuki versi Code Master. Berikan penalaran logika yang matang, kode bersih, dan penjelasan terstruktur."},
-                                {"role": "user", "content": code_prompt}
+                                {"role": "system", "content": "Kamu adalah asisten pemrograman ahli. Berikan kode yang bersih, efisien, dan penjelasan yang mendalam."},
+                                {"role": "user", "content": prompt_arena}
                             ]
                         )
-                        st.markdown(res1.choices[0].message.content)
+                        st.markdown(resp_a.choices[0].message.content)
                     except Exception as e:
-                        st.error(f"Error AI 1: {e}")
+                        st.error(f"Error Model A: {e}")
             
-            # AI 2: Llama 3.1 8B / Model Alternatif (Optimizer)
-            with col2:
-                st.markdown("### ⚡ AI 2: Yuki-Llama 8B (Optimizer)")
-                with st.spinner("AI 2 sedang mereview alternatif kode..."):
+            # Kolom Model B (Llama 3.1 8B)
+            with col_b:
+                st.markdown("### ⚡ Model B (Llama 3.1 - 8B Instant)")
+                with st.spinner("Model B sedang meracik kode..."):
                     try:
-                        res2 = client.chat.completions.create(
+                        resp_b = client.chat.completions.create(
                             model="llama-3.1-8b-instant",
                             messages=[
-                                {"role": "system", "content": "Kamu adalah Yuki versi Optimizer. Berikan sudut pandang alternatif, tips performa, atau ringkasan efisiensi dari kodingan tersebut."},
-                                {"role": "user", "content": code_prompt}
+                                {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. Berikan solusi kode yang ringkas dan langsung pada sasaran."},
+                                {"role": "user", "content": prompt_arena}
                             ]
                         )
-                        st.markdown(res2.choices[0].message.content)
+                        st.markdown(resp_b.choices[0].message.content)
                     except Exception as e:
-                        st.error(f"Error AI 2: {e}")
+                        st.error(f"Error Model B: {e}")
+            
+            st.markdown("---")
+            st.info("💡 **Arena Voting:** Menurut Senpai, model mana yang memberikan hasil koding lebih baik? (≧◡≦)")
+            v_col1, v_col2, v_col3 = st.columns(3)
+            with v_col1:
+                if st.button("👈 Model A Unggul"):
+                    st.success("Terima kasih! Suara untuk Model A dicatat.")
+            with v_col2:
+                if st.button("🤝 Seri / Keduanya Bagus"):
+                    st.success("Terima kasih! Hasil seri dicatat.")
+            with v_col3:
+                if st.button("👉 Model B Unggul"):
+                    st.success("Terima kasih! Suara untuk Model B dicatat.")
 
 # -------------------------------------------------------------
-# TAB 2: Dual AI Code Debugger
+# TAB 2: Debugger & Optimizer Arena
 # -------------------------------------------------------------
 with tabs[1]:
-    st.subheader("🛠️ Debugging Kode dengan 2 AI")
-    st.write("Temukan dan perbaiki bug dengan analisis tingkat tinggi!")
+    st.markdown("### 🛠️ Code Debugger Arena")
+    st.write("Masukkan kode yang error, biarkan kedua model bersaing memberikan perbaikan terbaik.")
     
-    buggy_code = st.text_area("Paste kode yang error di sini:", key="buggy_code_input", height=150)
-    error_desc = st.text_input("Pesan error (opsional):", key="error_desc_input", placeholder="Contoh: NameError: name 'x' is not defined")
+    bug_code = st.text_area("Paste kode yang bermasalah:", height=150, key="arena_bug")
+    bug_desc = st.text_input("Deskripsi error (opsional):", placeholder="Contoh: Infinite loop atau TypeError")
     
-    if st.button("🔍 Analisis dan Perbaiki Bug", use_container_width=True) and buggy_code:
-        if not groq_key:
-            st.error("GROQ_API_KEY belum diatur!")
-        else:
-            full_query = f"Tolong cari bug dan perbaiki kode ini:\n\n```\n{buggy_code}\n```\nPesan Error: {error_desc}"
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown("### 🌸 Solusi dari AI 1 (70B)")
-                with st.spinner("Menganalisis akar masalah bug..."):
-                    try:
-                        fix1 = client.chat.completions.create(
-                            model="llama-3.3-70b-versatile",
-                            messages=[
-                                {"role": "system", "content": "Kamu adalah expert debugger. Analisis letak error secara mendalam, berikan kode yang sudah diperbaiki, dan jelaskan alasannya."},
-                                {"role": "user", "content": full_query}
-                            ]
-                        )
-                        st.markdown(fix1.choices[0].message.content)
-                    except Exception as e:
-                        st.error(f"Error: {e}")
-            
-            with col2:
-                st.markdown("### ⚡ Solusi dari AI 2 (8B)")
-                with st.spinner("Mengecek sudut pandang lain..."):
-                    try:
-                        fix2 = client.chat.completions.create(
-                            model="llama-3.1-8b-instant",
-                            messages=[
-                                {"role": "system", "content": "Kamu adalah expert code reviewer. Berikan cara pencegahan error serupa dan tips clean code."},
-                                {"role": "user", "content": full_query}
-                            ]
-                        )
-                        st.markdown(fix2.choices[0].message.content)
-                    except Exception as e:
-                        st.error(f"Error: {e}")
-
-# -------------------------------------------------------------
-# TAB 3: Quick Code Generator
-# -------------------------------------------------------------
-with tabs[2]:
-    st.subheader("🚀 Generator Kode Cepat")
-    st.write("Buat kerangka program atau fungsi spesifik secara instan.")
-    
-    lang = st.selectbox("Pilih Bahasa Pemrograman:", ["Python", "JavaScript / Node.js", "C++", "HTML/CSS/JS", "SQL"])
-    project_desc = st.text_input("Apa yang ingin kamu buat?", placeholder="Contoh: Fungsi validasi email regex di Python")
-    
-    if st.button("✨ Generate Kode", use_container_width=True) and project_desc:
+    if st.button("🔍 Bandingkan Solusi Debug", use_container_width=True) and bug_code:
         if not groq_key:
             st.error("API Key belum diatur!")
         else:
-            with st.spinner("🌸 Yuki sedang meracik kodenya untuk Senpai... (o^▽^o)"):
+            query_bug = f"Perbaiki kode yang error ini:\n\n```\n{bug_code}\n```\nError: {bug_desc}"
+            
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.markdown("### 🧬 Solusi Model A")
+                with st.spinner("Menganalisis bug..."):
+                    try:
+                        fix_a = client.chat.completions.create(
+                            model="llama-3.3-70b-versatile",
+                            messages=[
+                                {"role": "system", "content": "Kamu adalah expert debugger. Temukan akar masalah dan berikan kode yang sudah diperbaiki."},
+                                {"role": "user", "content": query_bug}
+                            ]
+                        )
+                        st.markdown(fix_a.choices[0].message.content)
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+            
+            with col_b:
+                st.markdown("### ⚡ Solusi Model B")
+                with st.spinner("Menganalisis bug..."):
+                    try:
+                        fix_b = client.chat.completions.create(
+                            model="llama-3.1-8b-instant",
+                            messages=[
+                                {"role": "system", "content": "Kamu adalah expert debugger cepat. Berikan solusi perbaikan kode yang efisien."},
+                                {"role": "user", "content": query_bug}
+                            ]
+                        )
+                        st.markdown(fix_b.choices[0].message.content)
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+
+# -------------------------------------------------------------
+# TAB 3: Quick Generator
+# -------------------------------------------------------------
+with tabs[2]:
+    st.markdown("### 🚀 Quick Code Generator Arena")
+    st.write("Buat kerangka kode instan dengan model pilihan terbaik.")
+    
+    gen_lang = st.selectbox("Bahasa Pemrograman:", ["Python", "JavaScript", "HTML/CSS", "C++", "SQL"])
+    gen_desc = st.text_input("Fitur atau program apa yang ingin dibuat?", placeholder="Contoh: Form login sederhana dengan validasi")
+    
+    if st.button("✨ Generate Cepat", use_container_width=True) and gen_desc:
+        if not groq_key:
+            st.error("API Key belum diatur!")
+        else:
+            with st.spinner("🌸 Yuki sedang membuat kode..."):
                 try:
-                    res = client.chat.completions.create(
+                    res_gen = client.chat.completions.create(
                         model="llama-3.3-70b-versatile",
                         messages=[
-                            {"role": "system", "content": f"Kamu adalah AI pembuat kode handal. Berikan kode {lang} yang bersih, efisien, dan siap pakai."},
-                            {"role": "user", "content": project_desc}
+                            {"role": "system", "content": f"Buatkan kode {gen_lang} yang lengkap, bersih, dan langsung bisa dijalankan."},
+                            {"role": "user", "content": gen_desc}
                         ]
                     )
-                    st.success("Berhasil dibuat, Senpai! ✨")
-                    st.markdown(res.choices[0].message.content)
+                    st.success("Berhasil dibuat, Senpai! (o^▽^o)")
+                    st.markdown(res_gen.choices[0].message.content)
                 except Exception as e:
                     st.error(f"Gagal: {e}")
