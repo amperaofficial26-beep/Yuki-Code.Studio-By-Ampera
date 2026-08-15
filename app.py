@@ -82,10 +82,11 @@ with tabs[0]:
                         st.error(f"Yuki pusing: {e}")
 
 # -------------------------------------------------------------
-# TAB 2: Text-to-Image (Dengan Pilihan Ukuran & Model Flux HD)
+# TAB 2: Text-to-Image (Flux HD - Gratis & Tanpa API Key)
 # -------------------------------------------------------------
 with tabs[1]:
-    st.subheader("Buat Gambar dari Teks (HD & Custom Ratio)")
+    st.subheader("Buat Gambar dengan Flux HD")
+    st.write("Hasilkan karya seni berkualitas tinggi secara instan tanpa batasan API key.")
     
     prompt = st.text_input("Deskripsikan gambar impianmu:", key="gen_prompt")
     
@@ -96,9 +97,9 @@ with tabs[1]:
             ["Square (Kotak 1:1)", "Landscape (Mendatar 16:9)", "Portrait (Berdiri 9:16)"]
         )
     with col2:
-        ai_model = st.selectbox(
-            "Pilih Mesin AI:", 
-            ["flux (Sangat Detail & Jernih)", "seedling (Standar / Kreatif)"]
+        quality_mode = st.selectbox(
+            "Kualitas Detail:", 
+            ["Sangat Detail (Flux HD)", "Kreatif (Standard)"]
         )
     
     if st.button("✨ Generate Gambar", use_container_width=True) and prompt:
@@ -110,21 +111,15 @@ with tabs[1]:
             else:
                 width, height = 1024, 1024
                 
-            model_name = "flux" if "flux" in ai_model else "seedling"
+            model_name = "flux" if "Sangat Detail" in quality_mode else "seedling"
             enhanced_prompt = f"{prompt}, highly detailed, sharp focus, masterpiece, 8k resolution"
             
             encoded = requests.utils.quote(enhanced_prompt)
             img_url = f"https://image.pollinations.ai/prompt/{encoded}?width={width}&height={height}&model={model_name}&nologo=true"
             
             st.success("Berhasil dibuat!")
-            st.image(img_url, caption=f"Format: {aspect_ratio} | Model: {model_name}", use_container_width=True)
-
-from huggingface_hub import InferenceClient
-
-# Inisialisasi Hugging Face Client dengan token gratis
-hf_key = st.secrets.get("HF_TOKEN", "")
-hf_client = InferenceClient(token=hf_key) if hf_key else None
-
+            st.image(img_url, caption=f"Format: {aspect_ratio} | Mesin: {model_name}", use_container_width=True)
+            
 # -------------------------------------------------------------
 # TAB 3: AI Style (Transformasi Foto Asli - Stabil & Anti Error)
 # -------------------------------------------------------------
@@ -169,29 +164,30 @@ with tabs[2]:
                 st.success("Berhasil diubah!")
                 st.image(img_proc, caption=f"Hasil Gaya: {style_choice}", use_container_width=True)
 # -------------------------------------------------------------
-# TAB 4: HD Upscale & Enhancer
+# TAB 4: Upscale (Tanpa API Key - Smart Sharpening)
 # -------------------------------------------------------------
 with tabs[3]:
-    st.subheader("AI HD Upscale & Enhancer")
-    st.write("Memperbesar resolusi dan mempertajam detail foto secara instan.")
-    up_file = st.file_uploader("Upload foto buram/pecah:", type=["jpg", "png", "jpeg"], key="up_file")
+    st.subheader("Smart AI Sharpening (Offline)")
+    st.write("Meningkatkan detail dan ketajaman foto secara lokal tanpa batasan API.")
+    
+    up_file = st.file_uploader("Upload foto:", type=["jpg", "png", "jpeg"], key="upscale_local")
     
     if up_file:
-        st.image(up_file, caption="Foto Sebelum", width=300)
-        if st.button("⚡ Mulai Upscale", use_container_width=True):
-            with st.spinner("🌸 Yuki sedang menjernihkan detail foto..."):
-                img = Image.open(up_file).convert("RGB")
-                w, h = img.size
-                img_resized = img.resize((w * 2, h * 2), Image.Resampling.LANCZOS)
+        img_original = Image.open(up_file).convert("RGB")
+        st.image(img_original, caption="Sebelum", width=300)
+        
+        if st.button("⚡ Pertajam Gambar", use_container_width=True):
+            with st.spinner("🌸 Yuki sedang meningkatkan detail foto..."):
+                # Proses: Resize 2x + Sharpening
+                new_size = (img_original.width * 2, img_original.height * 2)
+                img_upscaled = img_original.resize(new_size, Image.Resampling.LANCZOS)
                 
-                enhancer = ImageEnhance.Sharpness(img_resized)
-                img_sharp = enhancer.enhance(2.2)
-                color_enhancer = ImageEnhance.Color(img_sharp)
-                img_final = color_enhancer.enhance(1.1)
+                # Menambahkan efek tajam
+                img_upscaled = img_upscaled.filter(ImageFilter.SHARPEN)
+                img_upscaled = ImageEnhance.Contrast(img_upscaled).enhance(1.1)
                 
-                st.success("Upscale & Enhance Berhasil!")
-                st.image(img_final, caption="Hasil Lebih Tajam & HD (2x)", use_container_width=True)
-
+                st.success("Foto berhasil ditingkatkan!")
+                st.image(img_upscaled, caption="Hasil Upscale Lokal", use_container_width=True)
 # -------------------------------------------------------------
 # TAB 5: Remove Background
 # -------------------------------------------------------------
