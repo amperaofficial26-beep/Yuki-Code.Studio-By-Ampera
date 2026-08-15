@@ -92,7 +92,7 @@ with tabs[0]:
                         st.error(f"Yuki pusing: {e}")
 
 # -------------------------------------------------------------
-# TAB 2: Text-to-Image (Flux HD - Gratis & Tanpa API Key)
+# TAB 2: Text-to-Image (Diperbaiki agar proporsional & HD)
 # -------------------------------------------------------------
 with tabs[1]:
     st.subheader("Buat Gambar dengan Flux HD")
@@ -113,66 +113,66 @@ with tabs[1]:
         )
     
     if st.button("✨ Generate Gambar", use_container_width=True) and prompt:
-        with st.spinner("🌸 Yuki sedang meracik gambar beresolusi tinggi..."):
+        with st.spinner("🌸 Yuki sedang meracik gambar beresolusi tinggi... (≧◡≦) ✨"):
+            # Ukuran disesuaikan agar tidak melar/gepeng
             if "Landscape" in aspect_ratio:
-                width, height = 1280, 720
+                width, height = 1024, 576
             elif "Portrait" in aspect_ratio:
-                width, height = 720, 1280
+                width, height = 576, 1024
             else:
                 width, height = 1024, 1024
                 
             model_name = "flux" if "Sangat Detail" in quality_mode else "seedling"
-            enhanced_prompt = f"{prompt}, highly detailed, sharp focus, masterpiece, 8k resolution"
+            enhanced_prompt = f"{prompt}, highly detailed, sharp focus, masterpiece, 8k resolution, beautiful lighting"
             
             encoded = requests.utils.quote(enhanced_prompt)
             img_url = f"https://image.pollinations.ai/prompt/{encoded}?width={width}&height={height}&model={model_name}&nologo=true"
             
-            st.success("Berhasil dibuat!")
+            st.success("Waaah, berhasil dibuat! (o^▽^o)")
             st.image(img_url, caption=f"Format: {aspect_ratio} | Mesin: {model_name}", use_container_width=True)
-            
+
 # -------------------------------------------------------------
-# TAB 3: AI Style (Transformasi Foto Asli - Stabil & Anti Error)
+# TAB 3: AI Style (Diperbaiki jadi Estetik & Smooth, Bukan Pecah)
 # -------------------------------------------------------------
 with tabs[2]:
-    st.subheader("Transformasi Gaya Foto Asli")
-    st.write("Mengubah foto aslimu secara instan ke berbagai gaya artistik tanpa kendala server.")
+    st.subheader("Transformasi Gaya Foto Estetik")
+    st.write("Ubah foto aslimu jadi lebih berseni dengan efek filter profesional!")
     
-    style_file = st.file_uploader("Upload foto kamu:", type=["jpg", "png", "jpeg"], key="trans_file_local")
+    style_file = st.file_uploader("Upload foto kamu di sini ya, Senpai:", type=["jpg", "png", "jpeg"], key="trans_file_local")
     style_choice = st.selectbox(
-        "Pilih Gaya Efek:", 
-        ["Anime Cel-Shaded", "Cyberpunk Neon", "Oil Painting Smooth", "Classic Pencil Sketch"]
+        "Pilih Efek Gaya:", 
+        ["Soft Painting (Lukisan Halus)", "Classic Pencil Sketch (Sketsa Pensil)", "Cyberpunk Glowing Neon", "Vintage Cinematic Film"]
     )
     
     if style_file:
         img_original = Image.open(style_file).convert("RGB")
-        st.image(img_original, caption="Foto Asli", width=300)
+        st.image(img_original, caption="Foto Asli Senpai", width=300)
         
-        if st.button("🪄 Terapkan Gaya", use_container_width=True):
-            with st.spinner("🌸 Yuki sedang memproses gaya fotomu..."):
-                if "Anime" in style_choice:
-                    # Efek Anime / Cel-Shaded dengan warna tajam
-                    img_proc = ImageOps.posterize(img_original, bits=4)
-                    img_proc = ImageEnhance.Color(img_proc).enhance(1.8)
-                    img_proc = ImageEnhance.Contrast(img_proc).enhance(1.2)
-                elif "Cyberpunk" in style_choice:
-                    # Efek Cyberpunk Neon (Kontras tinggi & warna mencolok)
-                    img_proc = ImageEnhance.Color(img_original).enhance(2.2)
-                    img_proc = ImageEnhance.Brightness(img_proc).enhance(1.1)
-                    img_proc = ImageEnhance.Contrast(img_proc).enhance(1.4)
-                elif "Oil Painting" in style_choice:
-                    # Efek Lukisan Cat Minyak Halus
+        if st.button("🪄 Terapkan Gaya Estetik", use_container_width=True):
+            with st.spinner("🌸 Yuki sedang menyulap fotomu biar makin keren! (Tunggu sebentar ya~)"):
+                if "Soft Painting" in style_choice:
+                    # Efek lukisan halus yang elegan
                     img_proc = img_original.filter(ImageFilter.SMOOTH_MORE)
-                    img_proc = img_proc.filter(ImageFilter.SMOOTH_MORE)
                     img_proc = ImageEnhance.Color(img_proc).enhance(1.3)
-                else:
-                    # Sketsa Pensil Klasik
+                    img_proc = ImageEnhance.Brightness(img_proc).enhance(1.05)
+                elif "Classic Pencil Sketch" in style_choice:
+                    # Efek sketsa pensil hitam putih bersih
                     gray = img_original.convert("L")
                     inverted = ImageOps.invert(gray)
-                    blurred = inverted.filter(ImageFilter.GaussianBlur(radius=6))
-                    img_proc = Image.blend(gray, blurred, alpha=0.6)
+                    blurred = inverted.filter(ImageFilter.GaussianBlur(radius=8))
+                    img_proc = Image.blend(gray, blurred, alpha=0.5)
+                elif "Cyberpunk Glowing Neon" in style_choice:
+                    # Efek neon tajam dan keren
+                    img_proc = ImageEnhance.Color(img_original).enhance(2.0)
+                    img_proc = ImageEnhance.Contrast(img_proc).enhance(1.5)
+                else:
+                    # Vintage Cinematic (hangat dan sinematik)
+                    img_proc = ImageEnhance.Color(img_original).enhance(0.8)
+                    img_proc = ImageEnhance.Contrast(img_proc).enhance(1.2)
                 
-                st.success("Berhasil diubah!")
+                st.success("Tadaaaa! Selesai! Bagus kan, Senpai? (≧◡≦) 🌸")
                 st.image(img_proc, caption=f"Hasil Gaya: {style_choice}", use_container_width=True)
+                
 # -------------------------------------------------------------
 # TAB 4: Upscale (Tanpa API Key - Smart Sharpening)
 # -------------------------------------------------------------
