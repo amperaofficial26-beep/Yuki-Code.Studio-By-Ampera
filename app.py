@@ -3,13 +3,13 @@ from openai import OpenAI
 import time
 
 # Konfigurasi Halaman
-st.set_page_config(page_title="Yuki Coding Studio - Aurora Arena", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Ampera Multi AI - Yuki Coding Studio", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
 
 # Inisialisasi Groq API
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS Aurora UI, Efek Ganti Warna, & Animasi Intro Pembuka
+# Styling CSS Aurora UI, Efek Ganti Warna, & Animasi
 st.markdown("""
     <style>
     @keyframes auroraBG {
@@ -26,21 +26,9 @@ st.markdown("""
     
     /* ANIMASI INTRO PEMBUKA (SPLASH SCREEN) */
     @keyframes splashIntro {
-        0% {
-            opacity: 0;
-            transform: scale(0.92);
-            filter: blur(12px);
-        }
-        50% {
-            opacity: 1;
-            transform: scale(1.02);
-            filter: blur(2px);
-        }
-        100% {
-            opacity: 1;
-            transform: scale(1);
-            filter: blur(0px);
-        }
+        0% { opacity: 0; transform: scale(0.92); filter: blur(12px); }
+        50% { opacity: 1; transform: scale(1.02); filter: blur(2px); }
+        100% { opacity: 1; transform: scale(1); filter: blur(0px); }
     }
     .splash-container {
         display: flex;
@@ -242,28 +230,25 @@ st.markdown("""
         font-size: 0.95rem;
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
     }
+    
     /* ========================================= */
     /* ANIMASI LOADING KEREN (THINKING PROCESS)  */
     /* ========================================= */
     
-    /* Animasi muncul halus dari bawah (Fade In Up) */
     @keyframes fadeInUp {
         0% { opacity: 0; transform: translateY(15px); }
         100% { opacity: 1; transform: translateY(0); }
     }
     
-    /* Animasi rotasi lambat untuk ikon gir */
     @keyframes spinSlow {
         100% { transform: rotate(360deg); }
     }
     
-    /* Animasi denyut bersinar untuk ikon lampu */
     @keyframes pulseGlowIcon {
         0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.4)); transform: scale(1); }
         50% { filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9)); transform: scale(1.15); }
     }
     
-    /* Styling kontainer setiap langkah loading */
     .loading-step {
         display: flex;
         align-items: center;
@@ -321,8 +306,8 @@ if not st.session_state["has_entered"]:
     with col_btn:
         if st.button("MASUK", use_container_width=True):
             st.session_state["has_entered"] = True
-            st.rerun()  # Diperbaiki dari st.reruns() = st.rerun()
-            
+            st.rerun()
+
 # -------------------------------------------------------------
 # 2. APLIKASI UTAMA SETELAH MASUK
 # -------------------------------------------------------------
@@ -334,7 +319,7 @@ else:
         st.markdown("""
             <div class="logo-container">
                 <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop" class="logo-img" alt="Logo Arena">
-                <div class="logo-text">AMPERA MULTI AI</div>
+                <div class="logo-text">ARENA</div>
             </div>
         """, unsafe_allow_html=True)
         
@@ -409,14 +394,12 @@ else:
         home_input = st.chat_input("Ask anything...")
         query_to_process = home_input if home_input else default_val
         
-      if query_to_process:
+        if query_to_process:
             if not groq_key:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             else:
-                # Mengganti nama Yuki menjadi Alya di status bar
                 with st.status("🧠 Yuki lagi nyari contekan dulu buat Kamu...", expanded=True) as status:
                     
-                    # Langkah 1: Normal Fade-in
                     st.markdown("""
                         <div class='loading-step'>
                             <span class='loading-icon'>🔍</span> 
@@ -425,7 +408,6 @@ else:
                     """, unsafe_allow_html=True)
                     time.sleep(1.8)
                     
-                    # Langkah 2: Fade-in dengan ikon berputar (Gear)
                     st.markdown("""
                         <div class='loading-step'>
                             <span class='loading-icon icon-spin'>⚙️</span> 
@@ -434,7 +416,6 @@ else:
                     """, unsafe_allow_html=True)
                     time.sleep(2.0)
                     
-                    # Langkah 3: Fade-in dengan ikon menyala (Lamp)
                     st.markdown("""
                         <div class='loading-step'>
                             <span class='loading-icon icon-pulse'>💡</span> 
@@ -443,7 +424,6 @@ else:
                     """, unsafe_allow_html=True)
                     time.sleep(2.0)
                     
-                    # Langkah 4: Normal Fade-in
                     st.markdown("""
                         <div class='loading-step'>
                             <span class='loading-icon'>✨</span> 
@@ -459,7 +439,6 @@ else:
                                 {
                                     "role": "system", 
                                     "content": (
-                                        # Nama diubah menjadi Alya
                                         "Kamu adalah Yuki, asisten pemrograman AI yang super jenius tapi juga kocak, "
                                         "sedikit usil, suka melempar lelucon receh, dan hobi menggoda User layaknya "
                                         "karakter anime komedi. Tetap berikan solusi koding yang akurat dan bersih, "
@@ -483,7 +462,7 @@ else:
     # HALAMAN 2: ARENA BATTLE
     # -------------------------------------------------------------
     elif selected_menu == "⚔️ Multi Ai":
-        st.title("⚔️ Yuki Coding Arena (Multi Ai)")
+        st.title("⚔️ Ampera Coding Arena (Multi Ai)")
         st.caption("Ketik perintah koding di bawah dan tekan **Enter**....")
         
         arena_input = st.chat_input("Kirim pesan ke Multi Ai...")
@@ -550,7 +529,7 @@ else:
                             resp_b = client.chat.completions.create(
                                 model="llama-3.1-8b-instant",
                                 messages=[
-                                    {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. Berikan solusi Yang detail."},
+                                    {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. Berikan solusi yang detail."},
                                     {"role": "user", "content": prompt_val}
                                 ]
                             )
@@ -572,7 +551,7 @@ else:
                 with v2:
                     if st.button("🤝 Seri"): st.success("Terima Kasih Atas Penilaian Anda!!")
                 with v3:
-                    if st.button("👉 Model"): st.success("Terima Kasih Atas Penilaian Anda!")
+                    if st.button("👉 Model B"): st.success("Terima Kasih Atas Penilaian Anda!")
 
     # -------------------------------------------------------------
     # HALAMAN 3: LEADERBOARD
@@ -591,8 +570,9 @@ else:
     # HALAMAN 4: SEARCH
     # -------------------------------------------------------------
     elif selected_menu == "🔍 Search":
-        st.title("🔍 Search Chat History")
-        search_query = st.text_input("Cari riwayat percakapan atau kode sebelumnya...")
-        if search_query:
-            st.info(f"Hasil pencarian untuk: **{search_query}**")
-            st.markdown("- ⚡ *Python Binary Search* (Ditemukan di riwayat Yesterday)")
+        st.title("🔍 Search")
+        search_q = st.text_input("Cari topik atau riwayat (Tekan Enter)")
+        if search_q:
+            with st.spinner("Mencari..."):
+                time.sleep(1)
+            st.success(f"Menampilkan hasil pencarian untuk: **{search_q}**")
