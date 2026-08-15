@@ -8,7 +8,7 @@ st.set_page_config(page_title="Yuki Coding Studio - Aurora Arena", page_icon="�
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS Aurora UI & Sidebar Baru
+# Styling CSS Aurora UI & Kotak Input Lonjong Estetik
 st.markdown("""
     <style>
     @keyframes auroraBG {
@@ -61,7 +61,7 @@ st.markdown("""
         background: rgba(30, 41, 59, 0.65) !important;
         border: 1px solid rgba(129, 140, 248, 0.25) !important;
         color: #f8fafc !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important;
         font-weight: 600;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         backdrop-filter: blur(10px);
@@ -73,6 +73,35 @@ st.markdown("""
         color: #ffffff !important;
         background: rgba(49, 46, 129, 0.85) !important;
         box-shadow: 0 0 20px rgba(129, 140, 248, 0.5), 0 0 35px rgba(99, 102, 241, 0.3) !important;
+    }
+
+    /* KOTAK INPUT CHAT LONJONG ESTETIK (Pill-shaped Chat Input) */
+    [data-testid="stChatInput"] {
+        background: rgba(15, 23, 42, 0.85) !important;
+        backdrop-filter: blur(16px) !important;
+        border: 1px solid rgba(129, 140, 248, 0.3) !important;
+        border-radius: 9999px !important;
+        padding: 4px 12px !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+        transition: all 0.3s ease !important;
+    }
+    [data-testid="stChatInput"]:focus-within {
+        border-color: #818cf8 !important;
+        box-shadow: 0 0 25px rgba(129, 140, 248, 0.5), inset 0 0 10px rgba(129, 140, 248, 0.2) !important;
+    }
+    [data-testid="stChatInput"] textarea {
+        color: #f8fafc !important;
+    }
+    [data-testid="stChatInput"] button {
+        background: linear-gradient(135deg, #4f46e5, #3b82f6) !important;
+        border: none !important;
+        border-radius: 50% !important;
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4) !important;
+    }
+    [data-testid="stChatInput"] button:hover {
+        transform: scale(1.08);
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.8) !important;
     }
 
     /* Styling Kartu Arena */
@@ -121,7 +150,7 @@ if "current_page" not in st.session_state:
     st.session_state["current_page"] = "🏠 Home Dashboard"
 
 # -------------------------------------------------------------
-# SIDEBAR ALA GAMBAR REFERENSI (Clean & Modern Aurora)
+# SIDEBAR
 # -------------------------------------------------------------
 with st.sidebar:
     st.markdown("""
@@ -130,7 +159,6 @@ with st.sidebar:
         </div>
     """, unsafe_allow_html=True)
     
-    # Tombol Menu Utama Sidebar
     if st.button("🏠  Home Dashboard", use_container_width=True):
         st.session_state["current_page"] = "🏠 Home Dashboard"
         st.rerun()
@@ -245,7 +273,6 @@ elif selected_menu == "⚔️ Arena Battle":
         else:
             col_a, col_b = st.columns(2)
             
-            # Kartu Model A
             with col_a:
                 st.markdown("""
                     <div class="arena-card">
@@ -269,7 +296,6 @@ elif selected_menu == "⚔️ Arena Battle":
                         st.error(f"Error: {e}")
                 st.markdown("</div>", unsafe_allow_html=True)
             
-            # Kartu Model B
             with col_b:
                 st.markdown("""
                     <div class="arena-card">
