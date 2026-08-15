@@ -319,7 +319,7 @@ else:
         st.markdown("""
             <div class="logo-container">
                 <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop" class="logo-img" alt="Logo Arena">
-                <div class="logo-text">ARENA</div>
+                <div class="logo-text">AMPERA MULTI AI</div>
             </div>
         """, unsafe_allow_html=True)
         
@@ -361,7 +361,7 @@ else:
     # -------------------------------------------------------------
     if selected_menu == "🏠 Home Dashboard":
         st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, YA...! (o^▽^o)</p>", unsafe_allow_html=True)
         
         st.markdown("<h3>Get started</h3>", unsafe_allow_html=True)
         gc1, gc2, gc3 = st.columns(3)
