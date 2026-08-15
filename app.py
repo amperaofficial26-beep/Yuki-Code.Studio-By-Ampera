@@ -268,15 +268,14 @@ if selected_menu == "🏠 Home Dashboard":
                             {"role": "user", "content": query_to_process}
                         ]
                     )
-                    status.update(label="✨ Proses berpikir selesai! Menampilkan jawaban...", state="complete", expanded=False)
+                    status.update(label="✨ Proses berpikir selesai!", state="complete", expanded=False)
                     response_text = res_home.choices[0].message.content
                 except Exception as e:
                     status.update(label="❌ Terjadi kesalahan saat memproses.", state="error", expanded=True)
                     response_text = f"Error: {e}"
             
-            # JAWABAN DITAMPILKAN TERPISAH DI BAWAH SETELAH PROSES BERPIKIR SELESAI
+            # JAWABAN DITAMPILKAN BIASA SAJA TANPA JUDUL BESAR
             st.markdown("---")
-            st.markdown("### 💡 Hasil & Solusi:")
             st.markdown(response_text)
 
 # -------------------------------------------------------------
