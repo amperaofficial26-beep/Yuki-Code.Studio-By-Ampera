@@ -9,7 +9,7 @@ st.set_page_config(page_title="Yuki Coding Studio - Aurora Arena", page_icon="�
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS Aurora UI, Efek Ganti Warna, Animasi Masuk Memukau, & Logo Arena
+# Styling CSS Aurora UI, Efek Ganti Warna, & Animasi Intro Pembuka
 st.markdown("""
     <style>
     @keyframes auroraBG {
@@ -24,23 +24,57 @@ st.markdown("""
         color: #f1f5f9;
     }
     
-    /* ANIMASI MASUK YANG MEMUKAU (ENTRANCE ANIMATION) */
-    @keyframes entranceAnim {
+    /* ANIMASI INTRO PEMBUKA (SPLASH SCREEN) */
+    @keyframes splashIntro {
         0% {
             opacity: 0;
-            transform: translateY(25px) scale(0.98);
-            filter: blur(8px);
+            transform: scale(0.92);
+            filter: blur(12px);
+        }
+        50% {
+            opacity: 1;
+            transform: scale(1.02);
+            filter: blur(2px);
         }
         100% {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: scale(1);
             filter: blur(0px);
         }
     }
-    
-    /* Menerapkan animasi masuk ke seluruh konten utama & elemen */
-    .main .block-container, [data-testid="stSidebar"] {
-        animation: entranceAnim 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    .splash-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 75vh;
+        text-align: center;
+        animation: splashIntro 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .splash-logo {
+        width: 90px;
+        height: 90px;
+        border-radius: 22px;
+        object-fit: cover;
+        box-shadow: 0 0 35px rgba(129, 140, 248, 0.6);
+        border: 2px solid rgba(129, 140, 248, 0.5);
+        margin-bottom: 1.5rem;
+        animation: pulseGlow 3s infinite;
+    }
+    .splash-title {
+        font-size: 3rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 0.15em;
+        font-family: monospace;
+        margin-bottom: 0.5rem;
+    }
+    .splash-subtitle {
+        color: #94a3b8;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
     }
     
     /* ANIMASI JUDUL BERGANTI WARNA OTOMATIS */
@@ -54,7 +88,7 @@ st.markdown("""
         animation: colorShift 6s ease infinite !important;
     }
     
-    /* STYLING LOGO & NAMA ARENA */
+    /* STYLING LOGO & NAMA ARENA DI SIDEBAR */
     .logo-container {
         display: flex;
         align-items: center;
@@ -220,247 +254,271 @@ def stream_response(text):
         placeholder.markdown(streamed)
         time.sleep(0.015)
 
-# Inisialisasi Session State untuk navigasi
+# Inisialisasi Session State untuk Intro & Navigasi
+if "has_entered" not in st.session_state:
+    st.session_state["has_entered"] = False
+
 if "current_page" not in st.session_state:
     st.session_state["current_page"] = "🏠 Home Dashboard"
 
 # -------------------------------------------------------------
-# SIDEBAR
+# 1. HALAMAN INTRO PEMBUKA (SPLASH SCREEN DENGAN ANIMASI MASUK)
 # -------------------------------------------------------------
-with st.sidebar:
-    # KOMPONEN LOGO DAN NAMA ARENA (Ganti URL src dengan gambar lokal/online logo Senpai)
+if not st.session_state["has_entered"]:
     st.markdown("""
-        <div class="logo-container">
-            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop" class="logo-img" alt="Logo Arena">
-            <div class="logo-text">ARENA</div>
+        <div class="splash-container">
+            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&h=200&fit=crop" class="splash-logo" alt="Logo Arena">
+            <div class="splash-title">ARENA</div>
+            <div class="splash-subtitle">Yuki Coding Studio & AI Neural Engine</div>
         </div>
     """, unsafe_allow_html=True)
     
-    if st.button("🏠  Home Dashboard", use_container_width=True):
-        st.session_state["current_page"] = "🏠 Home Dashboard"
-        st.rerun()
-        
-    if st.button("⚔️  Arena Battle", use_container_width=True):
-        st.session_state["current_page"] = "⚔️ Arena Battle"
-        st.rerun()
-        
-    if st.button("📊  Leaderboard", use_container_width=True):
-        st.session_state["current_page"] = "📊 Leaderboard"
-        st.rerun()
-        
-    if st.button("🔍  Search", use_container_width=True):
-        st.session_state["current_page"] = "🔍 Search"
-        st.rerun()
-    
-    st.markdown('<div class="sidebar-section-header">Notebook</div>', unsafe_allow_html=True)
-    if st.button("➕  Notebook baru", use_container_width=True):
-        st.info("Fitur Notebook baru dipilih!")
-
-    st.markdown('<div class="sidebar-section-header">Yesterday</div>', unsafe_allow_html=True)
-    if st.button("⚡  Python Binary Search", use_container_width=True):
-        st.session_state["current_page"] = "🏠 Home Dashboard"
-        st.session_state["shortcut_prompt"] = "Jelaskan kembali tentang Python Binary Search."
-        st.rerun()
-        
-    if st.button("🛠️  Fix Bug Index Error", use_container_width=True):
-        st.session_state["current_page"] = "🏠 Home Dashboard"
-        st.session_state["shortcut_prompt"] = "Bagaimana cara mengatasi IndexError di Python?"
-        st.rerun()
-
-selected_menu = st.session_state["current_page"]
-
-# -------------------------------------------------------------
-# HALAMAN 1: HOME DASHBOARD
-# -------------------------------------------------------------
-if selected_menu == "🏠 Home Dashboard":
-    st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
-    
-    st.markdown("<h3>Get started</h3>", unsafe_allow_html=True)
-    gc1, gc2, gc3 = st.columns(3)
-    
-    with gc1:
-        if st.button("🌐 **Landing Page**\n\nCreate a modern landing page", use_container_width=True):
-            st.session_state["shortcut_prompt"] = "Buatkan kode landing page modern menggunakan HTML dan Tailwind CSS."
-            st.rerun()
-        if st.button("💻 **Design to Code**\n\nUpload an image and convert", use_container_width=True):
-            st.session_state["shortcut_prompt"] = "Bagaimana cara mengubah desain UI menjadi kode program?"
-            st.rerun()
+    col_space1, col_btn, col_space2 = st.columns([2, 2, 2])
+    with col_btn:
+        if st.button("🚀 MASUK KE ARENA", use_container_width=True):
+            st.session_state["has_entered"] = True
+            st.reruns() = st.rerun() # type: ignore
             
-    with gc2:
-        if st.button("📊 **Dashboard**\n\nInteractive charts & tables", use_container_width=True):
-            st.session_state["shortcut_prompt"] = "Buatkan kerangka aplikasi dashboard interaktif menggunakan Python Streamlit."
-            st.rerun()
-        if st.button("📦 **Fullstack App**\n\nCreate templated full-stack app", use_container_width=True):
-            st.session_state["shortcut_prompt"] = "Berikan arsitektur dasar untuk aplikasi web fullstack."
-            st.rerun()
-            
-    with gc3:
-        if st.button("🎮 **Make a Game**\n\nPlayable browser game", use_container_width=True):
-            st.session_state["shortcut_prompt"] = "Buatkan game sederhana menggunakan HTML5 Canvas dan JavaScript."
-            st.rerun()
-        if st.button("🏪 **Storefront**\n\nCreate online shop layout", use_container_width=True):
-            st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
-            st.rerun()
-
-    default_val = st.session_state.pop("shortcut_prompt", "")
-    home_input = st.chat_input("Ask anything... (Tekan Enter untuk mengirim)")
-    query_to_process = home_input if home_input else default_val
-    
-    if query_to_process:
-        if not groq_key:
-            st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
-        else:
-            with st.status("🧠 Alya lagi nyari contekan dulu buat Senpai...", expanded=True) as status:
-                st.write("🔍 Menganalisis niat dan struktur koding Senpai...")
-                time.sleep(1.8)
-                st.write("⚙️ Memproses logika algoritma melalui Llama 3.3 (70B)...")
-                time.sleep(2.0)
-                st.write("💡 Aha! Ketemu celahnya (atau malah nambah bug baru, hehe)...")
-                time.sleep(2.0)
-                st.write("✨ Persiapan akhir selesai.")
-                time.sleep(1.2)
-                
-                try:
-                    res_home = client.chat.completions.create(
-                        model="llama-3.3-70b-versatile",
-                        messages=[
-                            {
-                                "role": "system", 
-                                "content": (
-                                    "Kamu adalah Alya, asisten pemrograman AI yang super jenius tapi juga kocak, "
-                                    "sedikit usil, suka melempar lelucon receh, dan hobi menggoda Senpai layaknya "
-                                    "karakter anime komedi. Tetap berikan solusi koding yang akurat dan bersih, "
-                                    "tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif "
-                                    "(seperti 🐧, (๑>◡<๑), wkwk, atau (￢_￢)) agar suasana ngoding tidak membosankan!"
-                                )
-                            },
-                            {"role": "user", "content": query_to_process}
-                        ]
-                    )
-                    status.update(label="✨ Proses berpikir selesai!", state="complete", expanded=False)
-                    response_text = res_home.choices[0].message.content
-                except Exception as e:
-                    status.update(label="❌ Terjadi kesalahan saat memproses.", state="error", expanded=True)
-                    response_text = f"Error: {e}"
-            
-            st.markdown("---")
-            stream_response(response_text)
-
 # -------------------------------------------------------------
-# HALAMAN 2: ARENA BATTLE
+# 2. APLIKASI UTAMA SETELAH MASUK
 # -------------------------------------------------------------
-elif selected_menu == "⚔️ Arena Battle":
-    st.title("⚔️ Yuki Coding Arena (Model Battle)")
-    st.caption("Ketik perintah koding di bawah dan tekan **Enter** untuk menguji Llama 3.3 (70B) vs Llama 3.1 (8B) secara head-to-head!")
-    
-    arena_input = st.chat_input("Kirim pesan ke Arena Battle...")
-    
-    if arena_input:
-        st.session_state["last_arena_prompt"] = arena_input
-
-    if "last_arena_prompt" in st.session_state:
-        prompt_val = st.session_state["last_arena_prompt"]
-        st.markdown(f"""
-            <div class="user-bubble-container">
-                <div class="user-bubble">{prompt_val}</div>
+else:
+    # -------------------------------------------------------------
+    # SIDEBAR
+    # -------------------------------------------------------------
+    with st.sidebar:
+        st.markdown("""
+            <div class="logo-container">
+                <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop" class="logo-img" alt="Logo Arena">
+                <div class="logo-text">ARENA</div>
             </div>
         """, unsafe_allow_html=True)
         
-        if not groq_key:
-            st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
-        else:
-            col_a, col_b = st.columns(2)
+        if st.button("🏠  Home Dashboard", use_container_width=True):
+            st.session_state["current_page"] = "🏠 Home Dashboard"
+            st.rerun()
             
-            with col_a:
-                st.markdown("""
-                    <div class="arena-card">
-                        <div class="arena-header">
-                            <span>⚫ llama-3.3-70b-versatile</span>
-                            <span>🗖</span>
-                        </div>
-                """, unsafe_allow_html=True)
+        if st.button("⚔️  Arena Battle", use_container_width=True):
+            st.session_state["current_page"] = "⚔️ Arena Battle"
+            st.rerun()
+            
+        if st.button("📊  Leaderboard", use_container_width=True):
+            st.session_state["current_page"] = "📊 Leaderboard"
+            st.rerun()
+            
+        if st.button("🔍  Search", use_container_width=True):
+            st.session_state["current_page"] = "🔍 Search"
+            st.rerun()
+        
+        st.markdown('<div class="sidebar-section-header">Notebook</div>', unsafe_allow_html=True)
+        if st.button("➕  Notebook baru", use_container_width=True):
+            st.info("Fitur Notebook baru dipilih!")
+
+        st.markdown('<div class="sidebar-section-header">Yesterday</div>', unsafe_allow_html=True)
+        if st.button("⚡  Python Binary Search", use_container_width=True):
+            st.session_state["current_page"] = "🏠 Home Dashboard"
+            st.session_state["shortcut_prompt"] = "Jelaskan kembali tentang Python Binary Search."
+            st.rerun()
+            
+        if st.button("🛠️  Fix Bug Index Error", use_container_width=True):
+            st.session_state["current_page"] = "🏠 Home Dashboard"
+            st.session_state["shortcut_prompt"] = "Bagaimana cara mengatasi IndexError di Python?"
+            st.rerun()
+
+    selected_menu = st.session_state["current_page"]
+
+    # -------------------------------------------------------------
+    # HALAMAN 1: HOME DASHBOARD
+    # -------------------------------------------------------------
+    if selected_menu == "🏠 Home Dashboard":
+        st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
+        
+        st.markdown("<h3>Get started</h3>", unsafe_allow_html=True)
+        gc1, gc2, gc3 = st.columns(3)
+        
+        with gc1:
+            if st.button("🌐 **Landing Page**\n\nCreate a modern landing page", use_container_width=True):
+                st.session_state["shortcut_prompt"] = "Buatkan kode landing page modern menggunakan HTML dan Tailwind CSS."
+                st.rerun()
+            if st.button("💻 **Design to Code**\n\nUpload an image and convert", use_container_width=True):
+                st.session_state["shortcut_prompt"] = "Bagaimana cara mengubah desain UI menjadi kode program?"
+                st.rerun()
                 
-                with st.status("🧠 Model A Thinking...", expanded=True) as status_a:
-                    st.write("Analisis mendalam model A...")
-                    time.sleep(3.0)
+        with gc2:
+            if st.button("📊 **Dashboard**\n\nInteractive charts & tables", use_container_width=True):
+                st.session_state["shortcut_prompt"] = "Buatkan kerangka aplikasi dashboard interaktif menggunakan Python Streamlit."
+                st.rerun()
+            if st.button("📦 **Fullstack App**\n\nCreate templated full-stack app", use_container_width=True):
+                st.session_state["shortcut_prompt"] = "Berikan arsitektur dasar untuk aplikasi web fullstack."
+                st.rerun()
+                
+        with gc3:
+            if st.button("🎮 **Make a Game**\n\nPlayable browser game", use_container_width=True):
+                st.session_state["shortcut_prompt"] = "Buatkan game sederhana menggunakan HTML5 Canvas dan JavaScript."
+                st.rerun()
+            if st.button("🏪 **Storefront**\n\nCreate online shop layout", use_container_width=True):
+                st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
+                st.rerun()
+
+        default_val = st.session_state.pop("shortcut_prompt", "")
+        home_input = st.chat_input("Ask anything... (Tekan Enter untuk mengirim)")
+        query_to_process = home_input if home_input else default_val
+        
+        if query_to_process:
+            if not groq_key:
+                st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
+            else:
+                with st.status("🧠 Alya lagi nyari contekan dulu buat Senpai...", expanded=True) as status:
+                    st.write("🔍 Menganalisis niat dan struktur koding Senpai...")
+                    time.sleep(1.8)
+                    st.write("⚙️ Memproses logika algoritma melalui Llama 3.3 (70B)...")
+                    time.sleep(2.0)
+                    st.write("💡 Aha! Ketemu celahnya (atau malah nambah bug baru, hehe)...")
+                    time.sleep(2.0)
+                    st.write("✨ Persiapan akhir selesai.")
+                    time.sleep(1.2)
+                    
                     try:
-                        resp_a = client.chat.completions.create(
+                        res_home = client.chat.completions.create(
                             model="llama-3.3-70b-versatile",
                             messages=[
-                                {"role": "system", "content": "Kamu adalah asisten pemrograman ahli. Berikan kode bersih dan penjelasan mendalam."},
-                                {"role": "user", "content": prompt_val}
+                                {
+                                    "role": "system", 
+                                    "content": (
+                                        "Kamu adalah Alya, asisten pemrograman AI yang super jenius tapi juga kocak, "
+                                        "sedikit usil, suka melempar lelucon receh, dan hobi menggoda Senpai layaknya "
+                                        "karakter anime komedi. Tetap berikan solusi koding yang akurat dan bersih, "
+                                        "tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif "
+                                        "(seperti 🐧, (๑>◡<๑), wkwk, atau (￢_￢)) agar suasana ngoding tidak membosankan!"
+                                    )
+                                },
+                                {"role": "user", "content": query_to_process}
                             ]
                         )
-                        status_a.update(label="Model A Ready", state="complete", expanded=False)
-                        text_a = resp_a.choices[0].message.content
+                        status.update(label="✨ Proses berpikir selesai!", state="complete", expanded=False)
+                        response_text = res_home.choices[0].message.content
                     except Exception as e:
-                        status_a.update(label="Error", state="error", expanded=True)
-                        text_a = f"Error: {e}"
+                        status.update(label="❌ Terjadi kesalahan saat memproses.", state="error", expanded=True)
+                        response_text = f"Error: {e}"
                 
                 st.markdown("---")
-                st.markdown(text_a)
-                st.markdown("</div>", unsafe_allow_html=True)
+                stream_response(response_text)
+
+    # -------------------------------------------------------------
+    # HALAMAN 2: ARENA BATTLE
+    # -------------------------------------------------------------
+    elif selected_menu == "⚔️ Arena Battle":
+        st.title("⚔️ Yuki Coding Arena (Model Battle)")
+        st.caption("Ketik perintah koding di bawah dan tekan **Enter** untuk menguji Llama 3.3 (70B) vs Llama 3.1 (8B) secara head-to-head!")
+        
+        arena_input = st.chat_input("Kirim pesan ke Arena Battle...")
+        
+        if arena_input:
+            st.session_state["last_arena_prompt"] = arena_input
+
+        if "last_arena_prompt" in st.session_state:
+            prompt_val = st.session_state["last_arena_prompt"]
+            st.markdown(f"""
+                <div class="user-bubble-container">
+                    <div class="user-bubble">{prompt_val}</div>
+                </div>
+            """, unsafe_allow_html=True)
             
-            with col_b:
-                st.markdown("""
-                    <div class="arena-card">
-                        <div class="arena-header">
-                            <span>⚫ llama-3.1-8b-instant</span>
-                            <span>🗖</span>
-                        </div>
-                """, unsafe_allow_html=True)
+            if not groq_key:
+                st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
+            else:
+                col_a, col_b = st.columns(2)
                 
-                with st.status("⚡ Model B Thinking...", expanded=True) as status_b:
-                    st.write("Analisis kilat model B...")
-                    time.sleep(2.0)
-                    try:
-                        resp_b = client.chat.completions.create(
-                            model="llama-3.1-8b-instant",
-                            messages=[
-                                {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. Berikan solusi ringkas."},
-                                {"role": "user", "content": prompt_val}
-                            ]
-                        )
-                        status_b.update(label="Model B Ready", state="complete", expanded=False)
-                        text_b = resp_b.choices[0].message.content
-                    except Exception as e:
-                        status_b.update(label="Error", state="error", expanded=True)
-                        text_b = f"Error: {e}"
+                with col_a:
+                    st.markdown("""
+                        <div class="arena-card">
+                            <div class="arena-header">
+                                <span>⚫ llama-3.3-70b-versatile</span>
+                                <span>🗖</span>
+                            </div>
+                    """, unsafe_allow_html=True)
+                    
+                    with st.status("🧠 Model A Thinking...", expanded=True) as status_a:
+                        st.write("Analisis mendalam model A...")
+                        time.sleep(3.0)
+                        try:
+                            resp_a = client.chat.completions.create(
+                                model="llama-3.3-70b-versatile",
+                                messages=[
+                                    {"role": "system", "content": "Kamu adalah asisten pemrograman ahli. Berikan kode bersih dan penjelasan mendalam."},
+                                    {"role": "user", "content": prompt_val}
+                                ]
+                            )
+                            status_a.update(label="Model A Ready", state="complete", expanded=False)
+                            text_a = resp_a.choices[0].message.content
+                        except Exception as e:
+                            status_a.update(label="Error", state="error", expanded=True)
+                            text_a = f"Error: {e}"
+                    
+                    st.markdown("---")
+                    st.markdown(text_a)
+                    st.markdown("</div>", unsafe_allow_html=True)
+                
+                with col_b:
+                    st.markdown("""
+                        <div class="arena-card">
+                            <div class="arena-header">
+                                <span>⚫ llama-3.1-8b-instant</span>
+                                <span>🗖</span>
+                            </div>
+                    """, unsafe_allow_html=True)
+                    
+                    with st.status("⚡ Model B Thinking...", expanded=True) as status_b:
+                        st.write("Analisis kilat model B...")
+                        time.sleep(2.0)
+                        try:
+                            resp_b = client.chat.completions.create(
+                                model="llama-3.1-8b-instant",
+                                messages=[
+                                    {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. Berikan solusi ringkas."},
+                                    {"role": "user", "content": prompt_val}
+                                ]
+                            )
+                            status_b.update(label="Model B Ready", state="complete", expanded=False)
+                            text_b = resp_b.choices[0].message.content
+                        except Exception as e:
+                            status_b.update(label="Error", state="error", expanded=True)
+                            text_b = f"Error: {e}"
+                    
+                    st.markdown("---")
+                    st.markdown(text_b)
+                    st.markdown("</div>", unsafe_allow_html=True)
                 
                 st.markdown("---")
-                st.markdown(text_b)
-                st.markdown("</div>", unsafe_allow_html=True)
-            
-            st.markdown("---")
-            st.info("💡 **Arena Voting:** Mana model yang memberikan hasil koding lebih baik?")
-            v1, v2, v3 = st.columns(3)
-            with v1:
-                if st.button("👈 Model A Unggul"): st.success("Suara tercatat untuk Model A!")
-            with v2:
-                if st.button("🤝 Seri"): st.success("Hasil seri dicatat!")
-            with v3:
-                if st.button("👉 Model B Unggul"): st.success("Suara tercatat untuk Model B!")
+                st.info("💡 **Arena Voting:** Mana model yang memberikan hasil koding lebih baik?")
+                v1, v2, v3 = st.columns(3)
+                with v1:
+                    if st.button("👈 Model A Unggul"): st.success("Suara tercatat untuk Model A!")
+                with v2:
+                    if st.button("🤝 Seri"): st.success("Hasil seri dicatat!")
+                with v3:
+                    if st.button("👉 Model B Unggul"): st.success("Suara tercatat untuk Model B!")
 
-# -------------------------------------------------------------
-# HALAMAN 3: LEADERBOARD
-# -------------------------------------------------------------
-elif selected_menu == "📊 Leaderboard":
-    st.title("📊 Arena Leaderboard")
-    st.write("Peringkat model AI berdasarkan performa koding dan voting pengguna:")
-    st.markdown("""
-    | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
-    | :---: | :--- | :---: | :---: | :---: |
-    | 🥇 | **llama-3.3-70b-versatile** | **1280** | 68.5% | 9.5 / 10 |
-    | 🥈 | **llama-3.1-8b-instant** | **1150** | 55.2% | 8.2 / 10 |
-    """)
+    # -------------------------------------------------------------
+    # HALAMAN 3: LEADERBOARD
+    # -------------------------------------------------------------
+    elif selected_menu == "📊 Leaderboard":
+        st.title("📊 Arena Leaderboard")
+        st.write("Peringkat model AI berdasarkan performa koding dan voting pengguna:")
+        st.markdown("""
+        | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
+        | :---: | :--- | :---: | :---: | :---: |
+        | 🥇 | **llama-3.3-70b-versatile** | **1280** | 68.5% | 9.5 / 10 |
+        | 🥈 | **llama-3.1-8b-instant** | **1150** | 55.2% | 8.2 / 10 |
+        """)
 
-# -------------------------------------------------------------
-# HALAMAN 4: SEARCH
-# -------------------------------------------------------------
-elif selected_menu == "🔍 Search":
-    st.title("🔍 Search Chat History")
-    search_query = st.text_input("Cari riwayat percakapan atau kode sebelumnya...")
-    if search_query:
-        st.info(f"Hasil pencarian untuk: **{search_query}**")
-        st.markdown("- ⚡ *Python Binary Search* (Ditemukan di riwayat Yesterday)")
+    # -------------------------------------------------------------
+    # HALAMAN 4: SEARCH
+    # -------------------------------------------------------------
+    elif selected_menu == "🔍 Search":
+        st.title("🔍 Search Chat History")
+        search_query = st.text_input("Cari riwayat percakapan atau kode sebelumnya...")
+        if search_query:
+            st.info(f"Hasil pencarian untuk: **{search_query}**")
+            st.markdown("- ⚡ *Python Binary Search* (Ditemukan di riwayat Yesterday)")
