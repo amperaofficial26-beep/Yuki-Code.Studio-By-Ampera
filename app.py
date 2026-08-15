@@ -8,7 +8,7 @@ st.set_page_config(page_title="Yuki Coding Studio", page_icon="🏛️", layout=
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS agar bersih dan modern
+# Styling CSS agar kotak AI mirip Arena card dan gelembung chat user di kanan
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -53,6 +53,41 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
+    /* Styling Kartu Arena */
+    .arena-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .arena-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: monospace;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #1f2937;
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 10px;
+        margin-bottom: 12px;
+    }
+    /* Gelembung User di Kanan */
+    .user-bubble-container {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+    }
+    .user-bubble {
+        background-color: #f3f4f6;
+        color: #1f2937;
+        padding: 10px 16px;
+        border-radius: 12px;
+        max-width: 70%;
+        font-size: 0.95rem;
+    }
     div.stButton > button {
         background: #2563eb !important;
         border: 1px solid #1d4ed8 !important;
@@ -88,13 +123,12 @@ with st.sidebar:
     st.markdown('<div class="sidebar-menu-item">🛠️ Fix Bug Index Error</div>', unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# HALAMAN 1: HOME DASHBOARD (Enter to Send via st.chat_input)
+# HALAMAN 1: HOME DASHBOARD
 # -------------------------------------------------------------
 if selected_menu == "🏠 Home Dashboard":
     st.markdown("<h1 style='text-align: center; color: #111827; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; color: #6b7280; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
     
-    # Grid Kartu "Get Started" di atas
     st.markdown("<h4 style='color: #374151; font-weight: 600;'>Get started</h4>", unsafe_allow_html=True)
     gc1, gc2, gc3 = st.columns(3)
     
@@ -116,12 +150,8 @@ if selected_menu == "🏠 Home Dashboard":
         if st.button("🏪 **Storefront**\n\nCreate online shop layout", use_container_width=True):
             st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Kotak Input Chat Bawah (Tekan Enter Langsung Kirim)
     default_val = st.session_state.pop("shortcut_prompt", "")
     home_input = st.chat_input("Ask anything... (Tekan Enter untuk mengirim)")
-    
     query_to_process = home_input if home_input else default_val
     
     if query_to_process:
@@ -143,7 +173,7 @@ if selected_menu == "🏠 Home Dashboard":
                     st.error(f"Error: {e}")
 
 # -------------------------------------------------------------
-# HALAMAN 2: ARENA BATTLE
+# HALAMAN 2: ARENA BATTLE (Model A vs Model B Cards)
 # -------------------------------------------------------------
 elif selected_menu == "⚔️ Arena Battle":
     st.title("⚔️ Yuki Coding Arena (Model Battle)")
@@ -152,43 +182,73 @@ elif selected_menu == "⚔️ Arena Battle":
     arena_input = st.chat_input("Kirim pesan ke Arena Battle...")
     
     if arena_input:
+        # Simpan prompt user ke session state agar tetap tampil
+        st.session_state["last_arena_prompt"] = arena_input
+
+    # Tampilkan prompt user dalam gelembung kanan jika ada
+    if "last_arena_prompt" in st.session_state:
+        prompt_val = st.session_state["last_arena_prompt"]
+        st.markdown(f"""
+            <div class="user-bubble-container">
+                <div class="user-bubble">{prompt_val}</div>
+            </div>
+        """, unsafe_allow_html=True)
+        
         if not groq_key:
             st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
         else:
             col_a, col_b = st.columns(2)
             
+            # Kartu Model A
             with col_a:
-                st.markdown("### 🧬 Model A (Llama 3.3 - 70B)")
-                with st.spinner("Model A mengetik..."):
+                st.markdown("""
+                    <div class="arena-card">
+                        <div class="arena-header">
+                            <span>⚫ llama-3.3-70b-versatile</span>
+                            <span>🗖</span>
+                        </div>
+                """, unsafe_allow_html=True)
+                
+                with st.spinner("Generating..."):
                     try:
                         resp_a = client.chat.completions.create(
                             model="llama-3.3-70b-versatile",
                             messages=[
                                 {"role": "system", "content": "Kamu adalah asisten pemrograman ahli. Berikan kode bersih dan penjelasan mendalam."},
-                                {"role": "user", "content": arena_input}
+                                {"role": "user", "content": prompt_val}
                             ]
                         )
                         st.markdown(resp_a.choices[0].message.content)
                     except Exception as e:
                         st.error(f"Error: {e}")
+                st.markdown("</div>", unsafe_allow_html=True)
             
+            # Kartu Model B
             with col_b:
-                st.markdown("### ⚡ Model B (Llama 3.1 - 8B)")
-                with st.spinner("Model B mengetik..."):
+                st.markdown("""
+                    <div class="arena-card">
+                        <div class="arena-header">
+                            <span>⚫ llama-3.1-8b-instant</span>
+                            <span>🗖</span>
+                        </div>
+                """, unsafe_allow_html=True)
+                
+                with st.spinner("Generating..."):
                     try:
                         resp_b = client.chat.completions.create(
                             model="llama-3.1-8b-instant",
                             messages=[
                                 {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. Berikan solusi ringkas."},
-                                {"role": "user", "content": arena_input}
+                                {"role": "user", "content": prompt_val}
                             ]
                         )
                         st.markdown(resp_b.choices[0].message.content)
                     except Exception as e:
                         st.error(f"Error: {e}")
+                st.markdown("</div>", unsafe_allow_html=True)
             
             st.markdown("---")
-            st.info("💡 **Arena Voting:** Mana model yang lebih baik?")
+            st.info("💡 **Arena Voting:** Mana model yang memberikan hasil koding lebih baik?")
             v1, v2, v3 = st.columns(3)
             with v1:
                 if st.button("👈 Model A Unggul"): st.success("Suara tercatat untuk Model A!")
