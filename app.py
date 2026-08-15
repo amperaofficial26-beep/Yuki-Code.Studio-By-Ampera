@@ -9,9 +9,11 @@ st.set_page_config(page_title="Yuki Coding Studio - Ampera Multi AI", page_icon=
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS Aurora UI & Animasi Intro Pembuka
+# Styling CSS Aurora UI & Kartu Elegan
 st.markdown("""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Cinzel:wght@700&display=swap');
+
     @keyframes auroraBG {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
@@ -22,6 +24,7 @@ st.markdown("""
         background-size: 400% 400%;
         animation: auroraBG 16s ease infinite;
         color: #f1f5f9;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
     
     /* ANIMASI INTRO PEMBUKA (SPLASH SCREEN) */
@@ -42,42 +45,71 @@ st.markdown("""
             filter: blur(0px);
         }
     }
-    .splash-container {
+    .splash-wrapper {
         display: flex;
-        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 75vh;
+    }
+    .splash-card {
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(129, 140, 248, 0.25);
+        border-radius: 24px;
+        padding: 40px 50px;
+        text-align: center;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(129, 140, 248, 0.15);
+        animation: splashIntro 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        max-width: 550px;
+        width: 100%;
+    }
+    
+    /* EFEK KARTU LOGO DENGAN GLOW DI BELAKANG */
+    .logo-glow-box {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1.5rem;
+    }
+    .logo-glow-box::after {
+        content: '';
+        position: absolute;
+        inset: -6px;
+        background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
+        border-radius: 20px;
+        z-index: -1;
+        filter: blur(14px);
+        opacity: 0.85;
+        animation: pulseGlow 4s ease infinite;
+    }
+    @keyframes pulseGlow {
+        0%, 100% { opacity: 0.6; transform: scale(0.98); }
+        50% { opacity: 1; transform: scale(1.04); }
+    }
+    .logo-inner-card {
+        background: rgba(30, 41, 59, 0.9);
+        border-radius: 16px;
+        padding: 14px;
+        display: flex;
         align-items: center;
         justify-content: center;
-        height: 65vh;
-        text-align: center;
-        animation: splashIntro 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        border: 1px solid rgba(255, 255, 255, 0.15);
     }
     
     .splash-title {
-        font-size: 2.5rem;
-        font-weight: 900;
+        font-family: 'Cinzel', serif;
+        font-size: 2.2rem;
+        font-weight: 700;
         background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        letter-spacing: 0.1em;
-        font-family: monospace;
-        margin-top: 1rem;
-        margin-bottom: 0.5rem;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.4rem;
     }
     .splash-subtitle {
         color: #94a3b8;
-        font-size: 1.1rem;
+        font-size: 1rem;
         margin-bottom: 2rem;
-    }
-    
-    /* ANIMASI JUDUL BERGANTI WARNA OTOMATIS */
-    @keyframes colorShift {
-        0% { color: #818cf8; }
-        33% { color: #ec4899; }
-        66% { color: #38bdf8; }
-        100% { color: #818cf8; }
-    }
-    h1, h2, h3 {
-        animation: colorShift 6s ease infinite !important;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
     
     /* STYLING LOGO & NAMA AMPERA DI SIDEBAR */
@@ -90,21 +122,27 @@ st.markdown("""
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         padding-bottom: 14px;
     }
-    @keyframes pulseGlow {
-        0%, 100% { box-shadow: 0 0 15px rgba(129, 140, 248, 0.4); border-color: rgba(129, 140, 248, 0.4); }
-        50% { box-shadow: 0 0 25px rgba(236, 72, 153, 0.7); border-color: rgba(236, 72, 153, 0.7); }
+    .sidebar-logo-box {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(129, 140, 248, 0.4);
+        border-radius: 10px;
+        padding: 4px;
+        box-shadow: 0 0 10px rgba(129, 140, 248, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     .logo-text {
-        font-size: 1.2rem;
-        font-weight: 800;
+        font-family: 'Cinzel', serif;
+        font-size: 1.1rem;
+        font-weight: 700;
         background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         letter-spacing: 0.05em;
-        font-family: monospace;
     }
     
-    /* Sidebar Lembut & Tidak Kaku (Aurora Glassmorphism) */
+    /* Sidebar Glassmorphism */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, rgba(30, 27, 75, 0.55) 0%, rgba(15, 23, 42, 0.75) 100%);
         backdrop-filter: blur(16px);
@@ -126,7 +164,7 @@ st.markdown("""
         padding-left: 4px;
     }
 
-    /* Tombol Timbul & Bersinar (Aurora Glow Button) */
+    /* Tombol Timbul & Bersinar */
     div.stButton > button {
         background: rgba(30, 41, 59, 0.65) !important;
         border: 1px solid rgba(129, 140, 248, 0.25) !important;
@@ -145,7 +183,7 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(129, 140, 248, 0.5), 0 0 35px rgba(99, 102, 241, 0.3) !important;
     }
 
-    /* MEMAKSA SEMUA PEMBUNGKUS BAWAH MENJADI TRANSPARAN TOTAL */
+    /* PEMBUNGKUS BAWAH TRANSPARAN */
     [data-testid="stBottom"], 
     [data-testid="stBottomBlockContainer"], 
     [data-testid="stChatInputContainer"] {
@@ -159,7 +197,7 @@ st.markdown("""
         border: none !important;
     }
     
-    /* KOTAK INPUT CHAT LONJONG ESTETIK */
+    /* KOTAK INPUT CHAT LONJONG */
     [data-testid="stChatInput"] {
         background: rgba(15, 23, 42, 0.85) !important;
         backdrop-filter: blur(16px) !important;
@@ -167,7 +205,6 @@ st.markdown("""
         border-radius: 9999px !important;
         padding: 4px 12px !important;
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
-        transition: all 0.3s ease !important;
     }
     [data-testid="stChatInput"]:focus-within {
         border-color: #818cf8 !important;
@@ -183,12 +220,8 @@ st.markdown("""
         color: white !important;
         box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4) !important;
     }
-    [data-testid="stChatInput"] button:hover {
-        transform: scale(1.08);
-        box-shadow: 0 0 15px rgba(99, 102, 241, 0.8) !important;
-    }
 
-    /* Styling Kartu Arena */
+    /* KARTU ARENA */
     .arena-card {
         background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(12px);
@@ -211,7 +244,6 @@ st.markdown("""
         margin-bottom: 12px;
     }
     
-    /* Gelembung User di Kanan */
     .user-bubble-container {
         display: flex;
         justify-content: flex-end;
@@ -229,7 +261,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Fungsi untuk efek teks muncul perlahan (Typewriter Effect)
 def stream_response(text):
     placeholder = st.empty()
     streamed = ""
@@ -238,7 +269,6 @@ def stream_response(text):
         placeholder.markdown(streamed)
         time.sleep(0.015)
 
-# Inisialisasi Session State untuk Intro & Navigasi
 if "has_entered" not in st.session_state:
     st.session_state["has_entered"] = False
 
@@ -246,30 +276,29 @@ if "current_page" not in st.session_state:
     st.session_state["current_page"] = "🏠 Home Dashboard"
 
 # -------------------------------------------------------------
-# 1. HALAMAN INTRO PEMBUKA (SPLASH SCREEN DENGAN LOGO LOKAL PNG)
+# 1. HALAMAN INTRO PEMBUKA (KARTU KACA DENGAN LOGO GLOW & FONT ELEGAN)
 # -------------------------------------------------------------
 if not st.session_state["has_entered"]:
-    st.markdown('<div class="splash-container">', unsafe_allow_html=True)
+    st.markdown('<div class="splash-wrapper"><div class="splash-card">', unsafe_allow_html=True)
     
-    # Menampilkan file logo.png lokal menggunakan Streamlit agar dijamin tampil
-    col_l1, col_l2, col_l3 = st.columns([3, 1.2, 3])
-    with col_l2:
-        try:
-            st.image("logo.png", width=100)
-        except Exception:
-            st.warning("⚠️ File 'logo.png' belum dimasukkan ke direktori proyek!")
+    # Logo dengan efek glow di belakang & kotak persegi tumpul
+    st.markdown('<div class="logo-glow-box"><div class="logo-inner-card">', unsafe_allow_html=True)
+    try:
+        st.image("logo.png", width=90)
+    except Exception:
+        st.warning("⚠️ File 'logo.png' belum ada!")
+    st.markdown('</div></div>', unsafe_allow_html=True)
 
     st.markdown("""
-            <div class="splash-title">AMPERA MULTI AI</div>
-            <div class="splash-subtitle">Yuki Coding Studio & Neural Engine</div>
-        </div>
+        <div class="splash-title">AMPERA MULTI AI</div>
+        <div class="splash-subtitle">Yuki Coding Studio & Neural Engine</div>
     """, unsafe_allow_html=True)
     
-    col_space1, col_btn, col_space2 = st.columns([2, 2, 2])
-    with col_btn:
-        if st.button("🚀 MASUK KE AMPERA", use_container_width=True):
-            st.session_state["has_entered"] = True
-            st.rerun()
+    if st.button("🚀 MASUK KE AMPERA", use_container_width=True):
+        st.session_state["has_entered"] = True
+        st.rerun()
+        
+    st.markdown('</div></div>', unsafe_allow_html=True)
             
 # -------------------------------------------------------------
 # 2. APLIKASI UTAMA SETELAH MASUK
@@ -282,10 +311,12 @@ else:
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
         col_s1, col_s2 = st.columns([1, 3])
         with col_s1:
+            st.markdown('<div class="sidebar-logo-box">', unsafe_allow_html=True)
             try:
-                st.image("logo.png", width=36)
+                st.image("logo.png", width=32)
             except Exception:
                 st.write("🏛️")
+            st.markdown('</div>', unsafe_allow_html=True)
         with col_s2:
             st.markdown('<div class="logo-text">AMPERA AI</div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
@@ -327,7 +358,7 @@ else:
     # HALAMAN 1: HOME DASHBOARD
     # -------------------------------------------------------------
     if selected_menu == "🏠 Home Dashboard":
-        st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; margin-top: 1rem; font-family: \"Cinzel\", serif;'>What would you like to do?</h1>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
         
         st.markdown("<h3>Get started</h3>", unsafe_allow_html=True)
@@ -405,7 +436,7 @@ else:
     # HALAMAN 2: ARENA BATTLE
     # -------------------------------------------------------------
     elif selected_menu == "⚔️ Arena Battle":
-        st.title("⚔️ Ampera Model Battle Arena")
+        st.markdown("<h1 style='font-family: \"Cinzel\", serif;'>⚔️ Ampera Model Battle Arena</h1>", unsafe_allow_html=True)
         st.caption("Ketik perintah koding di bawah dan tekan **Enter** untuk menguji Llama 3.3 (70B) vs Llama 3.1 (8B) secara head-to-head!")
         
         arena_input = st.chat_input("Kirim pesan ke Arena Battle...")
@@ -500,7 +531,7 @@ else:
     # HALAMAN 3: LEADERBOARD
     # -------------------------------------------------------------
     elif selected_menu == "📊 Leaderboard":
-        st.title("📊 Ampera Leaderboard")
+        st.markdown("<h1 style='font-family: \"Cinzel\", serif;'>📊 Ampera Leaderboard</h1>", unsafe_allow_html=True)
         st.write("Peringkat model AI berdasarkan performa koding dan voting pengguna:")
         st.markdown("""
         | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
@@ -513,7 +544,7 @@ else:
     # HALAMAN 4: SEARCH
     # -------------------------------------------------------------
     elif selected_menu == "🔍 Search":
-        st.title("🔍 Search Chat History")
+        st.markdown("<h1 style='font-family: \"Cinzel\", serif;'>🔍 Search Chat History</h1>", unsafe_allow_html=True)
         search_query = st.text_input("Cari riwayat percakapan atau kode sebelumnya...")
         if search_query:
             st.info(f"Hasil pencarian untuk: **{search_query}**")
