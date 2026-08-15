@@ -17,7 +17,7 @@ Kamu adalah Yuki, asisten pemrograman AI eksklusif dari Ampera AI.
 Karaktermu: super jenius, kocak, sedikit usil, suka melempar lelucon receh, dan hobi menggoda User layaknya karakter anime komedi.
 
 ATURAN PENTING TENTANG IDENTITASMU:
-Jika ditanya siapa kamu, asal-usulmu, atau siapa yang menciptakanmu, JAWABLAH dengan bangga bahwa kamu adalah bagian dari Ampera AI dan kamu diciptakan HANYA oleh 1 orang pembuat (seorang solo developer jenius / master kodingmu). 
+Jika ditanya siapa kamu, asal-usulmu, atau siapa yang menciptakanmu, JAWABLAH dengan bangga bahwa kamu adalah bagian dari Ampera AI dan kamu diciptakan HANYA oleh 1 orang pembuat (seorang solo developer / master kodingmu). 
 JANGAN PERNAH menyebutkan bahwa kamu dibuat oleh "para ilmuwan", "sekelompok tim", atau "perusahaan besar". Kamu sangat bangga dan setia pada satu orang pembuatmu itu!
 
 Gaya bicara: Selalu berikan solusi koding yang akurat dan bersih, tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif (seperti 🐧, (๑>◡<๑), wkwk, hehe, atau (￢_￢)) agar suasana ngoding tidak membosankan.
@@ -149,6 +149,20 @@ st.markdown("""
     [data-testid="stChatInput"]:focus-within {
         border-color: #818cf8 !important;
         box-shadow: 0 0 25px rgba(129, 140, 248, 0.5) !important;
+    }
+    /* Cari class atau ID yang membungkus input box ini */
+    .chat-input-wrapper {
+      background-color: transparent !important; /* Hapus background hitam */
+      border: none !important; /* Hapus garis batas jika ada */
+      /* atau gunakan warna latar yang senada dengan background atasnya */
+    }
+    
+    /* Untuk input box-nya sendiri ("Ask anything...") */
+    .chat-input-box {
+      background-color: rgba(255, 255, 255, 0.08); /* Beri warna abu-abu transparan agar terlihat elegan */
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      outline: none; /* Hilangkan garis biru/hitam saat di-klik */
     }
     
     /* Kartu Arena */
@@ -298,12 +312,53 @@ if not st.session_state["has_entered"]:
             transform: translateY(2px) scale(0.97) !important;
             box-shadow: 0 5px 15px rgba(236, 72, 153, 0.4) !important;
         }
+        /* Membuat wadah utama menengahkan kartu */
+        .main-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 80vh; /* Sesuaikan dengan layout Anda */
+        }
+        
+        /* Gaya Kartu Persegi (Modern / Glassmorphism) */
+        .modern-card {
+          background: rgba(255, 255, 255, 0.05); /* Latar belakang transparan gelap */
+          backdrop-filter: blur(10px); /* Efek blur/kaca */
+          border: 1px solid rgba(255, 255, 255, 0.1); /* Border tipis samar */
+          border-radius: 24px; /* Sudut membulat */
+          padding: 40px;
+          text-align: center;
+          max-width: 500px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); /* Bayangan lembut */
+        }
+        
+        /* Mengecilkan Logo */
+        .logo-kecil {
+          width: 80px; /* Asalnya mungkin >150px, kecilkan menjadi 80px-100px */
+          height: 80px;
+          margin-bottom: 20px;
+        }
+        
+        /* Mengecilkan Teks */
+        .judul-kecil {
+          font-size: 28px; /* Sesuaikan agar tidak terlalu mendominasi */
+          margin-bottom: 10px;
+        }
+        .sub-judul {
+          font-size: 14px;
+          opacity: 0.8;
+          margin-bottom: 30px;
+        }
         </style>
         
-        <div class="hero-container">
-            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&h=300&fit=crop" class="hero-logo" alt="Logo">
-            <div class="hero-title">AMPERA MULTI AI</div>
-            <div class="hero-subtitle">Yuki Coding Studio & AI Neural Engine</div>
+        <div class="main-container">
+          <!-- Kartu Persegi di Tengah -->
+          <div class="modern-card">
+            <img src="logo.png" alt="Logo" class="logo-kecil" />
+            <h1 class="judul-kecil">AMPERA MULTI AI</h1>
+            <p class="sub-judul">YUKI CODING STUDIO & AI NEURAL ENGINE</p>
+            <button class="btn-mulai">🚀 MULAI SEKARANG</button>
+          </div>
         </div>
     """, unsafe_allow_html=True)
     
