@@ -1,7 +1,2 @@
 streamlit
 openai
-rembg
-onnxruntime
-pillow
-requests
-huggingface_hub
