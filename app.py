@@ -1,189 +1,178 @@
 import streamlit as st
 from openai import OpenAI
 
-# Konfigurasi Halaman (Lebar agar mirip Arena)
-st.set_page_config(page_title="Yuki Arena Coding Studio", page_icon="⚔️", layout="wide")
+# Konfigurasi Halaman (Sidebar default terbuka)
+st.set_page_config(page_title="Yuki Arena Coding Studio", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
 
 # Inisialisasi Groq API
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling Tema Chatbot Arena (Clean, Dark, Modern Tech)
+# Styling CSS untuk Sidebar & Tema Arena Clean
 st.markdown("""
     <style>
+    [data-testid="stSidebar"] {
+        background-color: #f9f9fb;
+        border-right: 1px solid #e5e7eb;
+        padding-top: 10px;
+    }
     [data-testid="stAppViewContainer"] {
-        background-color: #0e1117;
-        color: #c9d1d9;
+        background-color: #ffffff;
+        color: #1f2937;
     }
-    [data-testid="stMainBlockContainer"] { 
-        background: #0e1117 !important; 
-        max-width: 100% !important;
-        padding-top: 2rem;
+    .sidebar-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
-    .stTabs [data-baseweb="tab"] {
-        background: #161b22 !important;
-        border: 1px solid #30363d !important;
-        color: #58a6ff !important;
-        border-radius: 6px !important;
+    .sidebar-menu-item {
+        padding: 8px 12px;
+        border-radius: 6px;
+        color: #374151;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 4px;
+        text-decoration: none;
+    }
+    .sidebar-menu-item:hover {
+        background-color: #f3f4f6;
+        color: #111827;
+    }
+    .history-header {
+        font-size: 0.85rem;
         font-weight: 600;
+        color: #6b7280;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
     div.stButton > button {
-        background: #238636 !important;
-        border: 1px solid #2ea043 !important;
+        background: #2563eb !important;
+        border: 1px solid #1d4ed8 !important;
         color: #ffffff !important;
         border-radius: 6px !important;
         font-weight: 600;
     }
     div.stButton > button:hover {
-        background: #2ea043 !important;
-    }
-    .arena-box {
-        background: #161b22;
-        border: 1px solid #30363d;
-        padding: 20px;
-        border-radius: 8px;
+        background: #1d4ed8 !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Header ala Arena
-st.title("⚔️ Yuki Coding Arena (Model Battle)")
-st.caption("Uji dan bandingkan performa dua model AI pemrograman secara head-to-head, ala Chatbot Arena! (o^▽^o)")
-
-# Navigasi Tab Utama
-tabs = st.tabs(["⚔️ Arena Battle (Side-by-Side)", "🛠️ Debugger & Optimizer Arena", "🚀 Quick Generator"])
+# -------------------------------------------------------------
+# SIDEBAR ALA CHATBOT ARENA
+# -------------------------------------------------------------
+with st.sidebar:
+    # Header Logo & Nama Arena
+    st.markdown("""
+        <div class="sidebar-title">
+            🏛️ Arena <span style="font-size: 0.9rem; color: #6b7280; font-weight: 400;">▼</span>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Menu Navigasi Samping
+    selected_menu = st.radio(
+        "Menu Utama",
+        ["💬 New Chat", "📊 Leaderboard", "🔍 Search"],
+        label_visibility="collapsed"
+    )
+    
+    st.markdown("---")
+    
+    # Bagian Riwayat Chat (History)
+    st.markdown('<div class="history-header">Yesterday</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-menu-item">⚡ Python Binary Search</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-menu-item">🛠️ Fix Bug Index Error</div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="history-header">Previous 7 Days</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-menu-item">🚀 Flask Rest API Boilerplate</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-menu-item">💡 Sorting Algorithm Battle</div>', unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# TAB 1: Arena Battle (Side-by-Side Comparison)
+# KONTEN UTAMA SESUAI MENU SIDEBAR
 # -------------------------------------------------------------
-with tabs[0]:
-    st.markdown("### 🤖 Blind / Head-to-Head Model Comparison")
-    st.write("Kirimkan satu perintah koding, dan lihat bagaimana **Llama 3.3 (70B)** dan **Llama 3.1 (8B)** menyelesaikan masalah tersebut secara bersamaan.")
+if selected_menu == "💬 New Chat":
+    col_top1, col_top2 = st.columns([4, 1])
+    with col_top1:
+        st.title("⚔️ Yuki Coding Arena (Model Battle)")
+    with col_top2:
+        battle_mode = st.selectbox("Mode", ["⚔️ Battle Mode", "🤖 Single Model"], label_visibility="collapsed")
     
-    prompt_arena = st.text_area("Masukkan prompt atau masalah koding Senpai di sini:", key="arena_prompt", placeholder="Contoh: Buatkan implementasi Linked List sederhana dalam bahasa Python.")
+    st.caption("Uji dan bandingkan performa dua model AI pemrograman secara head-to-head (Llama 3.3 70B vs Llama 3.1 8B). (o^▽^o)")
     
-    if st.button("⚔️ Mulai Battle!", use_container_width=True) and prompt_arena:
+    prompt_arena = st.text_area("Kirim pesan ke Arena:", key="arena_prompt", placeholder="Contoh: Buatkan fungsi QuickSort di Python...")
+    
+    if st.button("🚀 Kirim", use_container_width=True) and prompt_arena:
         if not groq_key:
             st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
         else:
             col_a, col_b = st.columns(2)
             
-            # Kolom Model A (Llama 3.3 70B)
             with col_a:
                 st.markdown("### 🧬 Model A (Llama 3.3 - 70B)")
-                with st.spinner("Model A sedang meracik kode..."):
+                with st.spinner("Model A mengetik..."):
                     try:
                         resp_a = client.chat.completions.create(
                             model="llama-3.3-70b-versatile",
                             messages=[
-                                {"role": "system", "content": "Kamu adalah asisten pemrograman ahli. Berikan kode yang bersih, efisien, dan penjelasan yang mendalam."},
+                                {"role": "system", "content": "Kamu adalah asisten pemrograman ahli. Berikan kode yang bersih dan penjelasan mendalam."},
                                 {"role": "user", "content": prompt_arena}
                             ]
                         )
                         st.markdown(resp_a.choices[0].message.content)
                     except Exception as e:
-                        st.error(f"Error Model A: {e}")
+                        st.error(f"Error: {e}")
             
-            # Kolom Model B (Llama 3.1 8B)
             with col_b:
-                st.markdown("### ⚡ Model B (Llama 3.1 - 8B Instant)")
-                with st.spinner("Model B sedang meracik kode..."):
+                st.markdown("### ⚡ Model B (Llama 3.1 - 8B)")
+                with st.spinner("Model B mengetik..."):
                     try:
                         resp_b = client.chat.completions.create(
                             model="llama-3.1-8b-instant",
                             messages=[
-                                {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. Berikan solusi kode yang ringkas dan langsung pada sasaran."},
+                                {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. Berikan solusi ringkas."},
                                 {"role": "user", "content": prompt_arena}
                             ]
                         )
                         st.markdown(resp_b.choices[0].message.content)
                     except Exception as e:
-                        st.error(f"Error Model B: {e}")
+                        st.error(f"Error: {e}")
             
             st.markdown("---")
-            st.info("💡 **Arena Voting:** Menurut Senpai, model mana yang memberikan hasil koding lebih baik? (≧◡≦)")
-            v_col1, v_col2, v_col3 = st.columns(3)
-            with v_col1:
-                if st.button("👈 Model A Unggul"):
-                    st.success("Terima kasih! Suara untuk Model A dicatat.")
-            with v_col2:
-                if st.button("🤝 Seri / Keduanya Bagus"):
-                    st.success("Terima kasih! Hasil seri dicatat.")
-            with v_col3:
-                if st.button("👉 Model B Unggul"):
-                    st.success("Terima kasih! Suara untuk Model B dicatat.")
+            st.info("💡 **Arena Voting:** Mana model yang lebih baik?")
+            v1, v2, v3 = st.columns(3)
+            with v1:
+                if st.button("👈 Model A Unggul"): st.success("Suara tercatat untuk Model A!")
+            with v2:
+                if st.button("🤝 Seri"): st.success("Hasil seri dicatat!")
+            with v3:
+                if st.button("👉 Model B Unggul"): st.success("Suara tercatat untuk Model B!")
 
-# -------------------------------------------------------------
-# TAB 2: Debugger & Optimizer Arena
-# -------------------------------------------------------------
-with tabs[1]:
-    st.markdown("### 🛠️ Code Debugger Arena")
-    st.write("Masukkan kode yang error, biarkan kedua model bersaing memberikan perbaikan terbaik.")
+elif selected_menu == "📊 Leaderboard":
+    st.title("📊 Arena Leaderboard")
+    st.write("Peringkat model AI berdasarkan performa koding dan voting terbanyak dari pengguna:")
     
-    bug_code = st.text_area("Paste kode yang bermasalah:", height=150, key="arena_bug")
-    bug_desc = st.text_input("Deskripsi error (opsional):", placeholder="Contoh: Infinite loop atau TypeError")
-    
-    if st.button("🔍 Bandingkan Solusi Debug", use_container_width=True) and bug_code:
-        if not groq_key:
-            st.error("API Key belum diatur!")
-        else:
-            query_bug = f"Perbaiki kode yang error ini:\n\n```\n{bug_code}\n```\nError: {bug_desc}"
-            
-            col_a, col_b = st.columns(2)
-            with col_a:
-                st.markdown("### 🧬 Solusi Model A")
-                with st.spinner("Menganalisis bug..."):
-                    try:
-                        fix_a = client.chat.completions.create(
-                            model="llama-3.3-70b-versatile",
-                            messages=[
-                                {"role": "system", "content": "Kamu adalah expert debugger. Temukan akar masalah dan berikan kode yang sudah diperbaiki."},
-                                {"role": "user", "content": query_bug}
-                            ]
-                        )
-                        st.markdown(fix_a.choices[0].message.content)
-                    except Exception as e:
-                        st.error(f"Error: {e}")
-            
-            with col_b:
-                st.markdown("### ⚡ Solusi Model B")
-                with st.spinner("Menganalisis bug..."):
-                    try:
-                        fix_b = client.chat.completions.create(
-                            model="llama-3.1-8b-instant",
-                            messages=[
-                                {"role": "system", "content": "Kamu adalah expert debugger cepat. Berikan solusi perbaikan kode yang efisien."},
-                                {"role": "user", "content": query_bug}
-                            ]
-                        )
-                        st.markdown(fix_b.choices[0].message.content)
-                    except Exception as e:
-                        st.error(f"Error: {e}")
+    # Tabel Leaderboard Sederhana
+    st.markdown("""
+    | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
+    | :---: | :--- | :---: | :---: | :---: |
+    | 🥇 | **llama-3.3-70b-versatile** | **1280** | 68.5% | 9.5 / 10 |
+    | 🥈 | **llama-3.1-8b-instant** | **1150** | 55.2% | 8.2 / 10 |
+    | 🥉 | **mixtral-8x7b-32768** | **1110** | 51.0% | 8.0 / 10 |
+    """)
 
-# -------------------------------------------------------------
-# TAB 3: Quick Generator
-# -------------------------------------------------------------
-with tabs[2]:
-    st.markdown("### 🚀 Quick Code Generator Arena")
-    st.write("Buat kerangka kode instan dengan model pilihan terbaik.")
-    
-    gen_lang = st.selectbox("Bahasa Pemrograman:", ["Python", "JavaScript", "HTML/CSS", "C++", "SQL"])
-    gen_desc = st.text_input("Fitur atau program apa yang ingin dibuat?", placeholder="Contoh: Form login sederhana dengan validasi")
-    
-    if st.button("✨ Generate Cepat", use_container_width=True) and gen_desc:
-        if not groq_key:
-            st.error("API Key belum diatur!")
-        else:
-            with st.spinner("🌸 Yuki sedang membuat kode..."):
-                try:
-                    res_gen = client.chat.completions.create(
-                        model="llama-3.3-70b-versatile",
-                        messages=[
-                            {"role": "system", "content": f"Buatkan kode {gen_lang} yang lengkap, bersih, dan langsung bisa dijalankan."},
-                            {"role": "user", "content": gen_desc}
-                        ]
-                    )
-                    st.success("Berhasil dibuat, Senpai! (o^▽^o)")
-                    st.markdown(res_gen.choices[0].message.content)
-                except Exception as e:
-                    st.error(f"Gagal: {e}")
+elif selected_menu == "🔍 Search":
+    st.title("🔍 Search Chat History")
+    search_query = st.text_input("Cari riwayat percakapan atau kode sebelumnya:", placeholder="Ketik kata kunci...")
+    if search_query:
+        st.info(f"Menampilkan hasil pencarian untuk: **{search_query}**")
+        st.markdown("- ⚡ *Python Binary Search* (Ditemukan di riwayat Yesterday)")
+        st.markdown("- 🛠️ *Fix Bug Index Error* (Ditemukan di riwayat Yesterday)")
