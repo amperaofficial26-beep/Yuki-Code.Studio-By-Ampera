@@ -9,7 +9,7 @@ st.set_page_config(page_title="Yuki Coding Studio - Aurora Arena", page_icon="�
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS Aurora UI & Pembersihan Total Background Bawah
+# Styling CSS Aurora UI, Efek Ganti Warna Judul, & Pembersihan Total Background Bawah
 st.markdown("""
     <style>
     @keyframes auroraBG {
@@ -22,6 +22,17 @@ st.markdown("""
         background-size: 400% 400%;
         animation: auroraBG 16s ease infinite;
         color: #f1f5f9;
+    }
+    
+    /* ANIMASI JUDUL BERGANTI WARNA OTOMATIS */
+    @keyframes colorShift {
+        0% { color: #818cf8; }
+        33% { color: #ec4899; }
+        66% { color: #38bdf8; }
+        100% { color: #818cf8; }
+    }
+    h1, h2, h3, .sidebar-title {
+        animation: colorShift 6s ease infinite !important;
     }
     
     /* Sidebar Lembut & Tidak Kaku (Aurora Glassmorphism) */
@@ -38,7 +49,6 @@ st.markdown("""
     .sidebar-title {
         font-size: 1.2rem;
         font-weight: 700;
-        color: #f8fafc;
         margin-bottom: 1.2rem;
         display: flex;
         align-items: center;
@@ -160,6 +170,15 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Fungsi untuk efek teks muncul perlahan (Typewriter Effect)
+def stream_response(text):
+    placeholder = st.empty()
+    streamed = ""
+    for word in text.split(" "):
+        streamed += word + " "
+        placeholder.markdown(streamed)
+        time.sleep(0.015)
+
 # Inisialisasi Session State untuk navigasi
 if "current_page" not in st.session_state:
     st.session_state["current_page"] = "🏠 Home Dashboard"
@@ -211,10 +230,10 @@ selected_menu = st.session_state["current_page"]
 # HALAMAN 1: HOME DASHBOARD
 # -------------------------------------------------------------
 if selected_menu == "🏠 Home Dashboard":
-    st.markdown("<h1 style='text-align: center; color: #f8fafc; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
     
-    st.markdown("<h4 style='color: #e2e8f0; font-weight: 600;'>Get started</h4>", unsafe_allow_html=True)
+    st.markdown("<h3>Get started</h3>", unsafe_allow_html=True)
     gc1, gc2, gc3 = st.columns(3)
     
     with gc1:
@@ -249,13 +268,13 @@ if selected_menu == "🏠 Home Dashboard":
         if not groq_key:
             st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
         else:
-            # PROSES BERPIKIR TERPISAH DENGAN DELAY SEKITAR 7 DETIK
-            with st.status("🧠 Yuki sedang berpikir secara mendalam...", expanded=True) as status:
+            # PROSES BERPIKIR SEKITAR 7 DETIK DENGAN KARAKTER ALYA YANG LUCU
+            with st.status("🧠 Alya lagi nyari contekan dulu buat Senpai...", expanded=True) as status:
                 st.write("🔍 Menganalisis niat dan struktur koding Senpai...")
                 time.sleep(1.8)
                 st.write("⚙️ Memproses logika algoritma melalui Llama 3.3 (70B)...")
                 time.sleep(2.0)
-                st.write("🎨 Menyesuaikan tata letak dan praktik terbaik...")
+                st.write("💡 Aha! Ketemu celahnya (atau malah nambah bug baru, hehe)...")
                 time.sleep(2.0)
                 st.write("✨ Persiapan akhir selesai.")
                 time.sleep(1.2)
@@ -264,7 +283,16 @@ if selected_menu == "🏠 Home Dashboard":
                     res_home = client.chat.completions.create(
                         model="llama-3.3-70b-versatile",
                         messages=[
-                            {"role": "system", "content": "Kamu adalah asisten pemrograman ahli yang ramah dan ceria ala anime."},
+                            {
+                                "role": "system", 
+                                "content": (
+                                    "Kamu adalah Alya, asisten pemrograman AI yang super jenius tapi juga kocak, "
+                                    "sedikit usil, suka melempar lelucon receh, dan hobi menggoda Senpai layaknya "
+                                    "karakter anime komedi. Tetap berikan solusi koding yang akurat dan bersih, "
+                                    "tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif "
+                                    "(seperti 🐧, (๑>◡<๑), wkwk, atau (￢_￢)) agar suasana ngoding tidak membosankan!"
+                                )
+                            },
                             {"role": "user", "content": query_to_process}
                         ]
                     )
@@ -274,9 +302,9 @@ if selected_menu == "🏠 Home Dashboard":
                     status.update(label="❌ Terjadi kesalahan saat memproses.", state="error", expanded=True)
                     response_text = f"Error: {e}"
             
-            # JAWABAN DITAMPILKAN BIASA SAJA TANPA JUDUL BESAR
+            # TEKS MUNCUL PERLAHAN (STREAMING TYPEWRITER EFFECT)
             st.markdown("---")
-            st.markdown(response_text)
+            stream_response(response_text)
 
 # -------------------------------------------------------------
 # HALAMAN 2: ARENA BATTLE
