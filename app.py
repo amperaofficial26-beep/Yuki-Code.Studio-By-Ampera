@@ -15,9 +15,14 @@ st.markdown("""
     /* Mengimpor Font Modern dari Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap');
 
-    /* Menerapkan font Inter ke seluruh aplikasi */
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif !important;
+    /* Menerapkan font Inter ke seluruh aplikasi, KECUALI ikon material */
+    html, body, [class*="css"]:not(.material-symbols-rounded):not(i):not(svg) {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Memastikan ikon Streamlit tetap menggunakan font aslinya */
+    .stIcon, .material-symbols-rounded, svg {
+        font-family: 'Material Symbols Rounded', sans-serif !important;
     }
 
     @keyframes auroraBG {
@@ -128,20 +133,21 @@ st.markdown("""
         border-right: 1px solid rgba(255, 255, 255, 0.08);
         padding-top: 10px;
     }
-    [data-testid="stSidebar"] * {
-        color: #e2e8f0 !important;
-        font-family: 'Inter', sans-serif;
+    /* Set warna teks di sidebar, kecuali untuk tombol collapse */
+    [data-testid="stSidebar"] div:not(.st-emotion-cache-1104q3y):not([data-testid="stSidebarCollapseButton"]) {
+        color: #e2e8f0;
     }
     
     .sidebar-section-header {
         font-size: 0.75rem;
         font-weight: 600;
-        color: #94a3b8;
+        color: #94a3b8 !important;
         margin-top: 1.8rem;
         margin-bottom: 0.6rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         padding-left: 4px;
+        font-family: 'Inter', sans-serif;
     }
 
     /* Tombol Timbul & Bersinar (Aurora Glow Button) */
