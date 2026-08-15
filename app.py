@@ -9,9 +9,17 @@ st.set_page_config(page_title="Ampera Multi AI - Yuki Coding Studio", page_icon=
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS Aurora UI, Efek Ganti Warna, & Animasi
+# Styling CSS Aurora UI, Efek Ganti Warna, Animasi & Font Modern
 st.markdown("""
     <style>
+    /* Mengimpor Font Modern dari Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap');
+
+    /* Menerapkan font Inter ke seluruh aplikasi */
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif !important;
+    }
+
     @keyframes auroraBG {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
@@ -51,18 +59,18 @@ st.markdown("""
     }
     .splash-title {
         font-size: 3rem;
-        font-weight: 900;
+        font-weight: 800;
         background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        letter-spacing: 0.15em;
-        font-family: monospace;
+        font-family: 'Poppins', sans-serif;
         margin-bottom: 0.5rem;
     }
     .splash-subtitle {
         color: #94a3b8;
         font-size: 1.1rem;
         margin-bottom: 2rem;
+        font-family: 'Inter', sans-serif;
     }
     
     /* ANIMASI JUDUL BERGANTI WARNA OTOMATIS */
@@ -74,6 +82,7 @@ st.markdown("""
     }
     h1, h2, h3 {
         animation: colorShift 6s ease infinite !important;
+        font-family: 'Poppins', sans-serif !important;
     }
     
     /* STYLING LOGO & NAMA ARENA DI SIDEBAR */
@@ -97,15 +106,19 @@ st.markdown("""
         object-fit: cover;
         animation: pulseGlow 3s infinite;
         border: 1px solid rgba(129, 140, 248, 0.4);
+        flex-shrink: 0; /* Mencegah gambar mengecil */
     }
     .logo-text {
-        font-size: 1.5rem;
-        font-weight: 800;
+        font-size: 1.25rem; /* Ukuran diperkecil agar muat 1 baris */
+        font-weight: 700;
         background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        letter-spacing: 0.08em;
-        font-family: monospace;
+        font-family: 'Poppins', sans-serif;
+        line-height: 1.2;
+        white-space: nowrap; /* Memaksa teks tetap dalam 1 baris */
+        overflow: hidden;
+        text-overflow: ellipsis; /* Menambahkan titik-titik jika masih kepanjangan di layar sangat sempit */
     }
     
     /* Sidebar Lembut & Tidak Kaku (Aurora Glassmorphism) */
@@ -117,6 +130,7 @@ st.markdown("""
     }
     [data-testid="stSidebar"] * {
         color: #e2e8f0 !important;
+        font-family: 'Inter', sans-serif;
     }
     
     .sidebar-section-header {
@@ -126,7 +140,7 @@ st.markdown("""
         margin-top: 1.8rem;
         margin-bottom: 0.6rem;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.05em;
         padding-left: 4px;
     }
 
@@ -136,7 +150,8 @@ st.markdown("""
         border: 1px solid rgba(129, 140, 248, 0.25) !important;
         color: #f8fafc !important;
         border-radius: 12px !important;
-        font-weight: 600;
+        font-weight: 500;
+        font-family: 'Inter', sans-serif !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         backdrop-filter: blur(10px);
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
@@ -179,6 +194,7 @@ st.markdown("""
     }
     [data-testid="stChatInput"] textarea {
         color: #f8fafc !important;
+        font-family: 'Inter', sans-serif !important;
     }
     [data-testid="stChatInput"] button {
         background: linear-gradient(135deg, #4f46e5, #3b82f6) !important;
@@ -206,7 +222,7 @@ st.markdown("""
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-family: monospace;
+        font-family: 'Poppins', sans-serif;
         font-size: 0.95rem;
         font-weight: 600;
         color: #cbd5e1;
@@ -361,7 +377,7 @@ else:
     # -------------------------------------------------------------
     if selected_menu == "🏠 Home Dashboard":
         st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, YA...! (o^▽^o)</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
         
         st.markdown("<h3>Get started</h3>", unsafe_allow_html=True)
         gc1, gc2, gc3 = st.columns(3)
