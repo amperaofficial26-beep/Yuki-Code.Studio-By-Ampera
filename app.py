@@ -9,7 +9,7 @@ st.set_page_config(page_title="Yuki Coding Studio - Ampera Multi AI", page_icon=
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS Aurora UI & Kartu Elegan
+# Styling CSS Aurora UI & Kartu Login Tengah
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Cinzel:wght@700&display=swap');
@@ -27,77 +27,68 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
     
-    /* ANIMASI INTRO PEMBUKA (SPLASH SCREEN) */
-    @keyframes splashIntro {
-        0% {
-            opacity: 0;
-            transform: scale(0.92);
-            filter: blur(12px);
-        }
-        50% {
-            opacity: 1;
-            transform: scale(1.02);
-            filter: blur(2px);
-        }
-        100% {
-            opacity: 1;
-            transform: scale(1);
-            filter: blur(0px);
-        }
-    }
-    .splash-wrapper {
+    /* KARTU LOGIN UTAMA DI TENGAH LAYAR */
+    .login-container {
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 75vh;
-    }
-    .splash-card {
-        background: rgba(15, 23, 42, 0.65);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(129, 140, 248, 0.25);
-        border-radius: 24px;
-        padding: 40px 50px;
-        text-align: center;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(129, 140, 248, 0.15);
-        animation: splashIntro 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        max-width: 550px;
+        height: 80vh;
         width: 100%;
     }
+    .login-card {
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(129, 140, 248, 0.3);
+        border-radius: 28px;
+        padding: 45px 40px;
+        text-align: center;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(129, 140, 248, 0.2);
+        max-width: 480px;
+        width: 100%;
+        animation: cardAppear 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes cardAppear {
+        0% { opacity: 0; transform: scale(0.9) translateY(20px); filter: blur(10px); }
+        100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0px); }
+    }
     
-    /* EFEK KARTU LOGO DENGAN GLOW DI BELAKANG */
-    .logo-glow-box {
+    /* LOGO DENGAN EFEK GLOW DI BELAKANG & SUDUT TUMPUL */
+    .logo-glow-wrapper {
         position: relative;
         display: inline-block;
         margin-bottom: 1.5rem;
     }
-    .logo-glow-box::after {
+    .logo-glow-wrapper::before {
         content: '';
         position: absolute;
-        inset: -6px;
+        inset: -8px;
         background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
-        border-radius: 20px;
-        z-index: -1;
-        filter: blur(14px);
-        opacity: 0.85;
+        border-radius: 22px;
+        z-index: 0;
+        filter: blur(16px);
+        opacity: 0.9;
         animation: pulseGlow 4s ease infinite;
     }
     @keyframes pulseGlow {
-        0%, 100% { opacity: 0.6; transform: scale(0.98); }
-        50% { opacity: 1; transform: scale(1.04); }
+        0%, 100% { opacity: 0.6; transform: scale(0.95); }
+        50% { opacity: 1; transform: scale(1.05); }
     }
-    .logo-inner-card {
-        background: rgba(30, 41, 59, 0.9);
-        border-radius: 16px;
-        padding: 14px;
+    .logo-box-img {
+        position: relative;
+        z-index: 1;
+        background: rgba(30, 41, 59, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 18px;
+        padding: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.4);
     }
     
-    .splash-title {
+    .login-title {
         font-family: 'Cinzel', serif;
-        font-size: 2.2rem;
+        font-size: 2rem;
         font-weight: 700;
         background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
         -webkit-background-clip: text;
@@ -105,52 +96,41 @@ st.markdown("""
         letter-spacing: 0.08em;
         margin-bottom: 0.4rem;
     }
-    .splash-subtitle {
+    .login-subtitle {
         color: #94a3b8;
-        font-size: 1rem;
+        font-size: 0.95rem;
         margin-bottom: 2rem;
-        font-family: 'Plus Jakarta Sans', sans-serif;
     }
     
-    /* STYLING LOGO & NAMA AMPERA DI SIDEBAR */
-    .logo-container {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 6px 4px;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        padding-bottom: 14px;
-    }
-    .sidebar-logo-box {
-        background: rgba(30, 41, 59, 0.8);
-        border: 1px solid rgba(129, 140, 248, 0.4);
-        border-radius: 10px;
-        padding: 4px;
-        box-shadow: 0 0 10px rgba(129, 140, 248, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .logo-text {
-        font-family: 'Cinzel', serif;
-        font-size: 1.1rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: 0.05em;
-    }
-    
-    /* Sidebar Glassmorphism */
+    /* STYLING SIDEBAR YANG RAPI */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, rgba(30, 27, 75, 0.55) 0%, rgba(15, 23, 42, 0.75) 100%);
+        background: linear-gradient(180deg, rgba(30, 27, 75, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
         backdrop-filter: blur(16px);
         border-right: 1px solid rgba(255, 255, 255, 0.08);
         padding-top: 10px;
     }
     [data-testid="stSidebar"] * {
         color: #e2e8f0 !important;
+    }
+    .sidebar-header-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid rgba(129, 140, 248, 0.25);
+        padding: 10px 14px;
+        border-radius: 14px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 15px rgba(129, 140, 248, 0.15);
+    }
+    .sidebar-title-text {
+        font-family: 'Cinzel', serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 0.05em;
     }
     
     .sidebar-section-header {
@@ -183,20 +163,6 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(129, 140, 248, 0.5), 0 0 35px rgba(99, 102, 241, 0.3) !important;
     }
 
-    /* PEMBUNGKUS BAWAH TRANSPARAN */
-    [data-testid="stBottom"], 
-    [data-testid="stBottomBlockContainer"], 
-    [data-testid="stChatInputContainer"] {
-        background: transparent !important;
-        background-color: transparent !important;
-        border-top: none !important;
-        box-shadow: none !important;
-    }
-    [data-testid="stBottom"] div {
-        background-color: transparent !important;
-        border: none !important;
-    }
-    
     /* KOTAK INPUT CHAT LONJONG */
     [data-testid="stChatInput"] {
         background: rgba(15, 23, 42, 0.85) !important;
@@ -276,22 +242,22 @@ if "current_page" not in st.session_state:
     st.session_state["current_page"] = "🏠 Home Dashboard"
 
 # -------------------------------------------------------------
-# 1. HALAMAN INTRO PEMBUKA (KARTU KACA DENGAN LOGO GLOW & FONT ELEGAN)
+# 1. HALAMAN INTRO PEMBUKA (KARTU LOGIN TENGAH YANG MENYATU)
 # -------------------------------------------------------------
 if not st.session_state["has_entered"]:
-    st.markdown('<div class="splash-wrapper"><div class="splash-card">', unsafe_allow_html=True)
+    st.markdown('<div class="login-container"><div class="login-card">', unsafe_allow_html=True)
     
-    # Logo dengan efek glow di belakang & kotak persegi tumpul
-    st.markdown('<div class="logo-glow-box"><div class="logo-inner-card">', unsafe_allow_html=True)
+    # Logo dengan efek glow di belakang & sudut tumpul
+    st.markdown('<div class="logo-glow-wrapper"><div class="logo-box-img">', unsafe_allow_html=True)
     try:
-        st.image("logo.png", width=90)
+        st.image("logo.png", width=95)
     except Exception:
-        st.warning("⚠️ File 'logo.png' belum ada!")
+        st.warning("⚠️ File 'logo.png' belum ada di folder!")
     st.markdown('</div></div>', unsafe_allow_html=True)
 
     st.markdown("""
-        <div class="splash-title">AMPERA MULTI AI</div>
-        <div class="splash-subtitle">Yuki Coding Studio & Neural Engine</div>
+        <div class="login-title">AMPERA MULTI AI</div>
+        <div class="login-subtitle">Yuki Coding Studio & Neural Engine</div>
     """, unsafe_allow_html=True)
     
     if st.button("🚀 MASUK KE AMPERA", use_container_width=True):
@@ -308,18 +274,19 @@ else:
     # SIDEBAR
     # -------------------------------------------------------------
     with st.sidebar:
-        st.markdown('<div class="logo-container">', unsafe_allow_html=True)
-        col_s1, col_s2 = st.columns([1, 3])
-        with col_s1:
-            st.markdown('<div class="sidebar-logo-box">', unsafe_allow_html=True)
-            try:
-                st.image("logo.png", width=32)
-            except Exception:
-                st.write("🏛️")
-            st.markdown('</div>', unsafe_allow_html=True)
-        with col_s2:
-            st.markdown('<div class="logo-text">AMPERA AI</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("""
+            <div class="sidebar-header-box">
+                <div style="background: rgba(30, 41, 59, 0.9); border-radius: 8px; padding: 4px; display: flex; align-items: center; justify-content: center;">
+        """, unsafe_allow_html=True)
+        try:
+            st.image("logo.png", width=28)
+        except Exception:
+            st.write("🏛️")
+        st.markdown("""
+                </div>
+                <div class="sidebar-title-text">AMPERA AI</div>
+            </div>
+        """, unsafe_allow_html=True)
         
         if st.button("🏠  Home Dashboard", use_container_width=True):
             st.session_state["current_page"] = "🏠 Home Dashboard"
