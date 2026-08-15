@@ -9,7 +9,7 @@ st.set_page_config(page_title="Yuki Coding Studio - Ampera.AI", page_icon="🏛�
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS Aurora UI & Kartu Login Tengah Sesuai Referensi
+# Styling CSS Aurora UI & Kartu Login Tengah
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Cinzel:wght@700&display=swap');
@@ -27,41 +27,33 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
     
-    /* KARTU LOGIN UTAMA DI TENGAH LAYAR (MODEL REFERENSI) */
-    .login-container {
+    /* LAYOUT UTAMA LOGIN DI TENGAH */
+    .stMainBlockContainer {
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 82vh;
-        width: 100%;
+        min-height: 85vh;
     }
-    .login-card {
+    
+    .login-card-box {
         background: rgba(15, 23, 42, 0.85);
         backdrop-filter: blur(20px);
         border: 1px solid rgba(168, 85, 247, 0.4);
         border-radius: 24px;
-        padding: 50px 40px;
+        padding: 45px 35px;
         text-align: center;
         box-shadow: 0 0 50px rgba(168, 85, 247, 0.25), 0 25px 50px rgba(0, 0, 0, 0.6);
-        max-width: 480px;
+        max-width: 460px;
         width: 100%;
-        animation: cardAppear 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        margin: auto;
+        animation: cardAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     @keyframes cardAppear {
         0% { opacity: 0; transform: scale(0.9) translateY(20px); filter: blur(10px); }
         100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0px); }
     }
     
-    .login-logo-img {
-        margin-bottom: 1.2rem;
-        display: inline-block;
-        background: rgba(30, 41, 59, 0.9);
-        border-radius: 16px;
-        padding: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-    
-    .login-title {
+    .login-title-text {
         font-family: 'Cinzel', serif;
         font-size: 2.2rem;
         font-weight: 700;
@@ -69,15 +61,16 @@ st.markdown("""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         letter-spacing: 0.05em;
-        margin-bottom: 0.5rem;
+        margin-top: 1rem;
+        margin-bottom: 0.4rem;
     }
-    .login-subtitle {
+    .login-sub-text {
         color: #94a3b8;
-        font-size: 0.95rem;
-        margin-bottom: 2.5rem;
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
     }
     
-    /* STYLING SIDEBAR (PROFIL KARTU BUNDAR SEPERTI GAMBAR KEDUA) */
+    /* STYLING SIDEBAR (PROFIL KARTU BUNDAR RAPI) */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, rgba(30, 27, 75, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
         backdrop-filter: blur(16px);
@@ -100,7 +93,7 @@ st.markdown("""
         margin-bottom: 1.8rem;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(168, 85, 247, 0.1);
     }
-    .sidebar-avatar-box {
+    .sidebar-avatar-circle {
         width: 48px;
         height: 48px;
         background: linear-gradient(135deg, #c084fc, #38bdf8);
@@ -111,7 +104,6 @@ st.markdown("""
         box-shadow: 0 0 15px rgba(192, 132, 252, 0.5);
         flex-shrink: 0;
         overflow: hidden;
-        padding: 4px;
     }
     .sidebar-profile-info {
         display: flex;
@@ -252,29 +244,30 @@ if "current_page" not in st.session_state:
     st.session_state["current_page"] = "🏠 Home Dashboard"
 
 # -------------------------------------------------------------
-# 1. HALAMAN INTRO PEMBUKA (KARTU LOGIN TENGAH TANPA FORM USER/PASS)
+# 1. HALAMAN INTRO PEMBUKA (KARTU LOGIN TENGAH RAPI)
 # -------------------------------------------------------------
 if not st.session_state["has_entered"]:
-    st.markdown('<div class="login-container"><div class="login-card">', unsafe_allow_html=True)
-    
-    # Logo di kartu tengah
-    st.markdown('<div class="login-logo-img">', unsafe_allow_html=True)
-    try:
-        st.image("logo.png", width=75)
-    except Exception:
-        st.write("🏛️")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown("""
-        <div class="login-title">Ampera.AI</div>
-        <div class="login-subtitle">Masuk untuk melanjutkan ke Generator Laporan Otomatis</div>
-    """, unsafe_allow_html=True)
-    
-    if st.button("Masuk", use_container_width=True):
-        st.session_state["has_entered"] = True
-        st.rerun()
+    # Menggunakan container tunggal agar terpusat sempurna
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown('<div class="login-card-box">', unsafe_allow_html=True)
         
-    st.markdown('</div></div>', unsafe_allow_html=True)
+        # Logo di tengah kartu
+        try:
+            st.image("logo.png", width=70)
+        except Exception:
+            st.markdown("<div style='font-size: 2.5rem;'>🏛️</div>", unsafe_allow_html=True)
+
+        st.markdown("""
+            <div class="login-title-text">Ampera.AI</div>
+            <div class="login-sub-text">Masuk untuk melanjutkan ke Generator Laporan Otomatis</div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("Masuk", use_container_width=True):
+            st.session_state["has_entered"] = True
+            st.rerun()
+            
+        st.markdown('</div>', unsafe_allow_html=True)
             
 # -------------------------------------------------------------
 # 2. APLIKASI UTAMA SETELAH MASUK
@@ -284,22 +277,22 @@ else:
     # SIDEBAR (PROFIL KARTU BUNDAR + VERSI v1.0.0)
     # -------------------------------------------------------------
     with st.sidebar:
-        # Render kartu profil sidebar mirip gambar kedua
-        st.markdown('<div class="sidebar-profile-card">', unsafe_allow_html=True)
-        st.markdown('<div class="sidebar-avatar-box">', unsafe_allow_html=True)
+        st.markdown("""
+            <div class="sidebar-profile-card">
+                <div class="sidebar-avatar-circle">
+        """, unsafe_allow_html=True)
         try:
             st.image("logo.png", width=36)
         except Exception:
             st.write("A")
-        st.markdown('</div>', unsafe_allow_html=True)
-        
         st.markdown("""
-            <div class="sidebar-profile-info">
-                <div class="sidebar-profile-name">Ampera.AI</div>
-                <div class="sidebar-profile-sub">Anggota Ampera.AI</div>
-                <div class="sidebar-version-badge">v1.0.0</div>
+                </div>
+                <div class="sidebar-profile-info">
+                    <div class="sidebar-profile-name">Ampera.AI</div>
+                    <div class="sidebar-profile-sub">Anggota Ampera.AI</div>
+                    <div class="sidebar-version-badge">v1.0.0</div>
+                </div>
             </div>
-        </div>
         """, unsafe_allow_html=True)
         
         if st.button("🏠  Home Dashboard", use_container_width=True):
