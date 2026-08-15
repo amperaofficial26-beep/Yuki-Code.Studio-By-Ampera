@@ -1,5 +1,6 @@
 import streamlit as st
 from openai import OpenAI
+import time
 
 # Konfigurasi Halaman
 st.set_page_config(page_title="Yuki Coding Studio - Aurora Arena", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
@@ -84,8 +85,6 @@ st.markdown("""
         border-top: none !important;
         box-shadow: none !important;
     }
-    
-    /* Menghilangkan background dari seluruh div pembungkus di area stBottom */
     [data-testid="stBottom"] div {
         background-color: transparent !important;
         border: none !important;
@@ -250,7 +249,14 @@ if selected_menu == "🏠 Home Dashboard":
         if not groq_key:
             st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
         else:
-            with st.spinner("🌸 Yuki sedang merespons perintah Senpai..."):
+            # TAMPILAN PROSES BERPIKIR AI (PROFESSIONAL THINKING PROCESS)
+            with st.status("🧠 Yuki sedang menganalisis perintah Senpai...", expanded=True) as status:
+                st.write("🔍 Menganalisis konteks dan struktur koding...")
+                time.sleep(0.6)
+                st.write("⚙️ Memuat model Llama 3.3 (70B) Groq Engine...")
+                time.sleep(0.6)
+                st.write("✨ Menyusun solusi terbaik dan bersih...")
+                
                 try:
                     res_home = client.chat.completions.create(
                         model="llama-3.3-70b-versatile",
@@ -259,9 +265,10 @@ if selected_menu == "🏠 Home Dashboard":
                             {"role": "user", "content": query_to_process}
                         ]
                     )
-                    st.success("Berhasil! (≧◡≦) ✨")
+                    status.update(label="✨ Berpikir selesai! Solusi siap disajikan.", state="complete", expanded=False)
                     st.markdown(res_home.choices[0].message.content)
                 except Exception as e:
+                    status.update(label="❌ Terjadi kesalahan saat memproses.", state="error", expanded=True)
                     st.error(f"Error: {e}")
 
 # -------------------------------------------------------------
@@ -298,7 +305,7 @@ elif selected_menu == "⚔️ Arena Battle":
                         </div>
                 """, unsafe_allow_html=True)
                 
-                with st.spinner("Generating..."):
+                with st.status("🧠 Model A Thinking...", expanded=False) as status_a:
                     try:
                         resp_a = client.chat.completions.create(
                             model="llama-3.3-70b-versatile",
@@ -307,8 +314,10 @@ elif selected_menu == "⚔️ Arena Battle":
                                 {"role": "user", "content": prompt_val}
                             ]
                         )
+                        status_a.update(label="Model A Ready", state="complete")
                         st.markdown(resp_a.choices[0].message.content)
                     except Exception as e:
+                        status_a.update(label="Error", state="error")
                         st.error(f"Error: {e}")
                 st.markdown("</div>", unsafe_allow_html=True)
             
@@ -321,7 +330,7 @@ elif selected_menu == "⚔️ Arena Battle":
                         </div>
                 """, unsafe_allow_html=True)
                 
-                with st.spinner("Generating..."):
+                with st.status("⚡ Model B Thinking...", expanded=False) as status_b:
                     try:
                         resp_b = client.chat.completions.create(
                             model="llama-3.1-8b-instant",
@@ -330,8 +339,10 @@ elif selected_menu == "⚔️ Arena Battle":
                                 {"role": "user", "content": prompt_val}
                             ]
                         )
+                        status_b.update(label="Model B Ready", state="complete")
                         st.markdown(resp_b.choices[0].message.content)
                     except Exception as e:
+                        status_b.update(label="Error", state="error")
                         st.error(f"Error: {e}")
                 st.markdown("</div>", unsafe_allow_html=True)
             
