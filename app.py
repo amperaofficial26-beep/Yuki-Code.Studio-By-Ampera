@@ -35,7 +35,7 @@ st.markdown("""
         min-height: 85vh;
     }
     
-    /* KARTU LOGIN UTAMA (SEMUA ELEMEN DI DALAM SATU PERSEGI) */
+    /* KARTU LOGIN UTAMA */
     .login-card-box {
         background: rgba(15, 23, 42, 0.85);
         backdrop-filter: blur(20px);
@@ -82,7 +82,7 @@ st.markdown("""
         margin-bottom: 2rem;
     }
     
-    /* STYLING SIDEBAR (PROFIL KARTU BUNDAR RAPI) */
+    /* STYLING SIDEBAR */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, rgba(30, 27, 75, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
         backdrop-filter: blur(16px);
@@ -93,21 +93,28 @@ st.markdown("""
         color: #e2e8f0 !important;
     }
     
+    /* Container Profil Baru */
+    .sidebar-profile-container {
+        margin-bottom: 1.8rem;
+    }
+
+    /* Kotak Logo dan Judul Menyatu */
     .sidebar-profile-card {
         background: rgba(30, 41, 59, 0.75);
         backdrop-filter: blur(12px);
         border: 1px solid rgba(168, 85, 247, 0.3);
         border-radius: 18px;
-        padding: 14px;
-        display: flex;
+        padding: 10px 14px;
+        display: inline-flex;
         align-items: center;
         gap: 12px;
-        margin-bottom: 1.8rem;
+        margin-bottom: 8px;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(168, 85, 247, 0.1);
     }
+
     .sidebar-avatar-circle {
-        width: 48px;
-        height: 48px;
+        width: 36px;
+        height: 36px;
         background: linear-gradient(135deg, #c084fc, #38bdf8);
         border-radius: 50%;
         display: flex;
@@ -117,24 +124,23 @@ st.markdown("""
         flex-shrink: 0;
         overflow: hidden;
     }
-    .sidebar-profile-info {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
+
     .sidebar-profile-name {
         font-family: 'Cinzel', serif;
-        font-size: 1.05rem;
+        font-size: 1.1rem;
         font-weight: 700;
         color: #ffffff !important;
         letter-spacing: 0.03em;
         white-space: nowrap;
     }
+    
     .sidebar-profile-sub {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         color: #94a3b8 !important;
-        margin-bottom: 4px;
+        margin-bottom: 8px;
+        padding-left: 4px;
     }
+    
     .sidebar-version-badge {
         display: inline-block;
         background: rgba(14, 165, 233, 0.15);
@@ -144,6 +150,7 @@ st.markdown("""
         padding: 2px 8px;
         border-radius: 999px;
         font-weight: 600;
+        margin-left: 4px;
         width: fit-content;
     }
     
@@ -256,15 +263,13 @@ if "current_page" not in st.session_state:
     st.session_state["current_page"] = "🏠 Home Dashboard"
 
 # -------------------------------------------------------------
-# 1. HALAMAN INTRO PEMBUKA (SEMUA DI DALAM SATU KARTU PERSEGI)
+# 1. HALAMAN INTRO PEMBUKA
 # -------------------------------------------------------------
 if not st.session_state["has_entered"]:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        # Buka satu kotak kartu utama
         st.markdown('<div class="login-card-box">', unsafe_allow_html=True)
         
-        # Logo di dalam kartu
         st.markdown('<div class="login-logo-container">', unsafe_allow_html=True)
         try:
             st.image("logo.png", width=65)
@@ -272,18 +277,15 @@ if not st.session_state["has_entered"]:
             st.markdown("<span style='font-size: 2rem;'>🏛️</span>", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # Judul & Subteks di dalam kartu
         st.markdown("""
             <div class="login-title-text">Ampera.AI</div>
             <div class="login-sub-text">Masuk untuk melanjutkan ke Generator Laporan Otomatis</div>
         """, unsafe_allow_html=True)
         
-        # Tombol Masuk di dalam kartu
         if st.button("Masuk", use_container_width=True):
             st.session_state["has_entered"] = True
             st.rerun()
             
-        # Tutup kotak kartu utama
         st.markdown('</div>', unsafe_allow_html=True)
             
 # -------------------------------------------------------------
@@ -291,24 +293,24 @@ if not st.session_state["has_entered"]:
 # -------------------------------------------------------------
 else:
     # -------------------------------------------------------------
-    # SIDEBAR (PROFIL KARTU BUNDAR DI DALAM SIDEBAR)
+    # SIDEBAR REVISI - KOTAK LOGO DISATUKAN DENGAN JUDUL
     # -------------------------------------------------------------
     with st.sidebar:
         st.markdown("""
-            <div class="sidebar-profile-card">
-                <div class="sidebar-avatar-circle">
+            <div class="sidebar-profile-container">
+                <div class="sidebar-profile-card">
+                    <div class="sidebar-avatar-circle">
         """, unsafe_allow_html=True)
         try:
-            st.image("logo.png", width=36)
+            st.image("logo.png", width=28)
         except Exception:
             st.write("A")
         st.markdown("""
+                    </div>
+                    <div class="sidebar-profile-name">AMPERA.AI</div>
                 </div>
-                <div class="sidebar-profile-info">
-                    <div class="sidebar-profile-name">Ampera.AI</div>
-                    <div class="sidebar-profile-sub">Anggota Ampera.AI</div>
-                    <div class="sidebar-version-badge">v1.0.0</div>
-                </div>
+                <div class="sidebar-profile-sub">Multi Ai</div>
+                <div class="sidebar-version-badge">v1.0.0</div>
             </div>
         """, unsafe_allow_html=True)
         
