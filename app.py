@@ -1,14 +1,14 @@
 import streamlit as st
 from openai import OpenAI
 
-# Konfigurasi Halaman (Sidebar default terbuka)
-st.set_page_config(page_title="Yuki Arena Coding Studio", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
+# Konfigurasi Halaman
+st.set_page_config(page_title="Yuki Coding Studio", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
 
 # Inisialisasi Groq API
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS untuk Sidebar & Tema Arena Clean
+# Styling CSS agar mirip Dashboard Modern (Clean & Minimalist)
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -39,7 +39,6 @@ st.markdown("""
         align-items: center;
         gap: 10px;
         margin-bottom: 4px;
-        text-decoration: none;
     }
     .sidebar-menu-item:hover {
         background-color: #f3f4f6;
@@ -68,49 +67,83 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# SIDEBAR ALA CHATBOT ARENA
+# SIDEBAR ALA ARENA
 # -------------------------------------------------------------
 with st.sidebar:
-    # Header Logo & Nama Arena
     st.markdown("""
         <div class="sidebar-title">
-            🏛️ Arena <span style="font-size: 0.9rem; color: #6b7280; font-weight: 400;">▼</span>
+            🏛️ Yuki Studio <span style="font-size: 0.9rem; color: #6b7280; font-weight: 400;">▼</span>
         </div>
     """, unsafe_allow_html=True)
     
-    # Menu Navigasi Samping
     selected_menu = st.radio(
         "Menu Utama",
-        ["💬 New Chat", "📊 Leaderboard", "🔍 Search"],
+        ["🏠 Home Dashboard", "⚔️ Arena Battle", "📊 Leaderboard", "🔍 Search"],
         label_visibility="collapsed"
     )
     
     st.markdown("---")
-    
-    # Bagian Riwayat Chat (History)
     st.markdown('<div class="history-header">Yesterday</div>', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-menu-item">⚡ Python Binary Search</div>', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-menu-item">🛠️ Fix Bug Index Error</div>', unsafe_allow_html=True)
-    
-    st.markdown('<div class="history-header">Previous 7 Days</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sidebar-menu-item">🚀 Flask Rest API Boilerplate</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sidebar-menu-item">💡 Sorting Algorithm Battle</div>', unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# KONTEN UTAMA SESUAI MENU SIDEBAR
+# HALAMAN 1: HOME DASHBOARD (Seperti di Gambar Referensi)
 # -------------------------------------------------------------
-if selected_menu == "💬 New Chat":
-    col_top1, col_top2 = st.columns([4, 1])
-    with col_top1:
-        st.title("⚔️ Yuki Coding Arena (Model Battle)")
-    with col_top2:
-        battle_mode = st.selectbox("Mode", ["⚔️ Battle Mode", "🤖 Single Model"], label_visibility="collapsed")
+if selected_menu == "🏠 Home Dashboard":
+    st.markdown("<h1 style='text-align: center; color: #111827; margin-top: 2rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #6b7280; margin-bottom: 2rem;'>Pilih jalur cepat di bawah atau tulis perintah kodingmu, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
     
-    st.caption("Uji dan bandingkan performa dua model AI pemrograman secara head-to-head (Llama 3.3 70B vs Llama 3.1 8B). (o^▽^o)")
+    # Input Utama ala Dashboard
+    home_prompt = st.text_area("Ask anything...", placeholder="Ketik ide aplikasi atau pertanyaan koding di sini...", height=120, label_visibility="collapsed")
     
-    prompt_arena = st.text_area("Kirim pesan ke Arena:", key="arena_prompt", placeholder="Contoh: Buatkan fungsi QuickSort di Python...")
+    # Baris Tombol Fitur di Bawah Input
+    col_f1, col_f2, col_f3, col_f4, col_f5 = st.columns([1.5, 1, 1, 1, 1])
+    with col_f1:
+        st.button("📎 Add files", use_container_width=True)
+    with col_f2:
+        st.button("⚡ Mode", use_container_width=True)
+    with col_f3:
+        st.button("💻 Code", use_container_width=True)
+    with col_f4:
+        st.button("🌐 Web", use_container_width=True)
+    with col_f5:
+        if st.button("🚀 Kirim", use_container_width=True) and home_prompt:
+            st.success(f"Perintah diterima: {home_prompt}")
+
+    st.markdown("<br><h4 style='color: #374151; font-weight: 600;'>Get started</h4>", unsafe_allow_html=True)
     
-    if st.button("🚀 Kirim", use_container_width=True) and prompt_arena:
+    # Grid Kartu "Get Started" (6 Pilihan)
+    gc1, gc2, gc3 = st.columns(3)
+    
+    with gc1:
+        if st.button("🌐 **Create a landing page**\n\nCreate a sleek, modern landing page", use_container_width=True):
+            st.info("Fitur Landing Page Builder dipilih!")
+        if st.button("💻 **Design to Code**\n\nUpload an image and have AI build it", use_container_width=True):
+            st.info("Fitur Design to Code dipilih!")
+            
+    with gc2:
+        if st.button("📊 **Build a dashboard**\n\nTurn data into interactive charts", use_container_width=True):
+            st.info("Fitur Dashboard Builder dipilih!")
+        if st.button("📦 **Build a fullstack app**\n\nCreate a templated full-stack app", use_container_width=True):
+            st.info("Fitur Fullstack App dipilih!")
+            
+    with gc3:
+        if st.button("🎮 **Make a game**\n\nBuild a playable browser game", use_container_width=True):
+            st.info("Fitur Game Maker dipilih!")
+        if st.button("🏪 **Launch a storefront**\n\nCreate a beautiful online shop", use_container_width=True):
+            st.info("Fitur Storefront dipilih!")
+
+# -------------------------------------------------------------
+# HALAMAN 2: ARENA BATTLE (Side-by-Side 2 AI)
+# -------------------------------------------------------------
+elif selected_menu == "⚔️ Arena Battle":
+    st.title("⚔️ Yuki Coding Arena (Model Battle)")
+    st.caption("Uji dan bandingkan performa Llama 3.3 (70B) vs Llama 3.1 (8B) secara head-to-head!")
+    
+    prompt_arena = st.text_area("Kirim pesan ke Arena Battle:", key="arena_prompt", placeholder="Contoh: Buatkan fungsi QuickSort di Python...")
+    
+    if st.button("⚔️ Mulai Battle", use_container_width=True) and prompt_arena:
         if not groq_key:
             st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
         else:
@@ -123,7 +156,7 @@ if selected_menu == "💬 New Chat":
                         resp_a = client.chat.completions.create(
                             model="llama-3.3-70b-versatile",
                             messages=[
-                                {"role": "system", "content": "Kamu adalah asisten pemrograman ahli. Berikan kode yang bersih dan penjelasan mendalam."},
+                                {"role": "system", "content": "Kamu adalah asisten pemrograman ahli. Berikan kode bersih dan penjelasan mendalam."},
                                 {"role": "user", "content": prompt_arena}
                             ]
                         )
@@ -156,23 +189,25 @@ if selected_menu == "💬 New Chat":
             with v3:
                 if st.button("👉 Model B Unggul"): st.success("Suara tercatat untuk Model B!")
 
+# -------------------------------------------------------------
+# HALAMAN 3: LEADERBOARD
+# -------------------------------------------------------------
 elif selected_menu == "📊 Leaderboard":
     st.title("📊 Arena Leaderboard")
-    st.write("Peringkat model AI berdasarkan performa koding dan voting terbanyak dari pengguna:")
-    
-    # Tabel Leaderboard Sederhana
+    st.write("Peringkat model AI berdasarkan performa koding dan voting pengguna:")
     st.markdown("""
     | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
     | :---: | :--- | :---: | :---: | :---: |
     | 🥇 | **llama-3.3-70b-versatile** | **1280** | 68.5% | 9.5 / 10 |
     | 🥈 | **llama-3.1-8b-instant** | **1150** | 55.2% | 8.2 / 10 |
-    | 🥉 | **mixtral-8x7b-32768** | **1110** | 51.0% | 8.0 / 10 |
     """)
 
+# -------------------------------------------------------------
+# HALAMAN 4: SEARCH
+# -------------------------------------------------------------
 elif selected_menu == "🔍 Search":
     st.title("🔍 Search Chat History")
-    search_query = st.text_input("Cari riwayat percakapan atau kode sebelumnya:", placeholder="Ketik kata kunci...")
+    search_query = st.text_input("Cari riwayat percakapan atau kode sebelumnya...")
     if search_query:
-        st.info(f"Menampilkan hasil pencarian untuk: **{search_query}**")
+        st.info(f"Hasil pencarian untuk: **{search_query}**")
         st.markdown("- ⚡ *Python Binary Search* (Ditemukan di riwayat Yesterday)")
-        st.markdown("- 🛠️ *Fix Bug Index Error* (Ditemukan di riwayat Yesterday)")
