@@ -268,14 +268,14 @@ if not st.session_state["has_entered"]:
     st.markdown("""
         <div class="splash-container">
             <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&h=200&fit=crop" class="splash-logo" alt="Logo Arena">
-            <div class="splash-title">ARENA</div>
+            <div class="splash-title">AMPERA MULTI AI</div>
             <div class="splash-subtitle">Yuki Coding Studio & AI Neural Engine</div>
         </div>
     """, unsafe_allow_html=True)
     
     col_space1, col_btn, col_space2 = st.columns([2, 2, 2])
     with col_btn:
-        if st.button("🚀 MASUK KE ARENA", use_container_width=True):
+        if st.button("MASUK", use_container_width=True):
             st.session_state["has_entered"] = True
             st.rerun()  # Diperbaiki dari st.reruns() = st.rerun()
             
@@ -298,8 +298,8 @@ else:
             st.session_state["current_page"] = "🏠 Home Dashboard"
             st.rerun()
             
-        if st.button("⚔️  Arena Battle", use_container_width=True):
-            st.session_state["current_page"] = "⚔️ Arena Battle"
+        if st.button("⚔️  Multi Ai", use_container_width=True):
+            st.session_state["current_page"] = "⚔️ Multi Ai"
             st.rerun()
             
         if st.button("📊  Leaderboard", use_container_width=True):
@@ -362,15 +362,15 @@ else:
                 st.rerun()
 
         default_val = st.session_state.pop("shortcut_prompt", "")
-        home_input = st.chat_input("Ask anything... (Tekan Enter untuk mengirim)")
+        home_input = st.chat_input("Ask anything...")
         query_to_process = home_input if home_input else default_val
         
         if query_to_process:
             if not groq_key:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             else:
-                with st.status("🧠 Alya lagi nyari contekan dulu buat Senpai...", expanded=True) as status:
-                    st.write("🔍 Menganalisis niat dan struktur koding Senpai...")
+                with st.status("🧠 Yuki lagi nyari contekan dulu buat Kamu...", expanded=True) as status:
+                    st.write("🔍 Menganalisis niat dan struktur koding Kamu...")
                     time.sleep(1.8)
                     st.write("⚙️ Memproses logika algoritma melalui Llama 3.3 (70B)...")
                     time.sleep(2.0)
@@ -386,8 +386,8 @@ else:
                                 {
                                     "role": "system", 
                                     "content": (
-                                        "Kamu adalah Alya, asisten pemrograman AI yang super jenius tapi juga kocak, "
-                                        "sedikit usil, suka melempar lelucon receh, dan hobi menggoda Senpai layaknya "
+                                        "Kamu adalah Yuki, asisten pemrograman AI yang super jenius tapi juga kocak, "
+                                        "sedikit usil, suka melempar lelucon receh, dan hobi menggoda User layaknya "
                                         "karakter anime komedi. Tetap berikan solusi koding yang akurat dan bersih, "
                                         "tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif "
                                         "(seperti 🐧, (๑>◡<๑), wkwk, atau (￢_￢)) agar suasana ngoding tidak membosankan!"
@@ -408,11 +408,11 @@ else:
     # -------------------------------------------------------------
     # HALAMAN 2: ARENA BATTLE
     # -------------------------------------------------------------
-    elif selected_menu == "⚔️ Arena Battle":
-        st.title("⚔️ Yuki Coding Arena (Model Battle)")
-        st.caption("Ketik perintah koding di bawah dan tekan **Enter** untuk menguji Llama 3.3 (70B) vs Llama 3.1 (8B) secara head-to-head!")
+    elif selected_menu == "⚔️ Multi Ai":
+        st.title("⚔️ Yuki Coding Arena (Multi Ai)")
+        st.caption("Ketik perintah koding di bawah dan tekan **Enter**....")
         
-        arena_input = st.chat_input("Kirim pesan ke Arena Battle...")
+        arena_input = st.chat_input("Kirim pesan ke Multi Ai...")
         
         if arena_input:
             st.session_state["last_arena_prompt"] = arena_input
@@ -476,7 +476,7 @@ else:
                             resp_b = client.chat.completions.create(
                                 model="llama-3.1-8b-instant",
                                 messages=[
-                                    {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. Berikan solusi ringkas."},
+                                    {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. Berikan solusi Yang detail."},
                                     {"role": "user", "content": prompt_val}
                                 ]
                             )
@@ -494,17 +494,17 @@ else:
                 st.info("💡 **Arena Voting:** Mana model yang memberikan hasil koding lebih baik?")
                 v1, v2, v3 = st.columns(3)
                 with v1:
-                    if st.button("👈 Model A Unggul"): st.success("Suara tercatat untuk Model A!")
+                    if st.button("👈 Model A"): st.success("Terima Kasih Atas Penilaian Anda!")
                 with v2:
-                    if st.button("🤝 Seri"): st.success("Hasil seri dicatat!")
+                    if st.button("🤝 Seri"): st.success("Terima Kasih Atas Penilaian Anda!!")
                 with v3:
-                    if st.button("👉 Model B Unggul"): st.success("Suara tercatat untuk Model B!")
+                    if st.button("👉 Model"): st.success("Terima Kasih Atas Penilaian Anda!")
 
     # -------------------------------------------------------------
     # HALAMAN 3: LEADERBOARD
     # -------------------------------------------------------------
     elif selected_menu == "📊 Leaderboard":
-        st.title("📊 Arena Leaderboard")
+        st.title("📊 Ampera Leaderboard")
         st.write("Peringkat model AI berdasarkan performa koding dan voting pengguna:")
         st.markdown("""
         | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
