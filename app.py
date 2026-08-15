@@ -75,7 +75,7 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(129, 140, 248, 0.5), 0 0 35px rgba(99, 102, 241, 0.3) !important;
     }
 
-    /* MENYINGKIRKAN TOTAL BACKGROUND HITAM DI AREA BAWAH STREAMLIT */
+    /* MEMAKSA SEMUA PEMBUNGKUS BAWAH MENJADI TRANSPARAN TOTAL */
     [data-testid="stBottom"], 
     [data-testid="stBottomBlockContainer"], 
     [data-testid="stChatInputContainer"] {
@@ -83,6 +83,12 @@ st.markdown("""
         background-color: transparent !important;
         border-top: none !important;
         box-shadow: none !important;
+    }
+    
+    /* Menghilangkan background dari seluruh div pembungkus di area stBottom */
+    [data-testid="stBottom"] div {
+        background-color: transparent !important;
+        border: none !important;
     }
     
     /* KOTAK INPUT CHAT LONJONG ESTETIK */
