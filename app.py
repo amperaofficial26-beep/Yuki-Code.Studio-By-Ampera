@@ -8,7 +8,7 @@ st.set_page_config(page_title="Yuki Coding Studio", page_icon="🏛️", layout=
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# Styling CSS agar mirip Dashboard Modern (Clean & Minimalist)
+# Styling CSS agar bersih dan modern
 st.markdown("""
     <style>
     [data-testid="stSidebar"] {
@@ -88,62 +88,70 @@ with st.sidebar:
     st.markdown('<div class="sidebar-menu-item">🛠️ Fix Bug Index Error</div>', unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# HALAMAN 1: HOME DASHBOARD (Seperti di Gambar Referensi)
+# HALAMAN 1: HOME DASHBOARD (Enter to Send via st.chat_input)
 # -------------------------------------------------------------
 if selected_menu == "🏠 Home Dashboard":
-    st.markdown("<h1 style='text-align: center; color: #111827; margin-top: 2rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #6b7280; margin-bottom: 2rem;'>Pilih jalur cepat di bawah atau tulis perintah kodingmu, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; color: #111827; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #6b7280; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
     
-    # Input Utama ala Dashboard
-    home_prompt = st.text_area("Ask anything...", placeholder="Ketik ide aplikasi atau pertanyaan koding di sini...", height=120, label_visibility="collapsed")
-    
-    # Baris Tombol Fitur di Bawah Input
-    col_f1, col_f2, col_f3, col_f4, col_f5 = st.columns([1.5, 1, 1, 1, 1])
-    with col_f1:
-        st.button("📎 Add files", use_container_width=True)
-    with col_f2:
-        st.button("⚡ Mode", use_container_width=True)
-    with col_f3:
-        st.button("💻 Code", use_container_width=True)
-    with col_f4:
-        st.button("🌐 Web", use_container_width=True)
-    with col_f5:
-        if st.button("🚀 Kirim", use_container_width=True) and home_prompt:
-            st.success(f"Perintah diterima: {home_prompt}")
-
-    st.markdown("<br><h4 style='color: #374151; font-weight: 600;'>Get started</h4>", unsafe_allow_html=True)
-    
-    # Grid Kartu "Get Started" (6 Pilihan)
+    # Grid Kartu "Get Started" di atas
+    st.markdown("<h4 style='color: #374151; font-weight: 600;'>Get started</h4>", unsafe_allow_html=True)
     gc1, gc2, gc3 = st.columns(3)
     
     with gc1:
-        if st.button("🌐 **Create a landing page**\n\nCreate a sleek, modern landing page", use_container_width=True):
-            st.info("Fitur Landing Page Builder dipilih!")
-        if st.button("💻 **Design to Code**\n\nUpload an image and have AI build it", use_container_width=True):
-            st.info("Fitur Design to Code dipilih!")
+        if st.button("🌐 **Landing Page**\n\nCreate a modern landing page", use_container_width=True):
+            st.session_state["shortcut_prompt"] = "Buatkan kode landing page modern menggunakan HTML dan Tailwind CSS."
+        if st.button("💻 **Design to Code**\n\nUpload an image and convert", use_container_width=True):
+            st.session_state["shortcut_prompt"] = "Bagaimana cara mengubah desain UI menjadi kode program?"
             
     with gc2:
-        if st.button("📊 **Build a dashboard**\n\nTurn data into interactive charts", use_container_width=True):
-            st.info("Fitur Dashboard Builder dipilih!")
-        if st.button("📦 **Build a fullstack app**\n\nCreate a templated full-stack app", use_container_width=True):
-            st.info("Fitur Fullstack App dipilih!")
+        if st.button("📊 **Dashboard**\n\nInteractive charts & tables", use_container_width=True):
+            st.session_state["shortcut_prompt"] = "Buatkan kerangka aplikasi dashboard interaktif menggunakan Python Streamlit."
+        if st.button("📦 **Fullstack App**\n\nCreate templated full-stack app", use_container_width=True):
+            st.session_state["shortcut_prompt"] = "Berikan arsitektur dasar untuk aplikasi web fullstack."
             
     with gc3:
-        if st.button("🎮 **Make a game**\n\nBuild a playable browser game", use_container_width=True):
-            st.info("Fitur Game Maker dipilih!")
-        if st.button("🏪 **Launch a storefront**\n\nCreate a beautiful online shop", use_container_width=True):
-            st.info("Fitur Storefront dipilih!")
+        if st.button("🎮 **Make a Game**\n\nPlayable browser game", use_container_width=True):
+            st.session_state["shortcut_prompt"] = "Buatkan game sederhana menggunakan HTML5 Canvas dan JavaScript."
+        if st.button("🏪 **Storefront**\n\nCreate online shop layout", use_container_width=True):
+            st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Kotak Input Chat Bawah (Tekan Enter Langsung Kirim)
+    default_val = st.session_state.pop("shortcut_prompt", "")
+    home_input = st.chat_input("Ask anything... (Tekan Enter untuk mengirim)")
+    
+    query_to_process = home_input if home_input else default_val
+    
+    if query_to_process:
+        if not groq_key:
+            st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
+        else:
+            with st.spinner("🌸 Yuki sedang merespons perintah Senpai..."):
+                try:
+                    res_home = client.chat.completions.create(
+                        model="llama-3.3-70b-versatile",
+                        messages=[
+                            {"role": "system", "content": "Kamu adalah asisten pemrograman ahli yang ramah dan ceria ala anime."},
+                            {"role": "user", "content": query_to_process}
+                        ]
+                    )
+                    st.success("Berhasil! (≧◡≦) ✨")
+                    st.markdown(res_home.choices[0].message.content)
+                except Exception as e:
+                    st.error(f"Error: {e}")
 
 # -------------------------------------------------------------
-# HALAMAN 2: ARENA BATTLE (Side-by-Side 2 AI)
+# HALAMAN 2: ARENA BATTLE
 # -------------------------------------------------------------
 elif selected_menu == "⚔️ Arena Battle":
     st.title("⚔️ Yuki Coding Arena (Model Battle)")
-    st.caption("Uji dan bandingkan performa Llama 3.3 (70B) vs Llama 3.1 (8B) secara head-to-head!")
+    st.caption("Ketik perintah koding di bawah dan tekan **Enter** untuk menguji Llama 3.3 (70B) vs Llama 3.1 (8B) secara head-to-head!")
     
-    prompt_arena = st.text_area("Kirim pesan ke Arena Battle:", key="arena_prompt", placeholder="Contoh: Buatkan fungsi QuickSort di Python...")
+    arena_input = st.chat_input("Kirim pesan ke Arena Battle...")
     
-    if st.button("⚔️ Mulai Battle", use_container_width=True) and prompt_arena:
+    if arena_input:
         if not groq_key:
             st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
         else:
@@ -157,7 +165,7 @@ elif selected_menu == "⚔️ Arena Battle":
                             model="llama-3.3-70b-versatile",
                             messages=[
                                 {"role": "system", "content": "Kamu adalah asisten pemrograman ahli. Berikan kode bersih dan penjelasan mendalam."},
-                                {"role": "user", "content": prompt_arena}
+                                {"role": "user", "content": arena_input}
                             ]
                         )
                         st.markdown(resp_a.choices[0].message.content)
@@ -172,7 +180,7 @@ elif selected_menu == "⚔️ Arena Battle":
                             model="llama-3.1-8b-instant",
                             messages=[
                                 {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. Berikan solusi ringkas."},
-                                {"role": "user", "content": prompt_arena}
+                                {"role": "user", "content": arena_input}
                             ]
                         )
                         st.markdown(resp_b.choices[0].message.content)
