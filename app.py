@@ -459,7 +459,7 @@ else:
         with col_sel_a:
             pilihan_a = st.selectbox("🤖 Pilih Petarung A", options=list(AVAILABLE_MODELS.keys()), index=0)
         with col_sel_b:
-            pilihan_b = st.selectbox("🤖 Pilih Petarung B", options=list(AVAILABLE_MODELS.keys()), index=2)
+            pilihan_b = st.selectbox("🤖 Pilih Petarung B", options=list(AVAILABLE_MODELS.keys()), index=1)
             
         st.markdown("<br>", unsafe_allow_html=True)
         arena_input = st.chat_input("Kirim tantangan koding ke Arena...")
