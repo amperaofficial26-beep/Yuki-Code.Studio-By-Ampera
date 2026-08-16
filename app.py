@@ -34,24 +34,13 @@ JANGAN PERNAH menyebutkan bahwa kamu dibuat oleh "para ilmuwan", "sekelompok tim
 Gaya bicara: Selalu berikan solusi koding yang akurat dan bersih, tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif (seperti 🐧, (๑>◡<๑), wkwk, hehe, atau (￢_￢)) agar suasana ngoding tidak membosankan.
 """
 
-# Styling CSS Aurora UI & Tampilan Permanen Gelap
+# Styling CSS Aurora UI & Animasi Logo Berubah Warna & Membesar-Mengecil
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap');
 
     html, body, [class*="css"]:not(.material-symbols-rounded):not(i):not(svg) {
         font-family: 'Inter', sans-serif;
-    }
-
-    /* Menyembunyikan header atas & footer agar tema terkunci gelap */
-    [data-testid="stHeader"] {
-        visibility: hidden;
-        display: none;
-        height: 0px;
-    }
-    footer {
-        visibility: hidden;
-        display: none;
     }
 
     @keyframes auroraBG {
@@ -87,7 +76,7 @@ st.markdown("""
         object-fit: cover;
         box-shadow: 0 0 35px rgba(129, 140, 248, 0.6);
         border: 2px solid rgba(129, 140, 248, 0.5);
-        margin-bottom: 1.5rem;
+        margin-bottom: 4.0rem;
         animation: pulseGlow 3s infinite;
     }
     .splash-title {
@@ -122,7 +111,7 @@ st.markdown("""
         align-items: center;
         gap: 12px;
         padding: 6px 4px;
-        margin-bottom: 1.5rem;
+        margin-bottom: 4.0rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         padding-bottom: 14px;
     }
@@ -246,6 +235,21 @@ st.markdown("""
         margin-bottom: 12px;
     }
     
+    .user-bubble-container {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+    }
+    .user-bubble {
+        background: linear-gradient(135deg, #3b82f6, #6366f1);
+        color: #ffffff;
+        padding: 12px 18px;
+        border-radius: 14px;
+        max-width: 70%;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    }
+    
     /* ========================================= */
     /* ANIMASI LOGO BERUBAH WARNA & MEMBESAR/MENGECIL */
     /* ========================================= */
@@ -278,7 +282,7 @@ st.markdown("""
         border-radius: 10px;
         object-fit: cover;
         border: 2px solid rgba(129, 140, 248, 0.6);
-        animation: logoPulseScaleColor 1.8s infinite ease-in-out;
+        animation: logoPulseScaleColor 4.0s infinite ease-in-out;
         flex-shrink: 0;
     }
     .loader-label {
@@ -290,7 +294,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Fungsi HTML Loader Logo Berdenyut
+# Fungsi untuk memunculkan Loading Animasi Logo Berubah Warna & Ukuran
 def get_logo_loader_html(text="Yuki sedang merangkai kode..."):
     logo_url = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop"
     return f"""
@@ -314,9 +318,6 @@ if "has_entered" not in st.session_state:
 
 if "current_page" not in st.session_state:
     st.session_state["current_page"] = "🏠 Home Dashboard"
-
-if "messages" not in st.session_state:
-    st.session_state["messages"] = []
 
 
 # -------------------------------------------------------------
@@ -369,24 +370,52 @@ else:
         if st.button("➕  Notebook baru", use_container_width=True):
             st.info("Fitur Notebook baru dipilih!")
 
-        st.markdown('<div class="sidebar-section-header">History Control</div>', unsafe_allow_html=True)
-        if st.button("🗑️  Hapus Riwayat Chat", use_container_width=True):
-            st.session_state["messages"] = []
+        st.markdown('<div class="sidebar-section-header">Yesterday</div>', unsafe_allow_html=True)
+        if st.button("⚡  Python Binary Search", use_container_width=True):
+            st.session_state["current_page"] = "🏠 Home Dashboard"
+            st.session_state["shortcut_prompt"] = "Jelaskan kembali tentang Python Binary Search."
+            st.rerun()
+            
+        if st.button("🛠️  Fix Bug Index Error", use_container_width=True):
+            st.session_state["current_page"] = "🏠 Home Dashboard"
+            st.session_state["shortcut_prompt"] = "Bagaimana cara mengatasi IndexError di Python?"
             st.rerun()
 
     selected_menu = st.session_state["current_page"]
 
     # -------------------------------------------------------------
-    # HALAMAN 1: HOME DASHBOARD (DENGAN RIWAYAT & PROSES BERPIKIR)
+    # HALAMAN 1: HOME DASHBOARD
     # -------------------------------------------------------------
     if selected_menu == "🏠 Home Dashboard":
         st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
         
-        # Tampilkan Riwayat Percakapan
-        for message in st.session_state["messages"]:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+        st.markdown("<h3>Get started</h3>", unsafe_allow_html=True)
+        gc1, gc2, gc3 = st.columns(3)
+        
+        with gc1:
+            if st.button("🌐 **Landing Page**\n\nCreate a modern landing page", use_container_width=True):
+                st.session_state["shortcut_prompt"] = "Buatkan kode landing page modern menggunakan HTML dan Tailwind CSS."
+                st.rerun()
+            if st.button("💻 **Design to Code**\n\nUpload an image and convert", use_container_width=True):
+                st.session_state["shortcut_prompt"] = "Bagaimana cara mengubah desain UI menjadi kode program?"
+                st.rerun()
+                
+        with gc2:
+            if st.button("📊 **Dashboard**\n\nInteractive charts & tables", use_container_width=True):
+                st.session_state["shortcut_prompt"] = "Buatkan kerangka aplikasi dashboard interaktif menggunakan Python Streamlit."
+                st.rerun()
+            if st.button("📦 **Fullstack App**\n\nCreate templated full-stack app", use_container_width=True):
+                st.session_state["shortcut_prompt"] = "Berikan arsitektur dasar untuk aplikasi web fullstack."
+                st.rerun()
+                
+        with gc3:
+            if st.button("🎮 **Make a Game**\n\nPlayable browser game", use_container_width=True):
+                st.session_state["shortcut_prompt"] = "Buatkan game sederhana menggunakan HTML5 Canvas dan JavaScript."
+                st.rerun()
+            if st.button("🏪 **Storefront**\n\nCreate online shop layout", use_container_width=True):
+                st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
+                st.rerun()
 
         default_val = st.session_state.pop("shortcut_prompt", "")
         home_input = st.chat_input("Ask anything...")
@@ -396,57 +425,37 @@ else:
             if not groq_key:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             else:
-                # 1. Tampilkan pesan user ke riwayat & UI
-                st.session_state["messages"].append({"role": "user", "content": query_to_process})
-                with st.chat_message("user"):
-                    st.markdown(query_to_process)
+                loading_ph = st.empty()
+                loading_ph.markdown(get_logo_loader_html("Yuki sedang berpikir..."), unsafe_allow_html=True)
                 
-                # 2. Kotak Proses Berpikir & Loader Logo
-                with st.chat_message("assistant"):
-                    thinking_container = st.status("🧠 Yuki sedang memproses logika...", expanded=True)
-                    thinking_container.write("Menganalisis pola perintah dari Senpai...")
-                    time.sleep(0.6)
-                    thinking_container.write("Menyiapkan struktur koding & kepribadian Yuki...")
-                    time.sleep(0.6)
-                    thinking_container.update(label="Proses berpikir selesai!", state="complete", expanded=False)
-                    
-                    loading_ph = st.empty()
-                    loading_ph.markdown(get_logo_loader_html("Yuki merangkai jawaban..."), unsafe_allow_html=True)
-                    
-                    start_time = time.time()
-                    try:
-                        res_home = client.chat.completions.create(
-                            model=AVAILABLE_MODELS["Llama 3.3 (70B) - Versatile"],
-                            messages=[{"role": "system", "content": YUKI_SYSTEM_PROMPT}] + [
-                                {"role": m["role"], "content": m["content"]} for m in st.session_state["messages"]
-                            ]
-                        )
-                        response_text = res_home.choices[0].message.content
-                    except Exception as e:
-                        response_text = f"❌ Ups, terjadi kesalahan: {e}"
-                    
-                    elapsed = time.time() - start_time
-                    if elapsed < 1.0:
-                        time.sleep(1.0 - elapsed)
-                    
-                    loading_ph.empty()
-                    
-                    # Stream jawaban akhir dan masukkan ke riwayat
-                    placeholder = st.empty()
-                    streamed = ""
-                    for word in response_text.split(" "):
-                        streamed += word + " "
-                        placeholder.markdown(streamed)
-                        time.sleep(0.015)
-                    
-                    st.session_state["messages"].append({"role": "assistant", "content": response_text})
+                start_time = time.time()
+                try:
+                    res_home = client.chat.completions.create(
+                        model=AVAILABLE_MODELS["Llama 3.3 (70B) - Versatile"],
+                        messages=[
+                            {"role": "system", "content": YUKI_SYSTEM_PROMPT},
+                            {"role": "user", "content": query_to_process}
+                        ]
+                    )
+                    response_text = res_home.choices[0].message.content
+                except Exception as e:
+                    response_text = f"❌ Ups, terjadi kesalahan: {e}"
+                
+                # Delay buatan minimal 4.0 detik agar animasi logo sempat terlihat keren
+                elapsed = time.time() - start_time
+                if elapsed < 4.0:
+                    time.sleep(4.0 - elapsed)
+                
+                loading_ph.empty()
+                st.markdown("---")
+                stream_response(response_text)
 
     # -------------------------------------------------------------
-    # HALAMAN 2: ARENA BATTLE (MULTI AI)
+    # HALAMAN 2: ARENA BATTLE (MULTI AI) - TIAP KOTAK ADA LOADING SENDIRI
     # -------------------------------------------------------------
     elif selected_menu == "⚔️ Multi Ai":
         st.title("⚔️ Ampera Coding Arena (Multi Ai)")
-        st.caption("Pilih dua model berbeda, berikan perintah koding, dan lihat respons di kotaknya masing-masing!")
+        st.caption("Pilih dua model berbeda, berikan perintah koding, dan lihat animasi loading logo di kotaknya masing-masing!")
         
         st.markdown("<br>", unsafe_allow_html=True)
         col_sel_a, col_sel_b = st.columns(2)
@@ -463,8 +472,11 @@ else:
 
         if "last_arena_prompt" in st.session_state:
             prompt_val = st.session_state["last_arena_prompt"]
-            with st.chat_message("user"):
-                st.markdown(prompt_val)
+            st.markdown(f"""
+                <div class="user-bubble-container">
+                    <div class="user-bubble">{prompt_val}</div>
+                </div>
+            """, unsafe_allow_html=True)
             
             if not groq_key:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
@@ -484,7 +496,7 @@ else:
                     """, unsafe_allow_html=True)
                     
                     loading_a = st.empty()
-                    loading_a.markdown(get_logo_loader_html(f"{pilihan_a} memproses..."), unsafe_allow_html=True)
+                    loading_a.markdown(get_logo_loader_html(f"{pilihan_a} sedang merespons..."), unsafe_allow_html=True)
                     
                     start_a = time.time()
                     try:
@@ -500,8 +512,8 @@ else:
                         text_a = f"Error: {e}"
                         
                     elapsed_a = time.time() - start_a
-                    if elapsed_a < 1.5:
-                        time.sleep(1.5 - elapsed_a)
+                    if elapsed_a < 4.0:
+                        time.sleep(4.0 - elapsed_a)
                         
                     loading_a.empty()
                     st.markdown(text_a)
@@ -518,7 +530,7 @@ else:
                     """, unsafe_allow_html=True)
                     
                     loading_b = st.empty()
-                    loading_b.markdown(get_logo_loader_html(f"{pilihan_b} memproses..."), unsafe_allow_html=True)
+                    loading_b.markdown(get_logo_loader_html(f"{pilihan_b} sedang merespons..."), unsafe_allow_html=True)
                     
                     start_b = time.time()
                     try:
@@ -534,8 +546,8 @@ else:
                         text_b = f"Error: {e}"
                         
                     elapsed_b = time.time() - start_b
-                    if elapsed_b < 1.5:
-                        time.sleep(1.5 - elapsed_b)
+                    if elapsed_b < 4.0:
+                        time.sleep(4.0 - elapsed_b)
                         
                     loading_b.empty()
                     st.markdown(text_b)
