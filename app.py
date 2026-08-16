@@ -221,7 +221,7 @@ st.markdown("""
         box-shadow: 0 0 25px rgba(129, 140, 248, 0.5), inset 0 0 10px rgba(129, 140, 248, 0.2) !important;
     }
     [data-testid="stChatInput"] textarea {
-        color: #f8fafc !important;
+        color: #ffffff !important;
         font-family: 'Inter', sans-serif !important;
     }
     [data-testid="stChatInput"] button {
