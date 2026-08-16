@@ -57,6 +57,18 @@ st.markdown("""
         50% { opacity: 1; transform: scale(1.02); filter: blur(2px); }
         100% { opacity: 1; transform: scale(1); filter: blur(0px); }
     }
+    /* Menyembunyikan header atas agar menu settings/ganti tema tidak bisa diakses */
+    [data-testid="stHeader"] {
+        visibility: hidden;
+        display: none;
+        height: 0px;
+    }
+    
+    /* Menyembunyikan footer bawaan Streamlit */
+    footer {
+        visibility: hidden;
+        display: none;
+    }
     .splash-container {
         display: flex;
         flex-direction: column;
