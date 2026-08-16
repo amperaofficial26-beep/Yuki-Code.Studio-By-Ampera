@@ -329,9 +329,9 @@ def stream_response(text):
 placeholder = st.empty()
 streamed = ""
 for word in text.split(" "):
-        streamed += word + " "
-        placeholder.markdown(streamed)
-        time.sleep(0.015)
+streamed += word + " "
+placeholder.markdown(streamed)
+time.sleep(0.015)
 
 # Inisialisasi Session State
 if "has_entered" not in st.session_state:
