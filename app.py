@@ -312,7 +312,7 @@ st.markdown("""
 
 # Fungsi untuk memunculkan HTML Loader
 def get_loader_html(icon, text):
- return f"""
+return f"""
         <div class="dynamic-loader-wrapper">
             <div class="dynamic-loader-text">
                 <span style="font-size: 1.3rem;">{icon}</span>
