@@ -10,6 +10,17 @@ groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
 # ==========================================
+# DAFTAR MODEL GROQ YANG TERSEDIA
+# ==========================================
+AVAILABLE_MODELS = {
+    "Llama 3.3 (70B) - Versatile": "llama-3.3-70b-versatile",
+    "Llama 3.1 (8B) - Instant": "llama-3.1-8b-instant",
+    "Mixtral 8x7B (Mistral)": "mixtral-8x7b-32768",
+    "Gemma 2 (9B) - Google": "gemma2-9b-it",
+    "Llama 3 (8B) - Meta": "llama3-8b-8192"
+}
+
+# ==========================================
 # SYSTEM PROMPT (INSTRUKSI KEPRIBADIAN YUKI)
 # ==========================================
 YUKI_SYSTEM_PROMPT = """
@@ -452,7 +463,7 @@ else:
                 # Daftar pesan loading
                 loading_steps = [
                     ("🔍", "Menganalisis niat dan struktur koding Kamu..."),
-                    ("⚙️", "Memproses logika algoritma melalui Llama 3.3 (70B)..."),
+                    ("⚙️", "Memproses logika algoritma..."),
                     ("💡", "Aha! Menyelaraskan referensi sintaksis dengan database..."),
                     ("✨", "Menulis baris kode terbaik untukmu...")
                 ]
@@ -464,8 +475,9 @@ else:
                 
                 # Proses API Call
                 try:
+                    # Menggunakan model default terbaik untuk Home Dashboard
                     res_home = client.chat.completions.create(
-                        model="llama-3.3-70b-versatile",
+                        model=AVAILABLE_MODELS["Llama 3.3 (70B) - Versatile"],
                         messages=[
                             {"role": "system", "content": YUKI_SYSTEM_PROMPT},
                             {"role": "user", "content": query_to_process}
@@ -483,13 +495,22 @@ else:
                 stream_response(response_text)
 
     # -------------------------------------------------------------
-    # HALAMAN 2: ARENA BATTLE
+    # HALAMAN 2: ARENA BATTLE (MULTI AI)
     # -------------------------------------------------------------
     elif selected_menu == "⚔️ Multi Ai":
         st.title("⚔️ Ampera Coding Arena (Multi Ai)")
-        st.caption("Ketik perintah koding di bawah dan tekan **Enter**....")
+        st.caption("Pilih dua model berbeda, berikan perintah koding, dan lihat siapa yang lebih pintar!")
         
-        arena_input = st.chat_input("Kirim pesan ke Multi Ai...")
+        # UI Pemilihan Model
+        st.markdown("<br>", unsafe_allow_html=True)
+        col_sel_a, col_sel_b = st.columns(2)
+        with col_sel_a:
+            pilihan_a = st.selectbox("🤖 Pilih Petarung A", options=list(AVAILABLE_MODELS.keys()), index=0)
+        with col_sel_b:
+            pilihan_b = st.selectbox("🤖 Pilih Petarung B", options=list(AVAILABLE_MODELS.keys()), index=2)
+            
+        st.markdown("<br>", unsafe_allow_html=True)
+        arena_input = st.chat_input("Kirim tantangan koding ke Arena...")
         
         if arena_input:
             st.session_state["last_arena_prompt"] = arena_input
@@ -504,24 +525,27 @@ else:
             
             if not groq_key:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
+            elif pilihan_a == pilihan_b:
+                st.warning("⚠️ Hei, kamu memilih dua model yang sama! Arena ini dibuat untuk mengadu model yang berbeda. Silakan ganti salah satunya.")
             else:
                 col_a, col_b = st.columns(2)
                 
+                # ---------------- MODEL A ----------------
                 with col_a:
-                    st.markdown("""
+                    st.markdown(f"""
                         <div class="arena-card">
                             <div class="arena-header">
-                                <span>⚫ llama-3.3-70b-versatile</span>
+                                <span>🔴 {pilihan_a}</span>
                                 <span>🗖</span>
                             </div>
                     """, unsafe_allow_html=True)
                     
                     loading_a = st.empty()
-                    loading_a.markdown(get_loader_html("🧠", "Model A sedang berpikir keras..."), unsafe_allow_html=True)
+                    loading_a.markdown(get_loader_html("🧠", f"{pilihan_a} sedang memproses..."), unsafe_allow_html=True)
                     
                     try:
                         resp_a = client.chat.completions.create(
-                            model="llama-3.3-70b-versatile",
+                            model=AVAILABLE_MODELS[pilihan_a],
                             messages=[
                                 {"role": "system", "content": YUKI_SYSTEM_PROMPT},
                                 {"role": "user", "content": prompt_val}
@@ -535,21 +559,22 @@ else:
                     st.markdown(text_a)
                     st.markdown("</div>", unsafe_allow_html=True)
                 
+                # ---------------- MODEL B ----------------
                 with col_b:
-                    st.markdown("""
+                    st.markdown(f"""
                         <div class="arena-card">
                             <div class="arena-header">
-                                <span>⚫ llama-3.1-8b-instant</span>
+                                <span>🔵 {pilihan_b}</span>
                                 <span>🗖</span>
                             </div>
                     """, unsafe_allow_html=True)
                     
                     loading_b = st.empty()
-                    loading_b.markdown(get_loader_html("⚡", "Model B sedang menyusun kode..."), unsafe_allow_html=True)
+                    loading_b.markdown(get_loader_html("⚡", f"{pilihan_b} merangkai kode..."), unsafe_allow_html=True)
                     
                     try:
                         resp_b = client.chat.completions.create(
-                            model="llama-3.1-8b-instant",
+                            model=AVAILABLE_MODELS[pilihan_b],
                             messages=[
                                 {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. " + YUKI_SYSTEM_PROMPT},
                                 {"role": "user", "content": prompt_val}
@@ -563,15 +588,16 @@ else:
                     st.markdown(text_b)
                     st.markdown("</div>", unsafe_allow_html=True)
                 
+                # ---------------- VOTING ----------------
                 st.markdown("---")
                 st.info("💡 **Arena Voting:** Mana model yang memberikan hasil koding lebih baik?")
                 v1, v2, v3 = st.columns(3)
                 with v1:
-                    if st.button("👈 Model A"): st.success("Terima Kasih Atas Penilaian Anda!")
+                    if st.button("👈 Pilih Petarung A", use_container_width=True): st.success(f"Kamu memvoting {pilihan_a}!")
                 with v2:
-                    if st.button("🤝 Seri"): st.success("Terima Kasih Atas Penilaian Anda!!")
+                    if st.button("🤝 Seri (Sama Bagus)", use_container_width=True): st.success("Terima Kasih Atas Penilaian Anda!!")
                 with v3:
-                    if st.button("👉 Model B"): st.success("Terima Kasih Atas Penilaian Anda!")
+                    if st.button("👉 Pilih Petarung B", use_container_width=True): st.success(f"Kamu memvoting {pilihan_b}!")
 
     # -------------------------------------------------------------
     # HALAMAN 3: LEADERBOARD
@@ -582,8 +608,11 @@ else:
         st.markdown("""
         | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
         | :---: | :--- | :---: | :---: | :---: |
-        | 🥇 | **llama-3.3-70b-versatile** | **1280** | 68.5% | 9.5 / 10 |
-        | 🥈 | **llama-3.1-8b-instant** | **1150** | 55.2% | 8.2 / 10 |
+        | 🥇 | **Llama 3.3 (70B)** | **1280** | 68.5% | 9.5 / 10 |
+        | 🥈 | **Mixtral 8x7B** | **1210** | 61.2% | 8.8 / 10 |
+        | 🥉 | **Gemma 2 (9B)** | **1180** | 58.0% | 8.5 / 10 |
+        | 4 | **Llama 3.1 (8B)** | **1150** | 55.2% | 8.2 / 10 |
+        | 5 | **Llama 3 (8B)** | **1090** | 49.5% | 7.8 / 10 |
         """)
 
     # -------------------------------------------------------------
