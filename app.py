@@ -34,7 +34,7 @@ JANGAN PERNAH menyebutkan bahwa kamu dibuat oleh "para ilmuwan", "sekelompok tim
 Gaya bicara: Selalu berikan solusi koding yang akurat dan bersih, tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif (seperti 🐧, (๑>◡<๑), wkwk, hehe, atau (￢_￢)) agar suasana ngoding tidak membosankan.
 """
 
-# Styling CSS Aurora UI & Animasi Loading Chat Modern
+# Styling CSS Aurora UI & Animasi Logo Berubah Warna & Membesar-Mengecil
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap');
@@ -251,53 +251,56 @@ st.markdown("""
     }
     
     /* ========================================= */
-    /* ANIMASI TYPING DOTS (MINIMALIS & Keren)  */
+    /* ANIMASI LOGO BERUBAH WARNA & MEMBESAR/MENGECIL */
     /* ========================================= */
-    .typing-container {
+    @keyframes logoPulseScaleColor {
+        0% {
+            transform: scale(0.85);
+            filter: hue-rotate(0deg) brightness(1);
+            box-shadow: 0 0 10px rgba(129, 140, 248, 0.4);
+        }
+        50% {
+            transform: scale(1.15);
+            filter: hue-rotate(90deg) brightness(1.2);
+            box-shadow: 0 0 25px rgba(236, 72, 153, 0.8);
+        }
+        100% {
+            transform: scale(0.85);
+            filter: hue-rotate(180deg) brightness(1);
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+        }
+    }
+    .logo-loader-container {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         padding: 10px 4px;
     }
-    .typing-dots {
-        display: flex;
-        align-items: center;
-        gap: 4px;
+    .animated-loader-logo {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        object-fit: cover;
+        border: 2px solid rgba(129, 140, 248, 0.6);
+        animation: logoPulseScaleColor 1.8s infinite ease-in-out;
+        flex-shrink: 0;
     }
-    .typing-dots span {
-        width: 6px;
-        height: 6px;
-        background-color: #818cf8;
-        border-radius: 50%;
-        animation: bounceDot 1.4s infinite ease-in-out both;
-    }
-    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
-    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-    .typing-dots span:nth-child(3) { animation-delay: 0s; }
-    
-    .typing-label {
+    .loader-label {
         font-size: 0.85rem;
-        color: #94a3b8;
+        color: #cbd5e1;
         font-family: 'Inter', sans-serif;
-    }
-    
-    @keyframes bounceDot {
-        0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
-        40% { transform: scale(1.0); opacity: 1; }
+        font-weight: 500;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Fungsi untuk memunculkan Loading Titik Loncat (Typing Indicator)
-def get_typing_html(text="Yuki sedang merangkai kode..."):
+# Fungsi untuk memunculkan Loading Animasi Logo Berubah Warna & Ukuran
+def get_logo_loader_html(text="Yuki sedang merangkai kode..."):
+    logo_url = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop"
     return f"""
-        <div class="typing-container">
-            <div class="typing-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <span class="typing-label">{text}</span>
+        <div class="logo-loader-container">
+            <img src="{logo_url}" class="animated-loader-logo" alt="Loading Logo">
+            <span class="loader-label">{text}</span>
         </div>
     """
 
@@ -423,8 +426,9 @@ else:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             else:
                 loading_ph = st.empty()
-                loading_ph.markdown(get_typing_html("Yuki sedang berpikir..."), unsafe_allow_html=True)
+                loading_ph.markdown(get_logo_loader_html("Yuki sedang berpikir..."), unsafe_allow_html=True)
                 
+                start_time = time.time()
                 try:
                     res_home = client.chat.completions.create(
                         model=AVAILABLE_MODELS["Llama 3.3 (70B) - Versatile"],
@@ -437,6 +441,11 @@ else:
                 except Exception as e:
                     response_text = f"❌ Ups, terjadi kesalahan: {e}"
                 
+                # Delay buatan minimal 1.5 detik agar animasi logo sempat terlihat keren
+                elapsed = time.time() - start_time
+                if elapsed < 1.5:
+                    time.sleep(1.5 - elapsed)
+                
                 loading_ph.empty()
                 st.markdown("---")
                 stream_response(response_text)
@@ -446,7 +455,7 @@ else:
     # -------------------------------------------------------------
     elif selected_menu == "⚔️ Multi Ai":
         st.title("⚔️ Ampera Coding Arena (Multi Ai)")
-        st.caption("Pilih dua model berbeda, berikan perintah koding, dan lihat respons langsung di kotaknya masing-masing!")
+        st.caption("Pilih dua model berbeda, berikan perintah koding, dan lihat animasi loading logo di kotaknya masing-masing!")
         
         st.markdown("<br>", unsafe_allow_html=True)
         col_sel_a, col_sel_b = st.columns(2)
@@ -487,8 +496,9 @@ else:
                     """, unsafe_allow_html=True)
                     
                     loading_a = st.empty()
-                    loading_a.markdown(get_typing_html(f"{pilihan_a} sedang mengetik..."), unsafe_allow_html=True)
+                    loading_a.markdown(get_logo_loader_html(f"{pilihan_a} sedang merespons..."), unsafe_allow_html=True)
                     
+                    start_a = time.time()
                     try:
                         resp_a = client.chat.completions.create(
                             model=AVAILABLE_MODELS[pilihan_a],
@@ -500,6 +510,10 @@ else:
                         text_a = resp_a.choices[0].message.content
                     except Exception as e:
                         text_a = f"Error: {e}"
+                        
+                    elapsed_a = time.time() - start_a
+                    if elapsed_a < 1.5:
+                        time.sleep(1.5 - elapsed_a)
                         
                     loading_a.empty()
                     st.markdown(text_a)
@@ -516,8 +530,9 @@ else:
                     """, unsafe_allow_html=True)
                     
                     loading_b = st.empty()
-                    loading_b.markdown(get_typing_html(f"{pilihan_b} sedang mengetik..."), unsafe_allow_html=True)
+                    loading_b.markdown(get_logo_loader_html(f"{pilihan_b} sedang merespons..."), unsafe_allow_html=True)
                     
+                    start_b = time.time()
                     try:
                         resp_b = client.chat.completions.create(
                             model=AVAILABLE_MODELS[pilihan_b],
@@ -529,6 +544,10 @@ else:
                         text_b = resp_b.choices[0].message.content
                     except Exception as e:
                         text_b = f"Error: {e}"
+                        
+                    elapsed_b = time.time() - start_b
+                    if elapsed_b < 1.5:
+                        time.sleep(1.5 - elapsed_b)
                         
                     loading_b.empty()
                     st.markdown(text_b)
