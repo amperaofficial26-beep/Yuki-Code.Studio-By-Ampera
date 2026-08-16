@@ -34,20 +34,13 @@ JANGAN PERNAH menyebutkan bahwa kamu dibuat oleh "para ilmuwan", "sekelompok tim
 Gaya bicara: Selalu berikan solusi koding yang akurat dan bersih, tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif (seperti 🐧, (๑>◡<๑), wkwk, hehe, atau (￢_￢)) agar suasana ngoding tidak membosankan.
 """
 
-# Styling CSS Aurora UI, Efek Ganti Warna, Animasi & Font Modern
+# Styling CSS Aurora UI & Animasi Loading Chat Modern
 st.markdown("""
     <style>
-    /* Mengimpor Font Modern dari Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap');
 
-    /* Menerapkan font Inter ke seluruh aplikasi, KECUALI ikon material */
     html, body, [class*="css"]:not(.material-symbols-rounded):not(i):not(svg) {
         font-family: 'Inter', sans-serif;
-    }
-
-    /* Memastikan ikon Streamlit tetap menggunakan font aslinya */
-    .stIcon, .material-symbols-rounded, svg {
-        font-family: 'Material Symbols Rounded', sans-serif !important;
     }
 
     @keyframes auroraBG {
@@ -62,7 +55,6 @@ st.markdown("""
         color: #f1f5f9;
     }
     
-    /* ANIMASI INTRO PEMBUKA (SPLASH SCREEN) */
     @keyframes splashIntro {
         0% { opacity: 0; transform: scale(0.92); filter: blur(12px); }
         50% { opacity: 1; transform: scale(1.02); filter: blur(2px); }
@@ -103,7 +95,6 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
     
-    /* ANIMASI JUDUL BERGANTI WARNA OTOMATIS */
     @keyframes colorShift {
         0% { color: #818cf8; }
         33% { color: #ec4899; }
@@ -115,7 +106,6 @@ st.markdown("""
         font-family: 'Poppins', sans-serif !important;
     }
     
-    /* STYLING LOGO & NAMA ARENA DI SIDEBAR */
     .logo-container {
         display: flex;
         align-items: center;
@@ -151,7 +141,6 @@ st.markdown("""
         text-overflow: ellipsis;
     }
     
-    /* Sidebar Lembut & Tidak Kaku */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, rgba(30, 27, 75, 0.55) 0%, rgba(15, 23, 42, 0.75) 100%);
         backdrop-filter: blur(16px);
@@ -171,17 +160,14 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: 0.05em;
         padding-left: 4px;
-        font-family: 'Inter', sans-serif;
     }
 
-    /* Tombol Timbul & Bersinar */
     div.stButton > button {
         background: rgba(30, 41, 59, 0.65) !important;
         border: 1px solid rgba(129, 140, 248, 0.25) !important;
         color: #f8fafc !important;
         border-radius: 12px !important;
         font-weight: 500;
-        font-family: 'Inter', sans-serif !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         backdrop-filter: blur(10px);
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
@@ -191,10 +177,9 @@ st.markdown("""
         border-color: #818cf8 !important;
         color: #ffffff !important;
         background: rgba(49, 46, 129, 0.85) !important;
-        box-shadow: 0 0 20px rgba(129, 140, 248, 0.5), 0 0 35px rgba(99, 102, 241, 0.3) !important;
+        box-shadow: 0 0 20px rgba(129, 140, 248, 0.5) !important;
     }
 
-    /* Memaksa pembungkus bawah menjadi transparan */
     [data-testid="stBottom"], [data-testid="stBottomBlockContainer"], [data-testid="stChatInputContainer"] {
         background: transparent !important;
         background-color: transparent !important;
@@ -206,7 +191,6 @@ st.markdown("""
         border: none !important;
     }
     
-    /* KOTAK INPUT CHAT LONJONG ESTETIK */
     [data-testid="stChatInput"] {
         background: rgba(15, 23, 42, 0.85) !important;
         backdrop-filter: blur(16px) !important;
@@ -214,29 +198,21 @@ st.markdown("""
         border-radius: 9999px !important;
         padding: 4px 12px !important;
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
-        transition: all 0.3s ease !important;
     }
     [data-testid="stChatInput"]:focus-within {
         border-color: #818cf8 !important;
-        box-shadow: 0 0 25px rgba(129, 140, 248, 0.5), inset 0 0 10px rgba(129, 140, 248, 0.2) !important;
+        box-shadow: 0 0 25px rgba(129, 140, 248, 0.5) !important;
     }
     [data-testid="stChatInput"] textarea {
-        color: #ffffff !important;
-        font-family: 'Inter', sans-serif !important;
+        color: #f8fafc !important;
     }
     [data-testid="stChatInput"] button {
         background: linear-gradient(135deg, #4f46e5, #3b82f6) !important;
         border: none !important;
         border-radius: 50% !important;
         color: white !important;
-        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4) !important;
-    }
-    [data-testid="stChatInput"] button:hover {
-        transform: scale(1.08);
-        box-shadow: 0 0 15px rgba(99, 102, 241, 0.8) !important;
     }
 
-    /* Styling Kartu Arena */
     .arena-card {
         background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(12px);
@@ -259,7 +235,6 @@ st.markdown("""
         margin-bottom: 12px;
     }
     
-    /* Gelembung User di Kanan */
     .user-bubble-container {
         display: flex;
         justify-content: flex-end;
@@ -274,68 +249,58 @@ st.markdown("""
         font-size: 0.95rem;
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
     }
+    
     /* ========================================= */
-    /* ANIMASI LOADING MINIMALIS & ELEGAN        */
+    /* ANIMASI TYPING DOTS (MINIMALIS & Keren)  */
     /* ========================================= */
-    .dynamic-loader-wrapper {
-        margin: 4px 0 12px 0; /* Jarak atas-bawah dipangkas drastis */
-        padding: 0 4px;
-    }
-    .dynamic-loader-text {
-        font-family: 'Inter', sans-serif;
-        color: #cbd5e1;
-        font-size: 0.85rem; /* Font sedikit lebih kecil agar rapi */
-        margin-bottom: 6px; /* Jarak teks ke garis lebih rapat */
+    .typing-container {
         display: flex;
         align-items: center;
-        gap: 8px; /* Jarak ikon ke teks lebih dekat */
-        animation: fadeInText 0.4s ease-in-out;
+        gap: 10px;
+        padding: 10px 4px;
     }
-    .dynamic-loader-text span:first-child {
-        font-size: 1.1rem; /* Ukuran ikon disesuaikan */
+    .typing-dots {
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
-    .dynamic-loader-track {
-        width: 100%;
-        height: 2px; /* Garis dibuat sangat tipis (2px) seperti di gambar */
-        background: rgba(255, 255, 255, 0.05); /* Warna dasar lebih gelap */
-        border-radius: 2px;
-        overflow: hidden;
-        position: relative;
+    .typing-dots span {
+        width: 6px;
+        height: 6px;
+        background-color: #818cf8;
+        border-radius: 50%;
+        animation: bounceDot 1.4s infinite ease-in-out both;
     }
-    .dynamic-loader-runner {
-        position: absolute;
-        width: 30%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, #818cf8, #ec4899, #38bdf8, transparent);
-        border-radius: 2px;
-        animation: runnerDash 1.2s infinite ease-in-out; /* Animasi lebih halus */
+    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0s; }
+    
+    .typing-label {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        font-family: 'Inter', sans-serif;
     }
-       
-    @keyframes runnerDash {
-        0% { left: -35%; }
-        100% { left: 100%; }
-    }
-    @keyframes fadeInText {
-        from { opacity: 0; transform: translateY(5px); }
-        to { opacity: 1; transform: translateY(0); }
+    
+    @keyframes bounceDot {
+        0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+        40% { transform: scale(1.0); opacity: 1; }
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Fungsi untuk memunculkan HTML Loader Minimalis
-def get_loader_html(icon, text):
+# Fungsi untuk memunculkan Loading Titik Loncat (Typing Indicator)
+def get_typing_html(text="Yuki sedang merangkai kode..."):
     return f"""
-        <div class="dynamic-loader-wrapper">
-            <div class="dynamic-loader-text">
-                <span>{icon}</span>
-                <span>{text}</span>
+        <div class="typing-container">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
-            <div class="dynamic-loader-track">
-                <div class="dynamic-loader-runner"></div>
-            </div>
+            <span class="typing-label">{text}</span>
         </div>
     """
-# Fungsi untuk efek teks muncul perlahan
+
 def stream_response(text):
     placeholder = st.empty()
     streamed = ""
@@ -457,25 +422,10 @@ else:
             if not groq_key:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             else:
-                # Membuat tempat kosong (placeholder) untuk animasi loading
                 loading_ph = st.empty()
+                loading_ph.markdown(get_typing_html("Yuki sedang berpikir..."), unsafe_allow_html=True)
                 
-                # Daftar pesan loading
-                loading_steps = [
-                    ("🔍", "Menganalisis niat dan struktur koding Kamu..."),
-                    ("⚙️", "Memproses logika algoritma..."),
-                    ("💡", "Aha! Menyelaraskan referensi sintaksis dengan database..."),
-                    ("✨", "Menulis baris kode terbaik untukmu...")
-                ]
-                
-                # Looping pesan agar bergantian satu per satu
-                for icon, text in loading_steps:
-                    loading_ph.markdown(get_loader_html(icon, text), unsafe_allow_html=True)
-                    time.sleep(1.2) # Jeda agar pesan terbaca sebelum ganti
-                
-                # Proses API Call
                 try:
-                    # Menggunakan model default terbaik untuk Home Dashboard
                     res_home = client.chat.completions.create(
                         model=AVAILABLE_MODELS["Llama 3.3 (70B) - Versatile"],
                         messages=[
@@ -487,21 +437,17 @@ else:
                 except Exception as e:
                     response_text = f"❌ Ups, terjadi kesalahan: {e}"
                 
-                # Setelah selesai, hilangkan animasi loading sepenuhnya
                 loading_ph.empty()
-                
-                # Tampilkan garis batas dan output
                 st.markdown("---")
                 stream_response(response_text)
 
     # -------------------------------------------------------------
-    # HALAMAN 2: ARENA BATTLE (MULTI AI)
+    # HALAMAN 2: ARENA BATTLE (MULTI AI) - TIAP KOTAK ADA LOADING SENDIRI
     # -------------------------------------------------------------
     elif selected_menu == "⚔️ Multi Ai":
         st.title("⚔️ Ampera Coding Arena (Multi Ai)")
-        st.caption("Pilih dua model berbeda, berikan perintah koding, dan lihat siapa yang lebih pintar!")
+        st.caption("Pilih dua model berbeda, berikan perintah koding, dan lihat respons langsung di kotaknya masing-masing!")
         
-        # UI Pemilihan Model
         st.markdown("<br>", unsafe_allow_html=True)
         col_sel_a, col_sel_b = st.columns(2)
         with col_sel_a:
@@ -526,7 +472,7 @@ else:
             if not groq_key:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             elif pilihan_a == pilihan_b:
-                st.warning("⚠️ Hei, kamu memilih dua model yang sama! Arena ini dibuat untuk mengadu model yang berbeda. Silakan ganti salah satunya.")
+                st.warning("⚠️ Hei, kamu memilih dua model yang sama! Silakan ganti salah satunya.")
             else:
                 col_a, col_b = st.columns(2)
                 
@@ -541,7 +487,7 @@ else:
                     """, unsafe_allow_html=True)
                     
                     loading_a = st.empty()
-                    loading_a.markdown(get_loader_html("🧠", f"{pilihan_a} sedang memproses..."), unsafe_allow_html=True)
+                    loading_a.markdown(get_typing_html(f"{pilihan_a} sedang mengetik..."), unsafe_allow_html=True)
                     
                     try:
                         resp_a = client.chat.completions.create(
@@ -570,7 +516,7 @@ else:
                     """, unsafe_allow_html=True)
                     
                     loading_b = st.empty()
-                    loading_b.markdown(get_loader_html("⚡", f"{pilihan_b} merangkai kode..."), unsafe_allow_html=True)
+                    loading_b.markdown(get_typing_html(f"{pilihan_b} sedang mengetik..."), unsafe_allow_html=True)
                     
                     try:
                         resp_b = client.chat.completions.create(
