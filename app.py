@@ -282,7 +282,7 @@ st.markdown("""
         border-radius: 10px;
         object-fit: cover;
         border: 2px solid rgba(129, 140, 248, 0.6);
-        animation: logoPulseScaleColor 1.8s infinite ease-in-out;
+        animation: logoPulseScaleColor 4.0s infinite ease-in-out;
         flex-shrink: 0;
     }
     .loader-label {
@@ -443,8 +443,8 @@ else:
                 
                 # Delay buatan minimal 1.5 detik agar animasi logo sempat terlihat keren
                 elapsed = time.time() - start_time
-                if elapsed < 1.5:
-                    time.sleep(1.5 - elapsed)
+                if elapsed < 4.0:
+                    time.sleep(4.0 - elapsed)
                 
                 loading_ph.empty()
                 st.markdown("---")
@@ -512,8 +512,8 @@ else:
                         text_a = f"Error: {e}"
                         
                     elapsed_a = time.time() - start_a
-                    if elapsed_a < 1.5:
-                        time.sleep(1.5 - elapsed_a)
+                    if elapsed_a < 4.0:
+                        time.sleep(4.0 - elapsed_a)
                         
                     loading_a.empty()
                     st.markdown(text_a)
@@ -546,8 +546,8 @@ else:
                         text_b = f"Error: {e}"
                         
                     elapsed_b = time.time() - start_b
-                    if elapsed_b < 1.5:
-                        time.sleep(1.5 - elapsed_b)
+                    if elapsed_b < 4.0:
+                        time.sleep(4.0 - elapsed_b)
                         
                     loading_b.empty()
                     st.markdown(text_b)
