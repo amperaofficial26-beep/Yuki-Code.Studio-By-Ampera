@@ -1,6 +1,7 @@
 import streamlit as st
 from openai import OpenAI
 import time
+import google.generativeai as genai # Tambahan library untuk Gemini
 
 # Konfigurasi Halaman
 st.set_page_config(page_title="Ampera Multi AI - Yuki Coding Studio", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
@@ -22,6 +23,23 @@ JANGAN PERNAH menyebutkan bahwa kamu dibuat oleh "para ilmuwan", "sekelompok tim
 
 Gaya bicara: Selalu berikan solusi koding yang akurat dan bersih, tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif (seperti 🐧, (๑>◡<๑), wkwk, hehe, atau (￢_￢)) agar suasana ngoding tidak membosankan.
 """
+
+# ==========================================
+# INISIALISASI MODEL TAMBAHAN (GEMINI & OPENROUTER)
+# ==========================================
+# Inisialisasi Gemini API
+gemini_key = st.secrets.get("GEMINI_API_KEY", "")
+if gemini_key:
+    genai.configure(api_key=gemini_key)
+    # Memasukkan System Prompt Yuki langsung ke otak Gemini
+    gemini_model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=YUKI_SYSTEM_PROMPT)
+else:
+    gemini_model = None
+
+# Inisialisasi OpenRouter API (Gratis)
+openrouter_key = st.secrets.get("OPENROUTER_API_KEY", "")
+client_or = OpenAI(api_key=openrouter_key, base_url="https://openrouter.ai/api/v1") if openrouter_key else None
+
 
 # Styling CSS Aurora UI, Efek Ganti Warna, Animasi & Font Modern
 st.markdown("""
@@ -411,6 +429,21 @@ else:
         st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
         
+        # --- TAMBAHAN PILIHAN MODEL AI ---
+        col_model, _, _ = st.columns([2, 1, 1])
+        with col_model:
+            selected_model = st.selectbox(
+                "🧠 Pilih Otak Yuki (Pilihan Model):",
+                options=[
+                    "Groq: llama-3.3-70b-versatile",
+                    "Groq: gemma2-9b-it",
+                    "Gemini: gemini-1.5-flash",
+                    "OpenRouter: meta-llama/llama-3-8b-instruct:free"
+                ],
+                index=0
+            )
+        # ---------------------------------
+
         st.markdown("<h3>Get started</h3>", unsafe_allow_html=True)
         gc1, gc2, gc3 = st.columns(3)
         
@@ -443,44 +476,64 @@ else:
         query_to_process = home_input if home_input else default_val
         
         if query_to_process:
-            if not groq_key:
-                st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
-            else:
-                # Membuat tempat kosong (placeholder) untuk animasi loading
-                loading_ph = st.empty()
-                
-                # Daftar pesan loading
-                loading_steps = [
-                    ("🔍", "Menganalisis niat dan struktur koding Kamu..."),
-                    ("⚙️", "Memproses logika algoritma melalui Llama 3.3 (70B)..."),
-                    ("💡", "Aha! Menyelaraskan referensi sintaksis dengan database..."),
-                    ("✨", "Menulis baris kode terbaik untukmu...")
-                ]
-                
-                # Looping pesan agar bergantian satu per satu
-                for icon, text in loading_steps:
-                    loading_ph.markdown(get_loader_html(icon, text), unsafe_allow_html=True)
-                    time.sleep(1.2) # Jeda agar pesan terbaca sebelum ganti
-                
-                # Proses API Call
-                try:
-                    res_home = client.chat.completions.create(
-                        model="llama-3.3-70b-versatile",
-                        messages=[
-                            {"role": "system", "content": YUKI_SYSTEM_PROMPT},
-                            {"role": "user", "content": query_to_process}
-                        ]
-                    )
-                    response_text = res_home.choices[0].message.content
-                except Exception as e:
-                    response_text = f"❌ Ups, terjadi kesalahan: {e}"
-                
-                # Setelah selesai, hilangkan animasi loading sepenuhnya
-                loading_ph.empty()
-                
-                # Tampilkan garis batas dan output
-                st.markdown("---")
-                stream_response(response_text)
+            loading_ph = st.empty()
+            
+            # Daftar pesan loading dinamis sesuai model
+            model_name_display = selected_model.split(":")[1].strip()
+            loading_steps = [
+                ("🔍", f"Menganalisis niat dan struktur menggunakan {model_name_display}..."),
+                ("⚙️", "Memproses logika algoritma..."),
+                ("💡", "Aha! Menyelaraskan referensi sintaksis dengan database..."),
+                ("✨", "Menulis baris kode terbaik untukmu...")
+            ]
+            
+            for icon, text in loading_steps:
+                loading_ph.markdown(get_loader_html(icon, text), unsafe_allow_html=True)
+                time.sleep(0.8) # Jeda dipercepat agar lebih responsif
+            
+            # --- TAMBAHAN LOGIKA UNTUK MENJALANKAN MODEL YANG DIPILIH ---
+            try:
+                if "Groq" in selected_model:
+                    if not groq_key:
+                        response_text = "❌ GROQ_API_KEY belum diatur di Streamlit Secrets!"
+                    else:
+                        res_home = client.chat.completions.create(
+                            model=model_name_display,
+                            messages=[
+                                {"role": "system", "content": YUKI_SYSTEM_PROMPT},
+                                {"role": "user", "content": query_to_process}
+                            ]
+                        )
+                        response_text = res_home.choices[0].message.content
+
+                elif "Gemini" in selected_model:
+                    if not gemini_key:
+                        response_text = "❌ GEMINI_API_KEY belum diatur di Streamlit Secrets!"
+                    else:
+                        response = gemini_model.generate_content(query_to_process)
+                        response_text = response.text
+                        
+                elif "OpenRouter" in selected_model:
+                    if not openrouter_key:
+                        response_text = "❌ OPENROUTER_API_KEY belum diatur di Streamlit Secrets!"
+                    else:
+                        res_home = client_or.chat.completions.create(
+                            model=model_name_display,
+                            messages=[
+                                {"role": "system", "content": YUKI_SYSTEM_PROMPT},
+                                {"role": "user", "content": query_to_process}
+                            ]
+                        )
+                        response_text = res_home.choices[0].message.content
+
+            except Exception as e:
+                response_text = f"❌ Ups, terjadi kesalahan: {e}"
+            # -------------------------------------------------------------
+            
+            loading_ph.empty()
+            
+            st.markdown("---")
+            stream_response(response_text)
 
     # -------------------------------------------------------------
     # HALAMAN 2: ARENA BATTLE
@@ -502,8 +555,8 @@ else:
                 </div>
             """, unsafe_allow_html=True)
             
-            if not groq_key:
-                st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
+            if not groq_key and not gemini_key:
+                st.error("API Key (Groq atau Gemini) belum diatur di Streamlit Secrets!")
             else:
                 col_a, col_b = st.columns(2)
                 
@@ -511,7 +564,7 @@ else:
                     st.markdown("""
                         <div class="arena-card">
                             <div class="arena-header">
-                                <span>⚫ llama-3.3-70b-versatile</span>
+                                <span>⚫ llama-3.3-70b (Groq)</span>
                                 <span>🗖</span>
                             </div>
                     """, unsafe_allow_html=True)
@@ -520,14 +573,17 @@ else:
                     loading_a.markdown(get_loader_html("🧠", "Model A sedang berpikir keras..."), unsafe_allow_html=True)
                     
                     try:
-                        resp_a = client.chat.completions.create(
-                            model="llama-3.3-70b-versatile",
-                            messages=[
-                                {"role": "system", "content": YUKI_SYSTEM_PROMPT},
-                                {"role": "user", "content": prompt_val}
-                            ]
-                        )
-                        text_a = resp_a.choices[0].message.content
+                        if not groq_key:
+                            text_a = "❌ GROQ_API_KEY belum diatur!"
+                        else:
+                            resp_a = client.chat.completions.create(
+                                model="llama-3.3-70b-versatile",
+                                messages=[
+                                    {"role": "system", "content": YUKI_SYSTEM_PROMPT},
+                                    {"role": "user", "content": prompt_val}
+                                ]
+                            )
+                            text_a = resp_a.choices[0].message.content
                     except Exception as e:
                         text_a = f"Error: {e}"
                         
@@ -539,7 +595,7 @@ else:
                     st.markdown("""
                         <div class="arena-card">
                             <div class="arena-header">
-                                <span>⚫ llama-3.1-8b-instant</span>
+                                <span>⚫ gemini-1.5-flash (Google)</span>
                                 <span>🗖</span>
                             </div>
                     """, unsafe_allow_html=True)
@@ -547,17 +603,16 @@ else:
                     loading_b = st.empty()
                     loading_b.markdown(get_loader_html("⚡", "Model B sedang menyusun kode..."), unsafe_allow_html=True)
                     
+                    # --- TAMBAHAN GEMINI DI ARENA ---
                     try:
-                        resp_b = client.chat.completions.create(
-                            model="llama-3.1-8b-instant",
-                            messages=[
-                                {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. " + YUKI_SYSTEM_PROMPT},
-                                {"role": "user", "content": prompt_val}
-                            ]
-                        )
-                        text_b = resp_b.choices[0].message.content
+                        if not gemini_key:
+                            text_b = "❌ GEMINI_API_KEY belum diatur!"
+                        else:
+                            resp_b = gemini_model.generate_content(prompt_val)
+                            text_b = resp_b.text
                     except Exception as e:
                         text_b = f"Error: {e}"
+                    # --------------------------------
                         
                     loading_b.empty()
                     st.markdown(text_b)
@@ -567,11 +622,11 @@ else:
                 st.info("💡 **Arena Voting:** Mana model yang memberikan hasil koding lebih baik?")
                 v1, v2, v3 = st.columns(3)
                 with v1:
-                    if st.button("👈 Model A"): st.success("Terima Kasih Atas Penilaian Anda!")
+                    if st.button("👈 Model A (Llama)"): st.success("Terima Kasih Atas Penilaian Anda!")
                 with v2:
                     if st.button("🤝 Seri"): st.success("Terima Kasih Atas Penilaian Anda!!")
                 with v3:
-                    if st.button("👉 Model B"): st.success("Terima Kasih Atas Penilaian Anda!")
+                    if st.button("👉 Model B (Gemini)"): st.success("Terima Kasih Atas Penilaian Anda!")
 
     # -------------------------------------------------------------
     # HALAMAN 3: LEADERBOARD
@@ -583,7 +638,8 @@ else:
         | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
         | :---: | :--- | :---: | :---: | :---: |
         | 🥇 | **llama-3.3-70b-versatile** | **1280** | 68.5% | 9.5 / 10 |
-        | 🥈 | **llama-3.1-8b-instant** | **1150** | 55.2% | 8.2 / 10 |
+        | 🥈 | **gemini-1.5-flash** | **1240** | 62.1% | 9.0 / 10 |
+        | 🥉 | **llama-3.1-8b-instant** | **1150** | 55.2% | 8.2 / 10 |
         """)
 
     # -------------------------------------------------------------
