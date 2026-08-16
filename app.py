@@ -326,7 +326,7 @@ return f"""
 
 # Fungsi untuk efek teks muncul perlahan
 def stream_response(text):
-    placeholder = st.empty()
+placeholder = st.empty()
     streamed = ""
     for word in text.split(" "):
         streamed += word + " "
