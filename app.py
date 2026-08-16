@@ -274,42 +274,43 @@ st.markdown("""
         font-size: 0.95rem;
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
     }
-    
     /* ========================================= */
-    /* ANIMASI LOADING BAR BERJALAN (TANPA KOTAK)*/
+    /* ANIMASI LOADING MINIMALIS & ELEGAN        */
     /* ========================================= */
-    
     .dynamic-loader-wrapper {
-        margin: 20px 0 30px 0;
-        padding: 0 10px;
+        margin: 4px 0 12px 0; /* Jarak atas-bawah dipangkas drastis */
+        padding: 0 4px;
     }
     .dynamic-loader-text {
         font-family: 'Inter', sans-serif;
-        color: #e2e8f0;
-        font-size: 0.95rem;
-        margin-bottom: 12px;
+        color: #cbd5e1;
+        font-size: 0.85rem; /* Font sedikit lebih kecil agar rapi */
+        margin-bottom: 6px; /* Jarak teks ke garis lebih rapat */
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px; /* Jarak ikon ke teks lebih dekat */
         animation: fadeInText 0.4s ease-in-out;
+    }
+    .dynamic-loader-text span:first-child {
+        font-size: 1.1rem; /* Ukuran ikon disesuaikan */
     }
     .dynamic-loader-track {
         width: 100%;
-        height: 3px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 4px;
+        height: 2px; /* Garis dibuat sangat tipis (2px) seperti di gambar */
+        background: rgba(255, 255, 255, 0.05); /* Warna dasar lebih gelap */
+        border-radius: 2px;
         overflow: hidden;
         position: relative;
     }
     .dynamic-loader-runner {
         position: absolute;
-        width: 35%;
+        width: 30%;
         height: 100%;
         background: linear-gradient(90deg, transparent, #818cf8, #ec4899, #38bdf8, transparent);
-        border-radius: 4px;
-        animation: runnerDash 1.5s infinite linear;
+        border-radius: 2px;
+        animation: runnerDash 1.2s infinite ease-in-out; /* Animasi lebih halus */
     }
-    
+       
     @keyframes runnerDash {
         0% { left: -35%; }
         100% { left: 100%; }
@@ -321,12 +322,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Fungsi untuk memunculkan HTML Loader
+# Fungsi untuk memunculkan HTML Loader Minimalis
 def get_loader_html(icon, text):
     return f"""
         <div class="dynamic-loader-wrapper">
             <div class="dynamic-loader-text">
-                <span style="font-size: 1.3rem;">{icon}</span>
+                <span>{icon}</span>
                 <span>{text}</span>
             </div>
             <div class="dynamic-loader-track">
@@ -334,7 +335,6 @@ def get_loader_html(icon, text):
             </div>
         </div>
     """
-
 # Fungsi untuk efek teks muncul perlahan
 def stream_response(text):
     placeholder = st.empty()
