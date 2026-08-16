@@ -15,7 +15,6 @@ client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if 
 AVAILABLE_MODELS = {
     "Llama 3.3 (70B) - Versatile": "llama-3.3-70b-versatile",
     "Llama 3.1 (8B) - Instant": "llama-3.1-8b-instant",
-    "Llama 3 (8B) - Meta": "llama3-8b-8192"
 }
 
 # ==========================================
@@ -573,7 +572,6 @@ else:
         | :---: | :--- | :---: | :---: | :---: |
         | 🥇 | **Llama 3.3 (70B)** | **1280** | 68.5% | 9.5 / 10 |
         | 🥈 | **Llama 3.1 (8B)** | **1210** | 61.2% | 8.8 / 10 |
-        | 🥉 | **Llama 3 (8B)** | **1180** | 58.0% | 8.5 / 10 |
         """)
 
     # -------------------------------------------------------------
