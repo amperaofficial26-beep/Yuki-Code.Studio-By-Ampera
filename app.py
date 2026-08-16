@@ -15,8 +15,6 @@ client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if 
 AVAILABLE_MODELS = {
     "Llama 3.3 (70B) - Versatile": "llama-3.3-70b-versatile",
     "Llama 3.1 (8B) - Instant": "llama-3.1-8b-instant",
-    "Mixtral 8x7B (Mistral)": "mixtral-8x7b-32768",
-    "Gemma 2 (9B) - Google": "gemma2-9b-it",
     "Llama 3 (8B) - Meta": "llama3-8b-8192"
 }
 
@@ -574,10 +572,8 @@ else:
         | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
         | :---: | :--- | :---: | :---: | :---: |
         | 🥇 | **Llama 3.3 (70B)** | **1280** | 68.5% | 9.5 / 10 |
-        | 🥈 | **Mixtral 8x7B** | **1210** | 61.2% | 8.8 / 10 |
-        | 🥉 | **Gemma 2 (9B)** | **1180** | 58.0% | 8.5 / 10 |
-        | 4 | **Llama 3.1 (8B)** | **1150** | 55.2% | 8.2 / 10 |
-        | 5 | **Llama 3 (8B)** | **1090** | 49.5% | 7.8 / 10 |
+        | 🥈 | **Llama 3.1 (8B)** | **1210** | 61.2% | 8.8 / 10 |
+        | 🥉 | **Llama 3 (8B)** | **1180** | 58.0% | 8.5 / 10 |
         """)
 
     # -------------------------------------------------------------
