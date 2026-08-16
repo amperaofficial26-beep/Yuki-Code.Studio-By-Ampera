@@ -335,10 +335,10 @@ time.sleep(0.015)
 
 # Inisialisasi Session State
 if "has_entered" not in st.session_state:
-    st.session_state["has_entered"] = False
+st.session_state["has_entered"] = False
 
 if "current_page" not in st.session_state:
-    st.session_state["current_page"] = "🏠 Home Dashboard"
+st.session_state["current_page"] = "🏠 Home Dashboard"
 
 
 # -------------------------------------------------------------
