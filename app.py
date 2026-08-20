@@ -436,8 +436,8 @@ else:
         query_to_process = home_input if home_input else default_val
         
         if query_to_process:
-            if not groq_key:
-                st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
+            if not openrouter_key:
+                st.error("OPENROUTER_API_KEY belum diatur di Streamlit Secrets!")
             else:
                 loading_ph = st.empty()
                 loading_ph.markdown(get_logo_loader_html("Yuki sedang berpikir..."), unsafe_allow_html=True)
@@ -492,8 +492,8 @@ else:
                 </div>
             """, unsafe_allow_html=True)
             
-            if not groq_key:
-                st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
+            if not openrouter_key:
+                st.error("OPENROUTER_API_KEY belum diatur di Streamlit Secrets!")
             elif pilihan_a == pilihan_b:
                 st.warning("⚠️ Hei, kamu memilih dua model yang sama! Silakan ganti salah satunya.")
             else:
