@@ -15,7 +15,7 @@ AVAILABLE_MODELS = {
     "⚡ GPT-OSS 20B — Chat & Coding Ringan": "openai/gpt-oss-20b",
     "💎 GPT-OSS 120B — Reasoning Mendalam": "openai/gpt-oss-120b",
     "💎 Compound — Browsing Web & Eksekusi Kode": "groq/compound",
-    "💎 Kimi K2 — Coding & Agentic Kompleks": "moonshotai/kimi-k2-instruct-0905",
+    "💎 Compound Mini — Web Search Ringkas": "groq/compound-mini",
     "💎 Qwen3.6 27B — Reasoning & Matematika": "qwen/qwen3.6-27b"
 }
 
@@ -27,7 +27,7 @@ MODEL_DESCRIPTIONS = {
     "openai/gpt-oss-20b": "Model standar: cepat, ringan, cocok untuk chat sehari-hari dan coding sederhana.",
     "openai/gpt-oss-120b": "Model premium: reasoning lebih dalam untuk masalah koding/analisis yang rumit.",
     "groq/compound": "Model premium: bisa browsing web & menjalankan kode secara otomatis saat menjawab.",
-    "moonshotai/kimi-k2-instruct-0905": "Model premium: sangat kuat untuk coding kompleks dan tugas agentic multi-langkah.",
+    "groq/compound-mini": "Model premium: browsing web versi ringkas, limit request lebih longgar.",
     "qwen/qwen3.6-27b": "Model premium: unggul di reasoning terstruktur, matematika, dan logika."
 }
 # ==========================================
@@ -235,15 +235,33 @@ st.markdown("""
         color: white !important;
     }
 
-    /* Dropdown pemilih model ala Claude, ditaruh di atas chat input */
-    .model-picker-wrap [data-testid="stSelectbox"] {
-        max-width: 260px;
+    /* Bar pemilih model, dibuat fixed menempel PERSIS di atas kotak chat_input
+       (karena st.chat_input Streamlit selalu docked sendiri di bawah layar,
+       tidak bisa dimasukkan literal ke dalam satu widget yang sama) */
+    .st-key-model_picker_bar {
+        position: fixed;
+        left: 50%;
+        bottom: 84px;
+        transform: translateX(-50%);
+        width: min(640px, 92vw);
+        z-index: 999;
+        background: rgba(15, 23, 42, 0.92);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(129, 140, 248, 0.3);
+        border-bottom: none;
+        border-radius: 18px 18px 0 0;
+        padding: 8px 14px 2px 14px;
+        box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.25);
     }
-    .model-picker-wrap [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-        background: rgba(15, 23, 42, 0.85) !important;
-        border: 1px solid rgba(129, 140, 248, 0.3) !important;
-        border-radius: 9999px !important;
+    .st-key-model_picker_bar [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+        background: transparent !important;
+        border: none !important;
         color: #f8fafc !important;
+        padding-left: 0 !important;
+    }
+    .st-key-model_picker_bar [data-testid="stCaptionContainer"] {
+        margin-top: -6px;
+        padding-bottom: 2px;
     }
 
     .arena-card {
@@ -450,21 +468,21 @@ else:
                 st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
                 st.rerun()
 
-        # ---------------- DROPDOWN PEMILIH MODEL (ala Claude) ----------------
-        st.markdown('<div class="model-picker-wrap">', unsafe_allow_html=True)
-        model_choice_label = st.selectbox(
-            "Model",
-            options=list(AVAILABLE_MODELS.keys()),
-            index=0,
-            key="home_model_picker",
-            label_visibility="collapsed"
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
-        selected_model_id = AVAILABLE_MODELS[model_choice_label]
-
-        # Caption kecil di bawah dropdown: deskripsi model + badge Premium/Standar
-        badge = "💎 Premium (gratis)" if model_choice_label in PREMIUM_MODELS else "⚡ Standar (gratis)"
-        st.caption(f"**{badge}** — {MODEL_DESCRIPTIONS.get(selected_model_id, '')}")
+        # ---------------- BAR PEMILIH MODEL (fixed, menempel di atas chat_input) ----------------
+        # Catatan: st.chat_input Streamlit selalu docked sendiri di paling bawah viewport,
+        # jadi dropdown ini dibuat "melayang" (position: fixed) tepat di atasnya
+        # via CSS class .st-key-model_picker_bar, supaya terlihat menyatu seperti satu bar.
+        with st.container(key="model_picker_bar"):
+            model_choice_label = st.selectbox(
+                "Model",
+                options=list(AVAILABLE_MODELS.keys()),
+                index=0,
+                key="home_model_picker",
+                label_visibility="collapsed"
+            )
+            selected_model_id = AVAILABLE_MODELS[model_choice_label]
+            badge = "💎 Premium (gratis)" if model_choice_label in PREMIUM_MODELS else "⚡ Standar (gratis)"
+            st.caption(f"**{badge}** — {MODEL_DESCRIPTIONS.get(selected_model_id, '')}")
 
         default_val = st.session_state.pop("shortcut_prompt", "")
         home_input = st.chat_input("Ask anything...")
@@ -636,8 +654,8 @@ else:
         st.markdown("""
         | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
         | :---: | :--- | :---: | :---: | :---: |
-        | 🥇 | **GPT-OSS 120B** | **1280** | 68.5% | 9.5 / 10 |
-        | 🥈 | **GPT-OSS 20B** | **1210** | 61.2% | 8.8 / 10 |
+        | 🥇 | **Llama 3.3 (70B)** | **1280** | 68.5% | 9.5 / 10 |
+        | 🥈 | **Llama 3.1 (8B)** | **1210** | 61.2% | 8.8 / 10 |
         """)
     # -------------------------------------------------------------
     # HALAMAN 4: SEARCH
