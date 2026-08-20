@@ -662,14 +662,19 @@ if "has_entered"  not in st.session_state: st.session_state["has_entered"]  = Fa
 if "current_page" not in st.session_state: st.session_state["current_page"] = "🏠 Home Dashboard"
 
 # ============================================================
-# 6. HALAMAN SPLASH INTRO (DIRAPIKAN - TOMBOL MUNCUL)
+# 6. HALAMAN SPLASH INTRO (VERSION 3 - PAKAI COLUMNS)
 # ============================================================
 if not st.session_state["has_entered"]:
-    # Tambahkan CSS khusus splash
+    # CSS untuk splash tanpa position:fixed
     st.markdown("""
     <style>
-        /* Splash background dengan gradasi */
-        .splash-wrapper {
+        /* Hide default elements */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        
+        /* Splash container full page */
+        .splash-full {
             position: fixed;
             top: 0;
             left: 0;
@@ -680,110 +685,106 @@ if not st.session_state["has_entered"]:
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 9999;
+            z-index: 99999;
             animation: splashFadeIn 0.8s ease-out;
         }
         @keyframes splashFadeIn {
-            0% { opacity: 0; transform: scale(0.95); }
-            100% { opacity: 1; transform: scale(1); }
+            0% { opacity: 0; }
+            100% { opacity: 1; }
         }
-        .splash-logo-large {
-            width: 120px;
-            height: 120px;
-            border-radius: 28px;
+        .splash-logo-big {
+            width: 130px;
+            height: 130px;
+            border-radius: 30px;
             object-fit: cover;
-            box-shadow: 0 0 50px rgba(129, 140, 248, 0.5);
+            box-shadow: 0 0 60px rgba(129, 140, 248, 0.5);
             border: 2px solid rgba(129, 140, 248, 0.4);
-            animation: splashPulse 2.5s ease-in-out infinite;
-            margin-bottom: 30px;
+            animation: pulseLogo 2.5s ease-in-out infinite;
+            margin-bottom: 25px;
         }
-        @keyframes splashPulse {
+        @keyframes pulseLogo {
             0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(129, 140, 248, 0.4); }
             50% { transform: scale(1.05); box-shadow: 0 0 70px rgba(236, 72, 153, 0.6); }
         }
-        .splash-title-main {
-            font-size: 3.2rem;
+        .splash-title {
+            font-size: 3.5rem;
             font-weight: 800;
             background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-family: 'Poppins', sans-serif;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             letter-spacing: 3px;
         }
-        .splash-subtitle-main {
+        .splash-sub {
             color: #94a3b8;
             font-size: 1.1rem;
             font-family: 'Inter', sans-serif;
             letter-spacing: 2px;
-            margin-bottom: 35px;
+            margin-bottom: 30px;
         }
-        .splash-divider {
-            width: 100px;
+        .splash-line {
+            width: 80px;
             height: 2px;
             background: linear-gradient(90deg, transparent, #a78bfa, transparent);
             margin-bottom: 35px;
         }
-        .splash-footer {
+        .splash-footer-text {
             position: fixed;
             bottom: 30px;
             color: #4b5563;
             font-size: 12px;
             letter-spacing: 1px;
+            z-index: 100000;
         }
-        /* ==== TOMBOL MASUK YANG KELIHATAN ==== */
-        .splash-btn-container {
-            position: relative;
-            z-index: 10000;
-            width: 100%;
+        /* Tombol masuk - di tengah */
+        .btn-masuk-wrap {
             display: flex;
             justify-content: center;
-            margin-top: 10px;
+            width: 100%;
+            z-index: 100000;
+            position: relative;
         }
-        .splash-btn-container button {
+        .btn-masuk-wrap button {
             width: 280px !important;
-            padding: 16px 40px !important;
+            padding: 16px 50px !important;
             font-size: 20px !important;
             font-weight: 700 !important;
             border-radius: 16px !important;
             background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
             color: white !important;
             border: none !important;
-            box-shadow: 0 4px 25px rgba(124, 58, 237, 0.5) !important;
+            box-shadow: 0 4px 30px rgba(124, 58, 237, 0.5) !important;
             transition: all 0.3s ease !important;
             letter-spacing: 2px !important;
             cursor: pointer !important;
         }
-        .splash-btn-container button:hover {
-            transform: translateY(-3px) scale(1.02) !important;
-            box-shadow: 0 8px 40px rgba(124, 58, 237, 0.7) !important;
+        .btn-masuk-wrap button:hover {
+            transform: translateY(-3px) scale(1.03) !important;
+            box-shadow: 0 8px 45px rgba(124, 58, 237, 0.7) !important;
             background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
-        }
-        /* Sembunyikan Streamlit default button branding */
-        .stButton > button {
-            visibility: visible !important;
         }
     </style>
     """, unsafe_allow_html=True)
 
-    # Tampilkan splash background
+    # Tampilkan splash
     st.markdown("""
-        <div class="splash-wrapper">
-            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&h=200&fit=crop" class="splash-logo-large" alt="Logo">
-            <div class="splash-title-main">AMPERA MULTI AI</div>
-            <div class="splash-subtitle-main">Yuki Coding Studio & AI Neural Engine</div>
-            <div class="splash-divider"></div>
-            <div class="splash-footer">© 2026 Yuki Coding Studio</div>
+        <div class="splash-full">
+            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&h=200&fit=crop" class="splash-logo-big" alt="Logo">
+            <div class="splash-title">AMPERA MULTI AI</div>
+            <div class="splash-sub">Yuki Coding Studio & AI Neural Engine</div>
+            <div class="splash-line"></div>
+            <div class="splash-footer-text">© 2026 Yuki Coding Studio</div>
         </div>
     """, unsafe_allow_html=True)
 
-    # ==== TOMBOL MASUK (ditaruh di luar splash-wrapper biar kebaca) ====
-    st.markdown('<div class="splash-btn-container">', unsafe_allow_html=True)
-    if st.button("🚀 MASUK", use_container_width=False, key="splash_masuk"):
+    # ==== TOMBOL MASUK (dibungkus div biar di tengah) ====
+    st.markdown('<div class="btn-masuk-wrap">', unsafe_allow_html=True)
+    if st.button("🚀 MASUK", key="splash_masuk"):
         st.session_state["has_entered"] = True
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
-            
+
 # ============================================================
 # 7. APLIKASI UTAMA SETELAH MASUK
 # ============================================================
