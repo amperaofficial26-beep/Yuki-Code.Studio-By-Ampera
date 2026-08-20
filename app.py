@@ -483,8 +483,8 @@ st.markdown("""
         animation: dotPulse 1.3s infinite;
         font-weight: 700;
     }
-    .terminal-card .term-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .terminal-card .term-dots span:nth-child(3) { animation-delay: 0.4s; }
+    .terminal-card .term-dots span:nth-child(2) { animation-delay: 3.0s; }
+    .terminal-card .term-dots span:nth-child(3) { animation-delay: 3.0s; }
 
     /* Baris parameter */
     .term-params {
@@ -508,10 +508,10 @@ st.markdown("""
     .term-param .term-delta {
         color: #38bdf8;
         font-weight: 700;
-        animation: termCounterFlip 1.6s steps(1) infinite;
+        animation: termCounterFlip 4.5s steps(1) infinite;
     }
     .term-param .term-param-pulse {
-        animation: termParamPulse 1.8s ease-in-out infinite;
+        animation: termParamPulse 4.5s ease-in-out infinite;
         font-weight: 600;
     }
 
@@ -532,12 +532,12 @@ st.markdown("""
         bottom: 0;
         width: 7px;
         background: #38bdf8;
-        animation: caretBlink 1s steps(1) infinite;
+        animation: caretBlink 4s steps(1) infinite;
     }
     .term-token-char {
         display: inline-block;
         opacity: 0;
-        animation: termTokenReveal 0.4s linear forwards;
+        animation: termTokenReveal 3.5s linear forwards;
     }
 
     /* Delta counter yang kelihatan "ngitung" - 7 angka cyclically */
@@ -554,7 +554,7 @@ st.markdown("""
         right: 0;
         top: 0;
         opacity: 0;
-        animation: termDeltaSpin 1.6s linear infinite;
+        animation: termDeltaSpin 3.0s linear infinite;
     }
     @keyframes termDeltaSpin {
         0%, 14.28% { opacity: 1; }
@@ -581,7 +581,7 @@ st.markdown("""
         left: 0;
         width: 50%;
         background: linear-gradient(90deg, transparent, #38bdf8, #818cf8, transparent);
-        animation: termProgressSlide 1.6s ease-in-out infinite;
+        animation: termProgressSlide 5.0s ease-in-out infinite;
         border-radius: 999px;
     }
     </style>
@@ -609,7 +609,7 @@ def _build_terminal_token(token_text):
     chars_html = []
     for i, ch in enumerate(token_text):
         # animation-delay tiap karakter naik 0.12s
-        delay = i * 0.12
+        delay = i * 2.15
         chars_html.append(
             f'<span class="term-token-char" style="animation-delay:{delay:.2f}s">{ch}</span>'
         )
@@ -866,8 +866,8 @@ else:
                     response_text = f"❌ Ups, terjadi kesalahan: {e}"
                 
                 elapsed = time.time() - start_time
-                if elapsed < 1.5:
-                    time.sleep(1.5 - elapsed)
+                if elapsed < 2.5:
+                    time.sleep(2.5 - elapsed)
                 
                 loading_ph.empty()
 
