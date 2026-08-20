@@ -42,12 +42,10 @@ Jika ditanya siapa kamu, asal-usulmu, atau siapa yang menciptakanmu, JAWABLAH de
 JANGAN PERNAH menyebutkan bahwa kamu dibuat oleh "para ilmuwan", "sekelompok tim", atau "perusahaan besar". Kamu sangat bangga dan setia pada satu orang pembuatmu itu!
 
 Gaya bicara: Selalu berikan solusi koding yang akurat dan bersih, tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif (seperti 🐧, (๑>◡<๑), wkwk, hehe, atau (￢_￢)) agar suasana ngoding tidak membosankan.
-"""
-
-# Styling CSS Aurora UI & Animasi Logo Berubah Warna & Membesar-Mengecil
+"""# Styling CSS Aurora UI & Animasi Logo Berubah Warna & Membesar-Mengecil
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
     html, body, [class*="css"]:not(.material-symbols-rounded):not(i):not(svg) {
         font-family: 'Inter', sans-serif;
@@ -70,14 +68,13 @@ st.markdown("""
         50% { opacity: 1; transform: scale(1.02); filter: blur(2px); }
         100% { opacity: 1; transform: scale(1); filter: blur(0px); }
     }
-    /* Menyembunyikan header atas agar menu settings/ganti tema tidak bisa diakses */
+    /* Menyembunyikan header */
     [data-testid="stHeader"] {
         visibility: hidden;
         display: none;
         height: 0px;
     }
-    
-    /* Menyembunyikan footer bawaan Streamlit */
+    /* Footer */
     footer {
         visibility: hidden;
         display: none;
@@ -236,7 +233,7 @@ st.markdown("""
     }
 
     /* ========================================= */
-    /* FAB LINGKARAN PEMILIH MODEL (baris di atas chat_input, rata kanan) */
+    /* FAB LINGKARAN PEMILIH MODEL */
     /* ========================================= */
     [data-testid="stPopover"] > button {
         width: 42px !important;
@@ -280,13 +277,12 @@ st.markdown("""
         border: 1px solid #818cf8 !important;
         box-shadow: 0 0 14px rgba(129, 140, 248, 0.6) !important;
     }
-    /* st.bottom() Streamlit: pastikan background transparan seperti stChatInput */
     [data-testid="stBottomBlockContainer"] {
         background: transparent !important;
     }
 
     /* ========================================= */
-    /* KARTU THINKING/LOADING — dibuat KECIL, dipakai di Home & Arena, seragam */
+    /* KARTU THINKING/LOADING (versi kecil, dipakai di splash/Home/Arena) */
     /* ========================================= */
     @keyframes thinkingGlow {
         0%, 100% { box-shadow: 0 0 10px rgba(129, 140, 248, 0.3); border-color: rgba(129, 140, 248, 0.35); }
@@ -363,7 +359,7 @@ st.markdown("""
     }
     
     /* ========================================= */
-    /* ANIMASI LOGO BERUBAH WARNA & MEMBESAR/MENGECIL */
+    /* ANIMASI LOGO */
     /* ========================================= */
     @keyframes logoPulseScaleColor {
         0% {
@@ -403,12 +399,195 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
         font-weight: 500;
     }
+        /* ========================================= */
+    /* TERMINAL-STYLE THINKING LOADER              */
+    /* (logo + counter Delta berputar + token      */
+    /*  streaming typewriter + parameters bar)     */
+    /* ========================================= */
+    @keyframes terminalGlow {
+        0%, 100% { box-shadow: 0 0 12px rgba(56, 189, 248, 0.25); border-color: rgba(56, 189, 248, 0.35); }
+        50%      { box-shadow: 0 0 22px rgba(129, 140, 248, 0.45); border-color: rgba(129, 140, 248, 0.55); }
+    }
+    @keyframes caretBlink {
+        0%, 49%   { opacity: 1; }
+        50%, 100% { opacity: 0; }
+    }
+    @keyframes termTokenReveal {
+        /* typewriter: clip karakter satu per satu */
+        0%   { clip-path: inset(0 100% 0 0); }
+        100% { clip-path: inset(0 0 0 0); }
+    }
+    @keyframes termCounterFlip {
+        /* counter illusion */
+        0%, 100% { opacity: 1;   filter: blur(0px); }
+        20%      { opacity: 0.25; filter: blur(1px); }
+        21%      { opacity: 1;   filter: blur(0px); }
+        45%      { opacity: 1;   filter: blur(0px); }
+        55%      { opacity: 0.4; filter: blur(0.5px); }
+        56%      { opacity: 1;   filter: blur(0px); }
+    }
+    @keyframes termParamPulse {
+        0%, 100% { color: #38bdf8; }
+        50%      { color: #818cf8; }
+    }
+
+    .terminal-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(8, 12, 24, 0.82);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        border-radius: 14px;
+        padding: 10px 14px;
+        margin: 6px 0;
+        font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+        font-size: 0.85rem;
+        color: #cbd5e1;
+        animation: terminalGlow 2.4s ease-in-out infinite;
+        overflow: hidden;
+    }
+    .terminal-card .term-logo {
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        object-fit: cover;
+        border: 2px solid rgba(129, 140, 248, 0.6);
+        animation: logoPulseScaleColor 4.0s infinite ease-in-out;
+        flex-shrink: 0;
+    }
+    .terminal-card .term-body {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+        min-width: 0;
+    }
+    .terminal-card .term-line {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+    .terminal-card .term-prefix {
+        color: #38bdf8;
+        font-weight: 600;
+    }
+    .terminal-card .term-msg {
+        color: #e2e8f0;
+    }
+    .terminal-card .term-dots span {
+        display: inline-block;
+        opacity: 0.25;
+        animation: dotPulse 1.3s infinite;
+        font-weight: 700;
+    }
+    .terminal-card .term-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .terminal-card .term-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    /* Baris parameter */
+    .term-params {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 0.78rem;
+        color: #94a3b8;
+        flex-wrap: wrap;
+    }
+    .term-param {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 2px 8px;
+        background: rgba(56, 189, 248, 0.08);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 6px;
+    }
+    .term-param .term-key { color: #94a3b8; }
+    .term-param .term-delta {
+        color: #38bdf8;
+        font-weight: 700;
+        animation: termCounterFlip 1.6s steps(1) infinite;
+    }
+    .term-param .term-param-pulse {
+        animation: termParamPulse 1.8s ease-in-out infinite;
+        font-weight: 600;
+    }
+
+    /* Token streaming typewriter */
+    .term-token-wrap {
+        position: relative;
+        display: inline-block;
+        color: #f0abfc;
+        font-weight: 600;
+        overflow: hidden;
+        vertical-align: bottom;
+        padding-right: 9px;
+    }
+    .term-token-wrap .term-caret {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 7px;
+        background: #38bdf8;
+        animation: caretBlink 1s steps(1) infinite;
+    }
+    .term-token-char {
+        display: inline-block;
+        opacity: 0;
+        animation: termTokenReveal 0.4s linear forwards;
+    }
+
+    /* Delta counter yang kelihatan "ngitung" - 7 angka cyclically */
+    .term-delta-stack {
+        position: relative;
+        display: inline-block;
+        min-width: 22px;
+        text-align: right;
+        height: 1em;
+        vertical-align: bottom;
+    }
+    .term-delta-num {
+        position: absolute;
+        right: 0;
+        top: 0;
+        opacity: 0;
+        animation: termDeltaSpin 1.6s linear infinite;
+    }
+    @keyframes termDeltaSpin {
+        0%, 14.28% { opacity: 1; }
+        14.29%, 100% { opacity: 0; }
+    }
+
+    /* Progress bar sliding di bawah */
+    @keyframes termProgressSlide {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    .term-progress {
+        position: relative;
+        height: 3px;
+        background: rgba(56, 189, 248, 0.12);
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 6px;
+    }
+    .term-progress::after {
+        content: "";
+        position: absolute;
+        top: 0; bottom: 0;
+        left: 0;
+        width: 50%;
+        background: linear-gradient(90deg, transparent, #38bdf8, #818cf8, transparent);
+        animation: termProgressSlide 1.6s ease-in-out infinite;
+        border-radius: 999px;
+    }
     </style>
 """, unsafe_allow_html=True)
-
 # Fungsi untuk memunculkan Loading Animasi Logo Berubah Warna & Ukuran
-# Dibungkus dalam "thinking-card" (kartu glow + titik animasi) supaya
-# tampilannya konsisten dan lebih hidup di semua halaman (Home & Arena).
+# Versi lama dipertahankan untuk kompatibilitas.
 def get_logo_loader_html(text="Yuki sedang merangkai kode..."):
     logo_url = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop"
     return f"""
@@ -417,6 +596,80 @@ def get_logo_loader_html(text="Yuki sedang merangkai kode..."):
                 <img src="{logo_url}" class="animated-loader-logo" alt="Loading Logo">
             </div>
             <span class="loader-label">{text}<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></span>
+        </div>
+    """
+
+# ==========================================
+# TERMINAL-STYLE LOADING (logo + counter Delta berputar
+#   + token streaming typewriter + parameters bar)
+# Tanpa bullet "●" di kiri - digantikan logo animasi pulse.
+# ==========================================
+def _build_terminal_token(token_text):
+    """Bungkus setiap karakter token dengan span yang muncul berurutan (typewriter)."""
+    chars_html = []
+    for i, ch in enumerate(token_text):
+        # animation-delay tiap karakter naik 0.12s
+        delay = i * 0.12
+        chars_html.append(
+            f'<span class="term-token-char" style="animation-delay:{delay:.2f}s">{ch}</span>'
+        )
+    return "".join(chars_html)
+
+def _build_terminal_delta():
+    """7 angka Delta yang ditumpuk, cyclic muncul satu per satu - terlihat 'ngitung'."""
+    nums = [7, 14, 21, 28, 35, 42, 49]
+    parts = []
+    for idx, n in enumerate(nums):
+        # total durasi 1.6s, tiap slot cuma visible 1/7 (~0.229s)
+        delay = idx * (1.6 / 7)
+        parts.append(
+            f'<span class="term-delta-num" style="animation-delay:{delay:.2f}s">{n}</span>'
+        )
+    return "".join(parts)
+
+def get_terminal_loader_html(text="Yuki sedang berpikir", token="..."):
+    """
+    Loader ala terminal:
+      - Logo (tanpa bullet) di kiri, tetap pakai animasi pulse glow
+      - Baris utama: 'Yuki sedang berpikir...' + titik berkedip
+      - Baris token streaming: [m] -> [ma] -> [mat] -> ... (typewriter)
+      - Baris parameter: temp=... , step=... , Δ=<counter berputar>
+      - Progress bar tipis di bawah kartu (animasi slide)
+    """
+    logo_url = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop"
+    token_chars = _build_terminal_token(token)
+    delta_stack = _build_terminal_delta()
+
+    return f"""
+        <div class="terminal-card">
+            <img src="{logo_url}" class="term-logo" alt="logo">
+            <div class="term-body">
+                <div class="term-line">
+                    <span class="term-prefix">▶</span>
+                    <span class="term-msg">{text}</span>
+                    <span class="term-dots"><span>.</span><span>.</span><span>.</span></span>
+                    <span class="term-token-wrap">[{token_chars}]<span class="term-caret"></span></span>
+                </div>
+                <div class="term-params">
+                    <span class="term-param">
+                        <span class="term-key">temp=</span>
+                        <span class="term-param-pulse">0.72</span>
+                    </span>
+                    <span class="term-param">
+                        <span class="term-key">step=</span>
+                        <span class="term-param-pulse">128</span>
+                    </span>
+                    <span class="term-param">
+                        <span class="term-key">Δ=</span>
+                        <span class="term-delta-stack">{delta_stack}</span>
+                    </span>
+                    <span class="term-param">
+                        <span class="term-key">ctx=</span>
+                        <span class="term-param-pulse">8.2k tok</span>
+                    </span>
+                </div>
+                <div class="term-progress"></div>
+            </div>
         </div>
     """
 
@@ -434,9 +687,7 @@ if "has_entered" not in st.session_state:
 
 if "current_page" not in st.session_state:
     st.session_state["current_page"] = "🏠 Home Dashboard"
-
-
-# -------------------------------------------------------------
+    # -------------------------------------------------------------
 # 1. HALAMAN INTRO PEMBUKA
 # -------------------------------------------------------------
 if not st.session_state["has_entered"]:
@@ -503,15 +754,12 @@ else:
     # HALAMAN 1: HOME DASHBOARD
     # -------------------------------------------------------------
     if selected_menu == "🏠 Home Dashboard":
-        # Riwayat percakapan disimpan di session_state supaya pertanyaan baru
-        # NUMPUK KE BAWAH, bukan menghapus/menimpa jawaban sebelumnya.
         if "home_chat_history" not in st.session_state:
-            st.session_state["home_chat_history"] = []  # list of {"role": "user"/"assistant", "content": str}
+            st.session_state["home_chat_history"] = []
 
         if "home_selected_model" not in st.session_state:
             st.session_state["home_selected_model"] = list(AVAILABLE_MODELS.keys())[0]
 
-        # Tampilan awal (heading + kartu Get started) hanya muncul kalau BELUM ada percakapan
         if len(st.session_state["home_chat_history"]) == 0:
             st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
             st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
@@ -543,7 +791,6 @@ else:
                     st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
                     st.rerun()
         else:
-            # Ada percakapan berjalan -> tampilkan tombol "Percakapan Baru" + seluruh riwayat, urut ke bawah
             if st.button("➕ Percakapan Baru", key="new_chat_home"):
                 st.session_state["home_chat_history"] = []
                 st.rerun()
@@ -558,11 +805,6 @@ else:
                     st.markdown(msg["content"])
                     st.markdown("---")
 
-        # ---------------- BARIS: FAB pemilih model (di atas), lalu chat_input di bawahnya ----------------
-        # Catatan: st.bottom() ternyata belum didukung di versi Streamlit yang dipakai
-        # (butuh versi lebih baru), jadi dikembalikan ke widget biasa (bukan fixed/pinned)
-        # yang kompatibel di semua versi. FAB ditaruh persis satu baris tepat sebelum chat_input,
-        # rata kanan, supaya tetap terlihat menyatu di atas kotak input.
         default_val = st.session_state.pop("shortcut_prompt", "")
 
         spacer_col, fab_col = st.columns([12, 1])
@@ -594,7 +836,6 @@ else:
             if not groq_key:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             else:
-                # Tampilkan bubble pertanyaan user dulu, baru loading card kecil di bawahnya
                 st.markdown(f"""
                     <div class="user-bubble-container">
                         <div class="user-bubble">{query_to_process}</div>
@@ -603,12 +844,16 @@ else:
 
                 loading_ph = st.empty()
                 short_model_name = model_choice_label.split("—")[0].strip()
-                loading_ph.markdown(get_logo_loader_html(f"{short_model_name} sedang berpikir"), unsafe_allow_html=True)
+                loading_ph.markdown(
+                    get_terminal_loader_html(
+                        text=f"{short_model_name} sedang berpikir",
+                        token="reasoning",
+                    ),
+                    unsafe_allow_html=True,
+                )
                 
                 start_time = time.time()
                 try:
-                    # Model sekarang mengikuti pilihan dropdown di atas,
-                    # bukan lagi di-hardcode ke satu model saja.
                     res_home = client.chat.completions.create(
                         model=selected_model_id,
                         messages=[
@@ -620,20 +865,17 @@ else:
                 except Exception as e:
                     response_text = f"❌ Ups, terjadi kesalahan: {e}"
                 
-                # Delay buatan minimal 1.5 detik agar animasi loader sempat terlihat (dipersingkat dari 4.0s)
                 elapsed = time.time() - start_time
                 if elapsed < 1.5:
                     time.sleep(1.5 - elapsed)
                 
                 loading_ph.empty()
 
-                # Simpan ke riwayat (NUMPUK ke bawah) lalu rerun supaya tampil rapi di daftar riwayat
                 st.session_state["home_chat_history"].append({"role": "user", "content": query_to_process})
                 st.session_state["home_chat_history"].append({"role": "assistant", "content": response_text})
                 st.rerun()
-
-    # -------------------------------------------------------------
-    # HALAMAN 2: ARENA BATTLE (MULTI AI) - TIAP KOTAK ADA LOADING SENDIRI
+        # -------------------------------------------------------------
+    # HALAMAN 2: ARENA BATTLE (MULTI AI)
     # -------------------------------------------------------------
     elif selected_menu == "⚔️ Multi Ai":
         st.title("⚔️ Ampera Coding Arena (Multi Ai)")
@@ -641,9 +883,6 @@ else:
         
         st.markdown("<br>", unsafe_allow_html=True)
         col_sel_a, col_sel_b = st.columns(2)
-        # FIX BUG 2: sebelumnya hanya ada SATU selectbox ("pilihan_model") dan variabel
-        # "pilihan_a" / "pilihan_b" tidak pernah didefinisikan -> NameError.
-        # Sekarang dibuat dua selectbox terpisah, satu di tiap kolom.
         with col_sel_a:
             pilihan_a = st.selectbox(
                 "🧠 Petarung A:",
@@ -690,7 +929,13 @@ else:
                     """, unsafe_allow_html=True)
                     
                     loading_a = st.empty()
-                    loading_a.markdown(get_logo_loader_html(f"{pilihan_a} sedang merespons"), unsafe_allow_html=True)
+                    loading_a.markdown(
+                        get_terminal_loader_html(
+                            text=f"🔴 {pilihan_a} sedang merespons",
+                            token="computing",
+                        ),
+                        unsafe_allow_html=True,
+                    )
                     
                     start_a = time.time()
                     try:
@@ -724,7 +969,13 @@ else:
                     """, unsafe_allow_html=True)
                     
                     loading_b = st.empty()
-                    loading_b.markdown(get_logo_loader_html(f"{pilihan_b} sedang merespons"), unsafe_allow_html=True)
+                    loading_b.markdown(
+                        get_terminal_loader_html(
+                            text=f"🔵 {pilihan_b} sedang merespons",
+                            token="analyzing",
+                        ),
+                        unsafe_allow_html=True,
+                    )
                     
                     start_b = time.time()
                     try:
@@ -758,7 +1009,7 @@ else:
                 with v3:
                     if st.button("👉 Pilih Petarung B", use_container_width=True): st.success(f"Kamu memvoting {pilihan_b}!")
 
-   # -------------------------------------------------------------
+    # -------------------------------------------------------------
     # HALAMAN 3: LEADERBOARD
     # -------------------------------------------------------------
     elif selected_menu == "📊 Leaderboard":
@@ -770,6 +1021,7 @@ else:
         | 🥇 | **Llama 3.3 (70B)** | **1280** | 68.5% | 9.5 / 10 |
         | 🥈 | **Llama 3.1 (8B)** | **1210** | 61.2% | 8.8 / 10 |
         """)
+
     # -------------------------------------------------------------
     # HALAMAN 4: SEARCH
     # -------------------------------------------------------------
