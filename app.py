@@ -172,7 +172,7 @@ div.stButton > button {
 div.stButton > button:hover {
     transform: translateY(-2px) scale(1.01);
     border-color: #818cf8 !important;
-    color: #000000 !important;
+    color: #ffffff !important;
     background: rgba(49, 46, 129, 0.85) !important;
     box-shadow: 0 0 20px rgba(129, 140, 248, 0.5) !important;
 }
@@ -198,6 +198,24 @@ div.stButton > button:hover {
     box-shadow: 0 0 25px rgba(129, 140, 248, 0.5) !important;
 }
 [data-testid="stChatInput"] textarea { color: #f8fafc !important; }
+
+/* ==== Placeholder chat input: animasi warna-warni (rainbow shift) ==== */
+@keyframes placeholderRainbow {
+    0%   { color: #818cf8; }     /* indigo */
+    16%  { color: #ec4899; }     /* pink */
+    33%  { color: #38bdf8; }     /* cyan */
+    50%  { color: #fcd34d; }     /* gold */
+    66%  { color: #22c55e; }     /* green */
+    83%  { color: #f97316; }     /* orange */
+    100% { color: #818cf8; }
+}
+[data-testid="stChatInput"] textarea::placeholder {
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    animation: placeholderRainbow 4s linear infinite !important;
+    opacity: 1 !important;
+}
+
 [data-testid="stChatInput"] button {
     background: linear-gradient(135deg, #4f46e5, #3b82f6) !important;
     border: none !important;
@@ -235,30 +253,22 @@ div.stButton > button:hover {
     border-radius: 10px !important;
     text-align: left !important;
     justify-content: flex-start !important;
+    overflow: hidden !important;
+    position: relative !important;
 }
-.model-option-standard button {
-    border: 1px solid rgba(56, 189, 248, 0.35) !important;
-    background: rgba(56, 189, 248, 0.08) !important;
-}
-.model-option-premium button {
-    border: 1px solid rgba(236, 72, 153, 0.4) !important;
-    background: linear-gradient(135deg, rgba(129,140,248,0.15), rgba(236,72,153,0.15)) !important;
-}
-.model-option-active button {
-    border: 1px solid #818cf8 !important;
-    box-shadow: 0 0 14px rgba(129, 140, 248, 0.6) !important;
-}
-[data-testid="stBottomBlockContainer"] { background: transparent !important; }
-
-/* GPT-OSS 20B (⚡ Free): ungu-biru gradient */
+/* GPT-OSS 20B (Free, ⚡): ungu-biru gradient soft */
 .model-option-standard button {
     border: 1px solid rgba(129, 140, 248, 0.55) !important;
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(56, 189, 248, 0.25)) !important;
     color: #e0e7ff !important;
     box-shadow: 0 0 10px rgba(129, 140, 248, 0.3) !important;
 }
-
-/* Model Premium (💎): emas berjalan */
+.model-option-standard button:hover {
+    border-color: #818cf8 !important;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(56, 189, 248, 0.4)) !important;
+    box-shadow: 0 0 18px rgba(129, 140, 248, 0.6) !important;
+}
+/* Model Premium (💎): emas gradient + gold shine berjalan */
 @keyframes goldShine {
     0%   { background-position: 0% 50%; }
     100% { background-position: 200% 50%; }
@@ -277,8 +287,11 @@ div.stButton > button:hover {
     box-shadow: 0 0 12px rgba(252, 211, 77, 0.45) !important;
     text-shadow: 0 0 4px rgba(255, 235, 130, 0.5) !important;
 }
-
-/* Selected/Active: HITAM solid + checklist hijau */
+.model-option-premium button:hover {
+    border-color: #fcd34d !important;
+    box-shadow: 0 0 22px rgba(252, 211, 77, 0.85) !important;
+}
+/* Tombol sedang aktif (selected) → background HITAM solid + border glow putih */
 .model-option-active button {
     background: #000000 !important;
     border: 1px solid #f8fafc !important;
@@ -289,28 +302,21 @@ div.stButton > button:hover {
         0 0 8px rgba(129, 140, 248, 0.4) !important;
     font-weight: 700 !important;
 }
-/* Override tier styling saat aktif */
+.model-option-active button::before {
+    content: "✅";
+    margin-right: 8px;
+    color: #22c55e;
+    text-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
+}
 .model-option-active.model-option-premium button,
 .model-option-active.model-option-standard button {
+    /* Saat aktif, override tier styling jadi hitam solid */
     background: #000000 !important;
+    background-size: 100% 100% !important;
     animation: none !important;
     text-shadow: none !important;
 }
-@keyframes placeholderRainbow {
-    0%   { color: #818cf8; }     /* indigo */
-    16%  { color: #ec4899; }     /* pink */
-    33%  { color: #38bdf8; }     /* cyan */
-    50%  { color: #fcd34d; }     /* gold */
-    66%  { color: #22c55e; }     /* green */
-    83%  { color: #f97316; }     /* orange */
-    100% { color: #818cf8; }
-}
-[data-testid="stChatInput"] textarea::placeholder {
-    font-weight: 600 !important;
-    letter-spacing: 0.02em !important;
-    animation: placeholderRainbow 4s linear infinite !important;
-    opacity: 1 !important;
-}
+[data-testid="stBottomBlockContainer"] { background: transparent !important; }
 
 /* ========================================= */
 /* KARTU THINKING/LOADING (kecil, splash/Home/Arena) */
@@ -818,7 +824,7 @@ else:
                         st.rerun()
                     st.markdown('</div>', unsafe_allow_html=True)
 
-        home_input = st.chat_input("Ask anything...", key="home_chat")
+        home_input = st.chat_input("✨ Ask Yuki anything... ✨", key="home_chat")
 
         model_choice_label = st.session_state["home_selected_model"]
         selected_model_id = AVAILABLE_MODELS[model_choice_label]
@@ -895,7 +901,7 @@ else:
                 key="pilihan_b_select"
             )
         st.markdown("<br>", unsafe_allow_html=True)
-        arena_input = st.chat_input("Kirim tantangan koding ke Arena...", key="arena_chat")
+        arena_input = st.chat_input("⚔️ Kirim tantangan duel coding...", key="arena_chat")
 
         if arena_input:
             st.session_state["last_arena_prompt"] = arena_input
