@@ -467,10 +467,12 @@ else:
         st.markdown("<br>", unsafe_allow_html=True)
         col_sel_a, col_sel_b = st.columns(2)
         with col_sel_a:
-            pilihan_a = st.selectbox("🤖 Pilih Petarung A", options=list(AVAILABLE_MODELS.keys()), index=0)
-        with col_sel_b:
-            pilihan_b = st.selectbox("🤖 Pilih Petarung B", options=list(AVAILABLE_MODELS.keys()), index=1)
-            
+            pilihan_model = st.selectbox("🧠 Pilih Petarung AI:", 
+     options=[
+        "llama-3.3-70b-versatile", 
+        "llama-3.1-8b-instant"
+    ]
+)
         st.markdown("<br>", unsafe_allow_html=True)
         arena_input = st.chat_input("Kirim tantangan koding ke Arena...")
         
