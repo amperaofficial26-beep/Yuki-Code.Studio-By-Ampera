@@ -14,7 +14,6 @@ client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if 
 AVAILABLE_MODELS = {
     "Llama 3.3 (70B) - Versatile": "llama-3.3-70b-versatile",
     "Llama 3.1 (8B) - Instant": "llama-3.1-8b-instant",
-    "openai/gpt-oss-20b"
 }
 
 # ==========================================
