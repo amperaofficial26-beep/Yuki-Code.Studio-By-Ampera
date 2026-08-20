@@ -1538,7 +1538,7 @@ else:
                         st.rerun()
                     st.markdown('</div>', unsafe_allow_html=True)
 
-        home_input = st.chat_input("Ask anything...")
+        home_input = st.chat_input("Ask anything...", key="home_chat")
 
         model_choice_label = st.session_state["home_selected_model"]
         selected_model_id = AVAILABLE_MODELS[model_choice_label]
@@ -1615,7 +1615,7 @@ else:
                 key="pilihan_b_select"
             )
         st.markdown("<br>", unsafe_allow_html=True)
-        arena_input = st.chat_input("Kirim tantangan koding ke Arena...")
+        arena_input = st.chat_input("Kirim tantangan koding ke Arena...", key="arena_chat")
 
         if arena_input:
             st.session_state["last_arena_prompt"] = arena_input
