@@ -662,13 +662,13 @@ if "has_entered"  not in st.session_state: st.session_state["has_entered"]  = Fa
 if "current_page" not in st.session_state: st.session_state["current_page"] = "🏠 Home Dashboard"
 
 # ============================================================
-# 6. HALAMAN SPLASH INTRO (DIRAPIKAN)
+# 6. HALAMAN SPLASH INTRO (DIRAPIKAN - TOMBOL MUNCUL)
 # ============================================================
 if not st.session_state["has_entered"]:
     # Tambahkan CSS khusus splash
     st.markdown("""
     <style>
-        /* Splash background dengan gradasi yang sama */
+        /* Splash background dengan gradasi */
         .splash-wrapper {
             position: fixed;
             top: 0;
@@ -731,16 +731,17 @@ if not st.session_state["has_entered"]:
             font-size: 12px;
             letter-spacing: 1px;
         }
-        /* HIDE Streamlit default button di splash biar styling kita yang dipake */
-        .stButton {
-            display: block !important;
+        /* ==== TOMBOL MASUK YANG KELIHATAN ==== */
+        .splash-btn-container {
+            position: relative;
+            z-index: 10000;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
         }
-        /* Tombol MASUK yang lebih besar */
-        .splash-btn-wrapper {
-            width: 280px;
-        }
-        .splash-btn-wrapper button {
-            width: 100% !important;
+        .splash-btn-container button {
+            width: 280px !important;
             padding: 16px 40px !important;
             font-size: 20px !important;
             font-weight: 700 !important;
@@ -751,16 +752,21 @@ if not st.session_state["has_entered"]:
             box-shadow: 0 4px 25px rgba(124, 58, 237, 0.5) !important;
             transition: all 0.3s ease !important;
             letter-spacing: 2px !important;
+            cursor: pointer !important;
         }
-        .splash-btn-wrapper button:hover {
+        .splash-btn-container button:hover {
             transform: translateY(-3px) scale(1.02) !important;
             box-shadow: 0 8px 40px rgba(124, 58, 237, 0.7) !important;
             background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
         }
+        /* Sembunyikan Streamlit default button branding */
+        .stButton > button {
+            visibility: visible !important;
+        }
     </style>
     """, unsafe_allow_html=True)
 
-    # Tampilkan splash
+    # Tampilkan splash background
     st.markdown("""
         <div class="splash-wrapper">
             <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&h=200&fit=crop" class="splash-logo-large" alt="Logo">
@@ -771,12 +777,12 @@ if not st.session_state["has_entered"]:
         </div>
     """, unsafe_allow_html=True)
 
-    # ==== INI TOMBOL YANG BENERAN BISA DITEKAN ====
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("🚀 MASUK", use_container_width=True, key="splash_masuk"):
-            st.session_state["has_entered"] = True
-            st.rerun()
+    # ==== TOMBOL MASUK (ditaruh di luar splash-wrapper biar kebaca) ====
+    st.markdown('<div class="splash-btn-container">', unsafe_allow_html=True)
+    if st.button("🚀 MASUK", use_container_width=False, key="splash_masuk"):
+        st.session_state["has_entered"] = True
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
             
 # ============================================================
 # 7. APLIKASI UTAMA SETELAH MASUK
