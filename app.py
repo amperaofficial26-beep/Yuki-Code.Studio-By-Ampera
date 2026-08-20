@@ -12,8 +12,23 @@ client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if 
 # DAFTAR MODEL GRATIS GROQ (UPDATE TERBARU)
 # ==========================================
 AVAILABLE_MODELS = {
-    "GPT-OSS (120B)": "openai/gpt-oss-120b",
-    "GPT-OSS (20B)": "openai/gpt-oss-20b"
+    "⚡ GPT-OSS 20B — Chat & Coding Ringan": "openai/gpt-oss-20b",
+    "💎 GPT-OSS 120B — Reasoning Mendalam": "openai/gpt-oss-120b",
+    "💎 Compound — Browsing Web & Eksekusi Kode": "groq/compound",
+    "💎 Kimi K2 — Coding & Agentic Kompleks": "moonshotai/kimi-k2-instruct-0905",
+    "💎 Qwen3.6 27B — Reasoning & Matematika": "qwen/qwen3.6-27b"
+}
+
+# Model dengan awalan 💎 dianggap tier "Premium" di UI (tetap gratis via free tier Groq)
+PREMIUM_MODELS = {k for k in AVAILABLE_MODELS if k.startswith("💎")}
+
+# Deskripsi singkat tiap model, ditampilkan sebagai caption di bawah dropdown
+MODEL_DESCRIPTIONS = {
+    "openai/gpt-oss-20b": "Model standar: cepat, ringan, cocok untuk chat sehari-hari dan coding sederhana.",
+    "openai/gpt-oss-120b": "Model premium: reasoning lebih dalam untuk masalah koding/analisis yang rumit.",
+    "groq/compound": "Model premium: bisa browsing web & menjalankan kode secara otomatis saat menjawab.",
+    "moonshotai/kimi-k2-instruct-0905": "Model premium: sangat kuat untuk coding kompleks dan tugas agentic multi-langkah.",
+    "qwen/qwen3.6-27b": "Model premium: unggul di reasoning terstruktur, matematika, dan logika."
 }
 # ==========================================
 # SYSTEM PROMPT (INSTRUKSI KEPRIBADIAN YUKI)
@@ -220,6 +235,17 @@ st.markdown("""
         color: white !important;
     }
 
+    /* Dropdown pemilih model ala Claude, ditaruh di atas chat input */
+    .model-picker-wrap [data-testid="stSelectbox"] {
+        max-width: 260px;
+    }
+    .model-picker-wrap [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+        background: rgba(15, 23, 42, 0.85) !important;
+        border: 1px solid rgba(129, 140, 248, 0.3) !important;
+        border-radius: 9999px !important;
+        color: #f8fafc !important;
+    }
+
     .arena-card {
         background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(12px);
@@ -424,6 +450,22 @@ else:
                 st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
                 st.rerun()
 
+        # ---------------- DROPDOWN PEMILIH MODEL (ala Claude) ----------------
+        st.markdown('<div class="model-picker-wrap">', unsafe_allow_html=True)
+        model_choice_label = st.selectbox(
+            "Model",
+            options=list(AVAILABLE_MODELS.keys()),
+            index=0,
+            key="home_model_picker",
+            label_visibility="collapsed"
+        )
+        st.markdown('</div>', unsafe_allow_html=True)
+        selected_model_id = AVAILABLE_MODELS[model_choice_label]
+
+        # Caption kecil di bawah dropdown: deskripsi model + badge Premium/Standar
+        badge = "💎 Premium (gratis)" if model_choice_label in PREMIUM_MODELS else "⚡ Standar (gratis)"
+        st.caption(f"**{badge}** — {MODEL_DESCRIPTIONS.get(selected_model_id, '')}")
+
         default_val = st.session_state.pop("shortcut_prompt", "")
         home_input = st.chat_input("Ask anything...")
         query_to_process = home_input if home_input else default_val
@@ -433,12 +475,14 @@ else:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             else:
                 loading_ph = st.empty()
-                loading_ph.markdown(get_logo_loader_html("Yuki sedang berpikir..."), unsafe_allow_html=True)
+                loading_ph.markdown(get_logo_loader_html(f"{model_choice_label} sedang berpikir..."), unsafe_allow_html=True)
                 
                 start_time = time.time()
                 try:
+                    # Model sekarang mengikuti pilihan dropdown di atas,
+                    # bukan lagi di-hardcode ke satu model saja.
                     res_home = client.chat.completions.create(
-                        model="openai/gpt-oss-20b",
+                        model=selected_model_id,
                         messages=[
                             {"role": "system", "content": YUKI_SYSTEM_PROMPT},
                             {"role": "user", "content": query_to_process}
@@ -592,8 +636,8 @@ else:
         st.markdown("""
         | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
         | :---: | :--- | :---: | :---: | :---: |
-        | 🥇 | **GPT-OSS (120B)** | **1280** | 68.5% | 9.5 / 10 |
-        | 🥈 | **GPT-OSS (20B)** | **1210** | 61.2% | 8.8 / 10 |
+        | 🥇 | **GPT-OSS 120B** | **1280** | 68.5% | 9.5 / 10 |
+        | 🥈 | **GPT-OSS 20B** | **1210** | 61.2% | 8.8 / 10 |
         """)
     # -------------------------------------------------------------
     # HALAMAN 4: SEARCH
