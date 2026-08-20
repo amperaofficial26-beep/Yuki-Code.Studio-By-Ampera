@@ -5,15 +5,21 @@ import time
 # Konfigurasi Halaman
 st.set_page_config(page_title="Ampera Multi AI - Yuki Coding Studio", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
 
-groq_key = st.secrets.get("GROQ_API_KEY", "")
-client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
+# Inisialisasi OpenRouter API
+openrouter_key = st.secrets.get("OPENROUTER_API_KEY", "")
+client = OpenAI(
+    api_key=openrouter_key, 
+    base_url="https://openrouter.ai/api/v1" # <- Arahkan ke server OpenRouter
+) if openrouter_key else None
 
 # ==========================================
 # DAFTAR MODEL GROQ YANG TERSEDIA (AKTIF)
 # ==========================================
 AVAILABLE_MODELS = {
-    "Llama 3.3 (70B) - Versatile": "llama-3.3-70b-versatile",
-    "Llama 3.1 (8B) - Instant": "llama-3.1-8b-instant",
+    "Llama 3 8B (Gratis)": "meta-llama/llama-3-8b-instruct:free",
+    "Gemma 2 9B (Gratis)": "google/gemma-2-9b-it:free",
+    "Qwen 2 7B (Gratis)": "qwen/qwen-2-7b-instruct:free",
+    "Mistral 7B (Gratis)": "mistralai/mistral-7b-instruct:free"
 }
 
 # ==========================================
@@ -470,7 +476,7 @@ else:
         with col_sel_a:
             pilihan_a = st.selectbox("🤖 Pilih Petarung A", options=list(AVAILABLE_MODELS.keys()), index=0)
         with col_sel_b:
-            pilihan_b = st.selectbox("🤖 Pilih Petarung B", options=list(AVAILABLE_MODELS.keys()), index=1)
+            pilihan_b = st.selectbox("🤖 Pilih Petarung B", options=list(AVAILABLE_MODELS.keys()), index=2)
             
         st.markdown("<br>", unsafe_allow_html=True)
         arena_input = st.chat_input("Kirim tantangan koding ke Arena...")
