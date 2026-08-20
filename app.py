@@ -217,10 +217,6 @@ div.stButton > button:hover {
     color: white !important;
 }
 
-# Tambahkan ini ke dalam st.markdown(""" CSS ... """) di bagian 3
-# Letakkan sebelum tanda """ penutup
-
-"""
 /* ============================================================
    MODEL PICKER - BUTTON POPUP BERGERAK & WARNA-WARNI
    ============================================================ */
