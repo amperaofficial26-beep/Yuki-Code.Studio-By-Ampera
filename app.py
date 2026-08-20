@@ -12,8 +12,9 @@ client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if 
 # DAFTAR MODEL GRATIS GROQ (UPDATE TERBARU)
 # ==========================================
 AVAILABLE_MODELS = {
-    "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant",
+    AVAILABLE_MODELS = {
+    "Llama 3.3 (70B)": "llama-3.3-70b-versatile",
+    "Llama 3.1 (8B)": "llama-3.1-8b-instant"
 }
 # ==========================================
 # SYSTEM PROMPT (INSTRUKSI KEPRIBADIAN YUKI)
