@@ -217,122 +217,160 @@ div.stButton > button:hover {
     color: white !important;
 }
 
-/* ==== FAB MODEL PICKER ==== */
+# Tambahkan ini ke dalam st.markdown(""" CSS ... """) di bagian 3
+# Letakkan sebelum tanda """ penutup
+
+"""
+/* ============================================================
+   MODEL PICKER - BUTTON POPUP BERGERAK & WARNA-WARNI
+   ============================================================ */
+
+/* FAB button utama - animasi lompat pelan + warna warni */
+@keyframes fabBounce {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    30% { transform: translateY(-6px) scale(1.05); }
+    60% { transform: translateY(-3px) scale(1.02); }
+}
+@keyframes fabRainbow {
+    0% { background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8); background-size: 300% 300%; }
+    25% { background: linear-gradient(135deg, #fcd34d, #ec4899, #818cf8); background-size: 300% 300%; }
+    50% { background: linear-gradient(135deg, #34d399, #fcd34d, #ec4899); background-size: 300% 300%; }
+    75% { background: linear-gradient(135deg, #38bdf8, #34d399, #fcd34d); background-size: 300% 300%; }
+    100% { background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8); background-size: 300% 300%; }
+}
 [data-testid="stPopover"] > button {
-    width: 42px !important; height: 42px !important;
-    border-radius: 50% !important; padding: 0 !important;
-    min-height: 42px !important;
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    min-height: 48px !important;
+    min-width: 48px !important;
     background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8) !important;
-    background-size: 200% 200% !important;
-    animation: auroraBG 6s ease infinite !important;
-    border: 2px solid rgba(255, 255, 255, 0.25) !important;
-    box-shadow: 0 4px 16px rgba(129, 140, 248, 0.5) !important;
-    font-size: 1.05rem !important;
-    margin-top: 4px;
+    background-size: 300% 300% !important;
+    animation: fabRainbow 4s ease infinite, fabBounce 2s ease-in-out infinite !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 0 30px rgba(129, 140, 248, 0.5), 0 0 60px rgba(236, 72, 153, 0.2) !important;
+    font-size: 1.2rem !important;
+    transition: all 0.3s ease !important;
+    z-index: 999 !important;
 }
 [data-testid="stPopover"] > button:hover {
-    transform: scale(1.08);
-    box-shadow: 0 4px 22px rgba(236, 72, 153, 0.6) !important;
+    transform: scale(1.15) !important;
+    box-shadow: 0 0 50px rgba(236, 72, 153, 0.6), 0 0 80px rgba(129, 140, 248, 0.3) !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
 }
+
+/* Popover body - glassmorphism */
 [data-testid="stPopoverBody"] {
-    background: rgba(15, 23, 42, 0.97) !important;
-    backdrop-filter: blur(18px) !important;
-    border: 1px solid rgba(129, 140, 248, 0.35) !important;
-    border-radius: 16px !important;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+    background: rgba(15, 23, 42, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(129, 140, 248, 0.3) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7) !important;
+    padding: 10px !important;
+    min-width: 280px !important;
 }
 
-/* ==== MODEL TIER STYLING ==== */
-.model-option-btn button {
-    border-radius: 10px !important;
-    text-align: left !important;
-    justify-content: flex-start !important;
-    overflow: hidden !important;
-    position: relative !important;
-}
+/* ============================================================
+   MODEL TIER STYLING
+   ============================================================ */
 
-/* GPT-OSS 20B (Free, ⚡): ungu-biru SOLID gradient vibrant */
+/* --- STANDARD: GPT-OSS 20B (UNGU BIRU) --- */
 .model-option-standard button {
-    border: 1.5px solid rgba(129, 140, 248, 0.85) !important;
-    background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%) !important;
+    border: 2px solid rgba(99, 102, 241, 0.7) !important;
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%) !important;
     color: #ffffff !important;
-    box-shadow:
-        0 0 14px rgba(99, 102, 241, 0.55),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3) !important;
     font-weight: 600 !important;
+    border-radius: 12px !important;
+    padding: 10px 14px !important;
+    transition: all 0.3s ease !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
 }
 .model-option-standard button:hover {
     border-color: #a5b4fc !important;
-    background: linear-gradient(135deg, #818cf8 0%, #38bdf8 100%) !important;
-    box-shadow:
-        0 0 22px rgba(99, 102, 241, 0.85),
-        inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+    background: linear-gradient(135deg, #6366f1 0%, #60a5fa 100%) !important;
+    box-shadow: 0 0 35px rgba(99, 102, 241, 0.6) !important;
+    transform: scale(1.02) !important;
 }
 
-/* Model Premium (💎): emas SOLID gradient + gold shine berjalan */
-@keyframes goldShine {
-    0%   { background-position: 0% 50%; }
-    100% { background-position: 200% 50%; }
+/* --- PREMIUM: selain GPT-OSS 20B (EMAS BERJALAN) --- */
+@keyframes goldShinePremium {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
 }
 .model-option-premium button {
-    border: 1.5px solid rgba(252, 211, 77, 0.95) !important;
+    border: 2px solid rgba(252, 211, 77, 0.8) !important;
     background: linear-gradient(90deg,
-        #b45309 0%,
-        #d97706 25%,
+        #78350f 0%,
+        #b45309 15%,
+        #d97706 30%,
         #fbbf24 50%,
-        #d97706 75%,
-        #b45309 100%) !important;
-    background-size: 200% 100% !important;
-    animation: goldShine 3s linear infinite !important;
+        #d97706 70%,
+        #b45309 85%,
+        #78350f 100%) !important;
+    background-size: 300% 100% !important;
+    animation: goldShinePremium 3s linear infinite !important;
     color: #ffffff !important;
-    box-shadow:
-        0 0 18px rgba(252, 211, 77, 0.7),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3),
-        inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important;
+    box-shadow: 0 0 25px rgba(252, 211, 77, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;
     font-weight: 700 !important;
+    border-radius: 12px !important;
+    padding: 10px 14px !important;
+    transition: all 0.3s ease !important;
 }
 .model-option-premium button:hover {
     border-color: #fef3c7 !important;
     background: linear-gradient(90deg,
-        #92400e 0%,
-        #c2410c 25%,
-        #f59e0b 50%,
-        #c2410c 75%,
-        #92400e 100%) !important;
-    box-shadow:
-        0 0 26px rgba(252, 211, 77, 1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+        #451a03 0%,
+        #78350f 20%,
+        #b45309 40%,
+        #f59e0b 60%,
+        #b45309 80%,
+        #78350f 100%) !important;
+    box-shadow: 0 0 45px rgba(252, 211, 77, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    transform: scale(1.02) !important;
 }
 
-/* ==== AKTIF (SELECTED) STATE — HIGH SPECIFICITY ==== */
-/* Pakai 'html body' prefix supaya MENANG cascade melawan tier styling. */
-html body [data-testid="stPopoverBody"] .model-option-btn.model-option-active button,
-html body div.model-option-btn.model-option-active button,
-html body .model-option-btn.model-option-active button {
+/* --- ACTIVE (SELECTED) STATE --- */
+html body .model-option-btn.model-option-active button,
+html body div.model-option-btn.model-option-active button {
     background: #000000 !important;
     background-image: none !important;
-    background-size: 100% 100% !important;
-    border: 1.5px solid #ffffff !important;
+    border: 2px solid #ffffff !important;
     color: #ffffff !important;
-    box-shadow:
-        0 0 0 1.5px rgba(255, 255, 255, 0.6) inset,
-        0 0 24px rgba(255, 255, 255, 0.45),
-        0 0 12px rgba(129, 140, 248, 0.5) !important;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3) inset, 0 0 30px rgba(255, 255, 255, 0.2) !important;
     font-weight: 700 !important;
     animation: none !important;
-    text-shadow: 0 0 6px rgba(255, 255, 255, 0.4) !important;
-    transform: scale(1.02) !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3) !important;
+    transform: scale(1.04) !important;
 }
 html body .model-option-btn.model-option-active button::before {
     content: "✅  ";
     color: #22c55e !important;
-    text-shadow: 0 0 8px rgba(34, 197, 94, 0.8) !important;
+    text-shadow: 0 0 12px rgba(34, 197, 94, 0.8) !important;
     font-weight: 800 !important;
 }
 
-[data-testid="stBottomBlockContainer"] { background: transparent !important; }
+/* Ikon premium di samping label */
+.model-option-premium button::after {
+    content: " 💎";
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+.model-option-standard button::after {
+    content: " ⚡";
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
 
+/* Spasi antar tombol di popover */
+.model-option-btn {
+    margin-bottom: 6px !important;
+}
+.model-option-btn:last-child {
+    margin-bottom: 0 !important;
+}
 /* ==== THINKING CARD (splash/Home) ==== */
 @keyframes thinkingGlow {
     0%, 100% { box-shadow: 0 0 10px rgba(129, 140, 248, 0.3); border-color: rgba(129, 140, 248, 0.35); }
