@@ -13,15 +13,14 @@ client = OpenAI(
 ) if openrouter_key else None
 
 # ==========================================
-# DAFTAR MODEL GROQ YANG TERSEDIA (AKTIF)
+# DAFTAR MODEL GRATIS OPENROUTER (UPDATE TERBARU)
 # ==========================================
 AVAILABLE_MODELS = {
-    "Llama 3 8B (Gratis)": "meta-llama/llama-3-8b-instruct:free",
+    "Llama 3.1 8B (Gratis)": "meta-llama/llama-3.1-8b-instruct:free",
     "Gemma 2 9B (Gratis)": "google/gemma-2-9b-it:free",
-    "Qwen 2 7B (Gratis)": "qwen/qwen-2-7b-instruct:free",
-    "Mistral 7B (Gratis)": "mistralai/mistral-7b-instruct:free"
+    "Mistral Nemo (Gratis)": "mistralai/mistral-nemo:free",
+    "Qwen 2.5 7B (Gratis)": "qwen/qwen-2.5-7b-instruct:free"
 }
-
 # ==========================================
 # SYSTEM PROMPT (INSTRUKSI KEPRIBADIAN YUKI)
 # ==========================================
@@ -445,7 +444,7 @@ else:
                 start_time = time.time()
                 try:
                     res_home = client.chat.completions.create(
-                        model=AVAILABLE_MODELS["Qwen 2 7B (Gratis)"],
+                        model=AVAILABLE_MODELS["Mistral Nemo (Gratis)"],
                         messages=[
                             {"role": "system", "content": YUKI_SYSTEM_PROMPT},
                             {"role": "user", "content": query_to_process}
