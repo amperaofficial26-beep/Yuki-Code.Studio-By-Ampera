@@ -1,5 +1,5 @@
 import streamlit as st
-from OpenAi import openai
+from Openai import openai
 import time
 
 # Konfigurasi Halaman
