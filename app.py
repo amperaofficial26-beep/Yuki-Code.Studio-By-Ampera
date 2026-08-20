@@ -724,6 +724,17 @@ if not st.session_state["has_entered"]:
             background: linear-gradient(90deg, transparent, #a78bfa, transparent);
             margin-bottom: 35px;
         }
+        .splash-footer {
+            position: fixed;
+            bottom: 30px;
+            color: #4b5563;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+        /* HIDE Streamlit default button di splash biar styling kita yang dipake */
+        .stButton {
+            display: block !important;
+        }
         /* Tombol MASUK yang lebih besar */
         .splash-btn-wrapper {
             width: 280px;
@@ -746,13 +757,6 @@ if not st.session_state["has_entered"]:
             box-shadow: 0 8px 40px rgba(124, 58, 237, 0.7) !important;
             background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
         }
-        .splash-footer {
-            position: fixed;
-            bottom: 30px;
-            color: #4b5563;
-            font-size: 12px;
-            letter-spacing: 1px;
-        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -763,19 +767,17 @@ if not st.session_state["has_entered"]:
             <div class="splash-title-main">AMPERA MULTI AI</div>
             <div class="splash-subtitle-main">Yuki Coding Studio & AI Neural Engine</div>
             <div class="splash-divider"></div>
-            <div class="splash-btn-wrapper">
-                <button onclick="document.querySelector('[data-testid=stButton] button').click()">🚀 MASUK</button>
-            </div>
             <div class="splash-footer">© 2026 Yuki Coding Studio</div>
         </div>
     """, unsafe_allow_html=True)
 
-    # Tombol hidden (tetap pakai Streamlit button untuk logic)
-    col1, col2, col3 = st.columns([1, 1, 1])
+    # ==== INI TOMBOL YANG BENERAN BISA DITEKAN ====
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("MASUK", use_container_width=True, key="splash_masuk"):
+        if st.button("🚀 MASUK", use_container_width=True, key="splash_masuk"):
             st.session_state["has_entered"] = True
             st.rerun()
+            
 # ============================================================
 # 7. APLIKASI UTAMA SETELAH MASUK
 # ============================================================
