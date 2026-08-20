@@ -1,5 +1,5 @@
 import streamlit as st
-from Openai import openai
+from openai import OpenAI
 import time
 
 # Konfigurasi Halaman
@@ -7,7 +7,7 @@ st.set_page_config(page_title="Ampera Multi AI - Yuki Coding Studio", page_icon=
 
 # Inisialisasi Groq API
 groq_key = st.secrets.get("GROQ_API_KEY", "")
-client = Groq(api_key=groq_key, base_url="https://api.groq.com/groq/v1") if groq_key else None
+client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/groq/v1") if groq_key else None
 
 # ==========================================
 # DAFTAR MODEL GROQ YANG TERSEDIA (AKTIF)
