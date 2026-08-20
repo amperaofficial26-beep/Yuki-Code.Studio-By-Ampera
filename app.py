@@ -236,7 +236,7 @@ st.markdown("""
     }
 
     /* ========================================= */
-    /* FAB LINGKARAN PEMILIH MODEL (di dalam st.bottom(), sebaris dengan chat_input) */
+    /* FAB LINGKARAN PEMILIH MODEL (baris di atas chat_input, rata kanan) */
     /* ========================================= */
     [data-testid="stPopover"] > button {
         width: 42px !important;
@@ -558,31 +558,33 @@ else:
                     st.markdown(msg["content"])
                     st.markdown("---")
 
-        # ---------------- BARIS BAWAH: chat_input + FAB pemilih model ----------------
-        # st.bottom() adalah container resmi Streamlit yang dipin di bawah layar,
-        # jadi FAB ini dijamin nempel SATU BARIS dengan kotak chat_input (bukan hack CSS fixed lagi).
-        with st.bottom():
-            input_col, fab_col = st.columns([12, 1])
-            with input_col:
-                default_val = st.session_state.pop("shortcut_prompt", "")
-                home_input = st.chat_input("Ask anything...")
-            with fab_col:
-                with st.popover("🧠", use_container_width=True):
-                    st.markdown("**✨ Pilih Model AI**")
-                    st.caption("Semua model gratis (free tier Groq)")
-                    for label, model_id in AVAILABLE_MODELS.items():
-                        is_active = (label == st.session_state["home_selected_model"])
-                        css_tier = "model-option-premium" if label in PREMIUM_MODELS else "model-option-standard"
-                        css_active = " model-option-active" if is_active else ""
-                        st.markdown(f'<div class="model-option-btn {css_tier}{css_active}">', unsafe_allow_html=True)
-                        if st.button(
-                            ("✅ " if is_active else "") + label,
-                            key=f"pick_home_{model_id}",
-                            use_container_width=True
-                        ):
-                            st.session_state["home_selected_model"] = label
-                            st.rerun()
-                        st.markdown('</div>', unsafe_allow_html=True)
+        # ---------------- BARIS: FAB pemilih model (di atas), lalu chat_input di bawahnya ----------------
+        # Catatan: st.bottom() ternyata belum didukung di versi Streamlit yang dipakai
+        # (butuh versi lebih baru), jadi dikembalikan ke widget biasa (bukan fixed/pinned)
+        # yang kompatibel di semua versi. FAB ditaruh persis satu baris tepat sebelum chat_input,
+        # rata kanan, supaya tetap terlihat menyatu di atas kotak input.
+        default_val = st.session_state.pop("shortcut_prompt", "")
+
+        spacer_col, fab_col = st.columns([12, 1])
+        with fab_col:
+            with st.popover("🧠", use_container_width=True):
+                st.markdown("**✨ Pilih Model AI**")
+                st.caption("Semua model gratis (free tier Groq)")
+                for label, model_id in AVAILABLE_MODELS.items():
+                    is_active = (label == st.session_state["home_selected_model"])
+                    css_tier = "model-option-premium" if label in PREMIUM_MODELS else "model-option-standard"
+                    css_active = " model-option-active" if is_active else ""
+                    st.markdown(f'<div class="model-option-btn {css_tier}{css_active}">', unsafe_allow_html=True)
+                    if st.button(
+                        ("✅ " if is_active else "") + label,
+                        key=f"pick_home_{model_id}",
+                        use_container_width=True
+                    ):
+                        st.session_state["home_selected_model"] = label
+                        st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
+
+        home_input = st.chat_input("Ask anything...")
 
         model_choice_label = st.session_state["home_selected_model"]
         selected_model_id = AVAILABLE_MODELS[model_choice_label]
