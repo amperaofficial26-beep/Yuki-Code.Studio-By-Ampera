@@ -1406,7 +1406,7 @@ if not st.session_state["has_entered"]:
 
     col_space1, col_btn, col_space2 = st.columns([2, 2, 2])
     with col_btn:
-        if st.button("MASUK", use_container_width=True):
+        if st.button("MASUK", use_container_width=True, key="splash_masuk"):
             st.session_state["has_entered"] = True
             st.rerun()
 
@@ -1422,33 +1422,33 @@ else:
             </div>
         """, unsafe_allow_html=True)
 
-        if st.button("🏠  Home Dashboard", use_container_width=True):
+        if st.button("🏠  Home Dashboard", use_container_width=True, key="sidebar_home"):
             st.session_state["current_page"] = "🏠 Home Dashboard"
             st.rerun()
 
-        if st.button("⚔️  Multi Ai", use_container_width=True):
+        if st.button("⚔️  Multi Ai", use_container_width=True, key="sidebar_arena"):
             st.session_state["current_page"] = "⚔️ Multi Ai"
             st.rerun()
 
-        if st.button("📊  Leaderboard", use_container_width=True):
+        if st.button("📊  Leaderboard", use_container_width=True, key="sidebar_leaderboard"):
             st.session_state["current_page"] = "📊 Leaderboard"
             st.rerun()
 
-        if st.button("🔍  Search", use_container_width=True):
+        if st.button("🔍  Search", use_container_width=True, key="sidebar_search"):
             st.session_state["current_page"] = "🔍 Search"
             st.rerun()
 
         st.markdown('<div class="sidebar-section-header">Notebook</div>', unsafe_allow_html=True)
-        if st.button("➕  Notebook baru", use_container_width=True):
+        if st.button("➕  Notebook baru", use_container_width=True, key="sidebar_notebook"):
             st.info("Fitur Notebook baru dipilih!")
 
         st.markdown('<div class="sidebar-section-header">Yesterday</div>', unsafe_allow_html=True)
-        if st.button("⚡  Python Binary Search", use_container_width=True):
+        if st.button("⚡  Python Binary Search", use_container_width=True, key="sidebar_yesterday_python"):
             st.session_state["current_page"] = "🏠 Home Dashboard"
             st.session_state["shortcut_prompt"] = "Jelaskan kembali tentang Python Binary Search."
             st.rerun()
 
-        if st.button("🛠️  Fix Bug Index Error", use_container_width=True):
+        if st.button("🛠️  Fix Bug Index Error", use_container_width=True, key="sidebar_yesterday_bug"):
             st.session_state["current_page"] = "🏠 Home Dashboard"
             st.session_state["shortcut_prompt"] = "Bagaimana cara mengatasi IndexError di Python?"
             st.rerun()
@@ -1475,26 +1475,26 @@ else:
             gc1, gc2, gc3 = st.columns(3)
 
             with gc1:
-                if st.button("🌐 **Landing Page**\n\nCreate a modern landing page", use_container_width=True):
+                if st.button("🌐 **Landing Page**\n\nCreate a modern landing page", use_container_width=True, key="gs_landing"):
                     st.session_state["shortcut_prompt"] = "Buatkan kode landing page modern menggunakan HTML dan Tailwind CSS."
                     st.rerun()
-                if st.button("💻 **Design to Code**\n\nUpload an image and convert", use_container_width=True):
+                if st.button("💻 **Design to Code**\n\nUpload an image and convert", use_container_width=True, key="gs_design"):
                     st.session_state["shortcut_prompt"] = "Bagaimana cara mengubah desain UI menjadi kode program?"
                     st.rerun()
 
             with gc2:
-                if st.button("📊 **Dashboard**\n\nInteractive charts & tables", use_container_width=True):
+                if st.button("📊 **Dashboard**\n\nInteractive charts & tables", use_container_width=True, key="gs_dashboard"):
                     st.session_state["shortcut_prompt"] = "Buatkan kerangka aplikasi dashboard interaktif menggunakan Python Streamlit."
                     st.rerun()
-                if st.button("📦 **Fullstack App**\n\nCreate templated full-stack app", use_container_width=True):
+                if st.button("📦 **Fullstack App**\n\nCreate templated full-stack app", use_container_width=True, key="gs_fullstack"):
                     st.session_state["shortcut_prompt"] = "Berikan arsitektur dasar untuk aplikasi web fullstack."
                     st.rerun()
 
             with gc3:
-                if st.button("🎮 **Make a Game**\n\nPlayable browser game", use_container_width=True):
+                if st.button("🎮 **Make a Game**\n\nPlayable browser game", use_container_width=True, key="gs_game"):
                     st.session_state["shortcut_prompt"] = "Buatkan game sederhana menggunakan HTML5 Canvas dan JavaScript."
                     st.rerun()
-                if st.button("🏪 **Storefront**\n\nCreate online shop layout", use_container_width=True):
+                if st.button("🏪 **Storefront**\n\nCreate online shop layout", use_container_width=True, key="gs_store"):
                     st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
                     st.rerun()
         else:
@@ -1717,13 +1717,13 @@ else:
                 st.info("💡 **Arena Voting:** Mana model yang memberikan hasil koding lebih baik?")
                 v1, v2, v3 = st.columns(3)
                 with v1:
-                    if st.button("👈 Pilih Petarung A", use_container_width=True):
+                    if st.button("👈 Pilih Petarung A", use_container_width=True, key="vote_a"):
                         st.success(f"Kamu memvoting {pilihan_a}!")
                 with v2:
-                    if st.button("🤝 Seri (Sama Bagus)", use_container_width=True):
+                    if st.button("🤝 Seri (Sama Bagus)", use_container_width=True, key="vote_draw"):
                         st.success("Terima Kasih Atas Penilaian Anda!!")
                 with v3:
-                    if st.button("👉 Pilih Petarung B", use_container_width=True):
+                    if st.button("👉 Pilih Petarung B", use_container_width=True, key="vote_b"):
                         st.success(f"Kamu memvoting {pilihan_b}!")
 
     # -------------------------------------------------------------
@@ -1744,7 +1744,7 @@ else:
     # -------------------------------------------------------------
     elif selected_menu == "🔍 Search":
         st.title("🔍 Search")
-        search_q = st.text_input("Cari topik atau riwayat (Tekan Enter)")
+        search_q = st.text_input("Cari topik atau riwayat (Tekan Enter)", key="search_input")
         if search_q:
             with st.spinner("Mencari..."):
                 time.sleep(1)
