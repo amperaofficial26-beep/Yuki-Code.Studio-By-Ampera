@@ -5,19 +5,8 @@ import time
 # Konfigurasi Halaman
 st.set_page_config(page_title="Ampera Multi AI - Yuki Coding Studio", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
 
-# Inisialisasi Groq API
-
-client = OpenAI(
-    api_key=os.environ.get("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1",
-)
-
-response = client.responses.create(
-    input="Explain the importance of fast language models",
-    model="openai/gpt-oss-20b",
-)
-print(response.output_text)
-
+groq_key = st.secrets.get("GROQ_API_KEY", "")
+client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
 # ==========================================
 # DAFTAR MODEL GROQ YANG TERSEDIA (AKTIF)
