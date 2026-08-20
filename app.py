@@ -12,8 +12,8 @@ client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if 
 # DAFTAR MODEL GRATIS GROQ (UPDATE TERBARU)
 # ==========================================
 AVAILABLE_MODELS = {
-    "Llama 3.3 (70B)": "llama-3.3-70b-versatile",
-    "Llama 3.1 (8B)": "llama-3.1-8b-instant"
+    "GPT-OSS (120B)": "openai/gpt-oss-120b",
+    "GPT-OSS (20B)": "openai/gpt-oss-20b"
 }
 # ==========================================
 # SYSTEM PROMPT (INSTRUKSI KEPRIBADIAN YUKI)
@@ -437,11 +437,8 @@ else:
                 
                 start_time = time.time()
                 try:
-                    # FIX BUG 1: sebelumnya AVAILABLE_MODELS["llama-3.1-8b-instant"] -> KeyError,
-                    # karena key dictionary adalah nama tampilan ("Llama 3.1 (8B)"),
-                    # bukan id model itu sendiri. Sekarang langsung pakai id model-nya.
                     res_home = client.chat.completions.create(
-                        model="llama-3.1-8b-instant",
+                        model="openai/gpt-oss-20b",
                         messages=[
                             {"role": "system", "content": YUKI_SYSTEM_PROMPT},
                             {"role": "user", "content": query_to_process}
@@ -595,8 +592,8 @@ else:
         st.markdown("""
         | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
         | :---: | :--- | :---: | :---: | :---: |
-        | 🥇 | **Llama 3.3 (70B)** | **1280** | 68.5% | 9.5 / 10 |
-        | 🥈 | **Llama 3.1 (8B)** | **1210** | 61.2% | 8.8 / 10 |
+        | 🥇 | **GPT-OSS (120B)** | **1280** | 68.5% | 9.5 / 10 |
+        | 🥈 | **GPT-OSS (20B)** | **1210** | 61.2% | 8.8 / 10 |
         """)
     # -------------------------------------------------------------
     # HALAMAN 4: SEARCH
