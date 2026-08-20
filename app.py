@@ -1526,9 +1526,12 @@ else:
                     css_tier = "model-option-premium" if label in PREMIUM_MODELS else "model-option-standard"
                     css_active = " model-option-active" if is_active else ""
                     st.markdown(f'<div class="model-option-btn {css_tier}{css_active}">', unsafe_allow_html=True)
+                    # Sanitize model_id karena mengandung '/' (mis. "openai/gpt-oss-20b")
+                    # yang tidak boleh dipakai sebagai Streamlit widget key.
+                    safe_key = "pick_home_" + model_id.replace("/", "_").replace(".", "_").replace("-", "_")
                     if st.button(
                         ("✅ " if is_active else "") + label,
-                        key=f"pick_home_{model_id}",
+                        key=safe_key,
                         use_container_width=True
                     ):
                         st.session_state["home_selected_model"] = label
