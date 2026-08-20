@@ -1,25 +1,20 @@
 import streamlit as st
 from openai import OpenAI
 import time
+import google.generativeai as genai # Tambahan library untuk Gemini
 
 # Konfigurasi Halaman
 st.set_page_config(page_title="Ampera Multi AI - Yuki Coding Studio", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
 
-# Inisialisasi OpenRouter API
-openrouter_key = st.secrets.get("OPENROUTER_API_KEY", "")
-client = OpenAI(
-    api_key=openrouter_key, 
-    base_url="https://openrouter.ai/api/v1" # <- Arahkan ke server OpenRouter
-) if openrouter_key else None
-
+# Inisialisasi Groq API
+groq_key = st.secrets.get("GROQ_API_KEY", "")
+client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 # ==========================================
-# DAFTAR MODEL GRATIS OPENROUTER (UPDATE TERBARU)
+# DAFTAR MODEL GRATIS GROQ (UPDATE TERBARU)
 # ==========================================
 AVAILABLE_MODELS = {
-    "Llama 3.1 8B (Gratis)": "meta-llama/llama-3.1-8b-instruct:free",
-    "Gemma 2 9B (Gratis)": "google/gemma-2-9b-it:free",
-    "Mistral Nemo (Gratis)": "mistralai/mistral-nemo:free",
-    "Qwen 2.5 7B (Gratis)": "qwen/qwen-2.5-7b-instruct:free"
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
 }
 # ==========================================
 # SYSTEM PROMPT (INSTRUKSI KEPRIBADIAN YUKI)
@@ -435,8 +430,8 @@ else:
         query_to_process = home_input if home_input else default_val
         
         if query_to_process:
-            if not openrouter_key:
-                st.error("OPENROUTER_API_KEY belum diatur di Streamlit Secrets!")
+            if not groq_key:
+                st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             else:
                 loading_ph = st.empty()
                 loading_ph.markdown(get_logo_loader_html("Yuki sedang berpikir..."), unsafe_allow_html=True)
@@ -444,7 +439,7 @@ else:
                 start_time = time.time()
                 try:
                     res_home = client.chat.completions.create(
-                        model=AVAILABLE_MODELS["Mistral Nemo (Gratis)"],
+                        model=AVAILABLE_MODELS[llama-3.1-8b-instant"],
                         messages=[
                             {"role": "system", "content": YUKI_SYSTEM_PROMPT},
                             {"role": "user", "content": query_to_process}
@@ -475,7 +470,7 @@ else:
         with col_sel_a:
             pilihan_a = st.selectbox("🤖 Pilih Petarung A", options=list(AVAILABLE_MODELS.keys()), index=0)
         with col_sel_b:
-            pilihan_b = st.selectbox("🤖 Pilih Petarung B", options=list(AVAILABLE_MODELS.keys()), index=2)
+            pilihan_b = st.selectbox("🤖 Pilih Petarung B", options=list(AVAILABLE_MODELS.keys()), index=1)
             
         st.markdown("<br>", unsafe_allow_html=True)
         arena_input = st.chat_input("Kirim tantangan koding ke Arena...")
@@ -491,8 +486,8 @@ else:
                 </div>
             """, unsafe_allow_html=True)
             
-            if not openrouter_key:
-                st.error("OPENROUTER_API_KEY belum diatur di Streamlit Secrets!")
+            if not groq_key:
+                st.error("groq_API_KEY belum diatur di Streamlit Secrets!")
             elif pilihan_a == pilihan_b:
                 st.warning("⚠️ Hei, kamu memilih dua model yang sama! Silakan ganti salah satunya.")
             else:
