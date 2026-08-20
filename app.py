@@ -1,5 +1,5 @@
 import streamlit as st
-from groq import Groq
+from OpenAi import Groq OpenAi
 import time
 
 # Konfigurasi Halaman
