@@ -439,7 +439,7 @@ else:
                 start_time = time.time()
                 try:
                     res_home = client.chat.completions.create(
-                        model=AVAILABLE_MODELS[llama-3.1-8b-instant"],
+                        model=AVAILABLE_MODELS["llama-3.1-8b-instant"],
                         messages=[
                             {"role": "system", "content": YUKI_SYSTEM_PROMPT},
                             {"role": "user", "content": query_to_process}
