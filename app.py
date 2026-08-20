@@ -445,7 +445,7 @@ else:
                 start_time = time.time()
                 try:
                     res_home = client.chat.completions.create(
-                        model=AVAILABLE_MODELS["qwen/qwen-2-7b-instruct:free"],
+                        model=AVAILABLE_MODELS["Qwen 2 7B (Gratis)"],
                         messages=[
                             {"role": "system", "content": YUKI_SYSTEM_PROMPT},
                             {"role": "user", "content": query_to_process}
