@@ -257,16 +257,22 @@ div.stButton > button:hover {
     position: relative !important;
 }
 /* GPT-OSS 20B (Free, ⚡): ungu-biru gradient soft */
+/* GPT-OSS 20B (Free, ⚡): ungu-biru SOLID gradient (vibrant) */
 .model-option-standard button {
-    border: 1px solid rgba(129, 140, 248, 0.55) !important;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(56, 189, 248, 0.25)) !important;
-    color: #e0e7ff !important;
-    box-shadow: 0 0 10px rgba(129, 140, 248, 0.3) !important;
+    border: 1.5px solid rgba(129, 140, 248, 0.85) !important;
+    background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 0 14px rgba(99, 102, 241, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    font-weight: 600 !important;
 }
 .model-option-standard button:hover {
-    border-color: #818cf8 !important;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(56, 189, 248, 0.4)) !important;
-    box-shadow: 0 0 18px rgba(129, 140, 248, 0.6) !important;
+    border-color: #a5b4fc !important;
+    background: linear-gradient(135deg, #818cf8 0%, #38bdf8 100%) !important;
+    box-shadow:
+        0 0 22px rgba(99, 102, 241, 0.85),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
 }
 /* Model Premium (💎): emas gradient + gold shine berjalan */
 @keyframes goldShine {
@@ -274,39 +280,62 @@ div.stButton > button:hover {
     100% { background-position: 200% 50%; }
 }
 .model-option-premium button {
-    border: 1px solid rgba(252, 211, 77, 0.6) !important;
+    border: 1.5px solid rgba(252, 211, 77, 0.95) !important;
     background: linear-gradient(90deg,
-        rgba(251, 191, 36, 0.18) 0%,
-        rgba(252, 211, 77, 0.4)  25%,
-        rgba(255, 235, 130, 0.55) 50%,
-        rgba(252, 211, 77, 0.4)  75%,
-        rgba(251, 191, 36, 0.18) 100%) !important;
+        #b45309 0%,
+        #d97706 25%,
+        #fbbf24 50%,
+        #d97706 75%,
+        #b45309 100%) !important;
     background-size: 200% 100% !important;
     animation: goldShine 3s linear infinite !important;
-    color: #fef3c7 !important;
-    box-shadow: 0 0 12px rgba(252, 211, 77, 0.45) !important;
-    text-shadow: 0 0 4px rgba(255, 235, 130, 0.5) !important;
-}
-.model-option-premium button:hover {
-    border-color: #fcd34d !important;
-    box-shadow: 0 0 22px rgba(252, 211, 77, 0.85) !important;
-}
-/* Tombol sedang aktif (selected) → background HITAM solid + border glow putih */
-.model-option-active button {
-    background: #000000 !important;
-    border: 1px solid #f8fafc !important;
     color: #ffffff !important;
     box-shadow:
-        0 0 0 1px rgba(255, 255, 255, 0.4) inset,
-        0 0 18px rgba(248, 250, 252, 0.5),
-        0 0 8px rgba(129, 140, 248, 0.4) !important;
+        0 0 18px rgba(252, 211, 77, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important;
     font-weight: 700 !important;
 }
-.model-option-active button::before {
-    content: "✅";
-    margin-right: 8px;
-    color: #22c55e;
-    text-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
+.model-option-premium button:hover {
+    border-color: #fef3c7 !important;
+    background: linear-gradient(90deg,
+        #92400e 0%,
+        #c2410c 25%,
+        #f59e0b 50%,
+        #c2410c 75%,
+        #92400e 100%) !important;
+    box-shadow:
+        0 0 26px rgba(252, 211, 77, 1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+/* ========================================= */
+/* AKTIF (SELECTED) STATE — HIGH SPECIFICITY  */
+/* Pakai 'html body' prefix supaya MENANG      */
+/* cascade melawan tier styling apapun.        */
+/* ========================================= */
+html body [data-testid="stPopoverBody"] .model-option-btn.model-option-active button,
+html body div.model-option-btn.model-option-active button,
+html body .model-option-btn.model-option-active button {
+    background: #000000 !important;
+    background-image: none !important;
+    background-size: 100% 100% !important;
+    border: 1.5px solid #ffffff !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 0 0 1.5px rgba(255, 255, 255, 0.6) inset,
+        0 0 24px rgba(255, 255, 255, 0.45),
+        0 0 12px rgba(129, 140, 248, 0.5) !important;
+    font-weight: 700 !important;
+    animation: none !important;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.4) !important;
+    transform: scale(1.02) !important;
+}
+html body .model-option-btn.model-option-active button::before {
+    content: "✅  ";
+    color: #22c55e !important;
+    text-shadow: 0 0 8px rgba(34, 197, 94, 0.8) !important;
+    font-weight: 800 !important;
 }
 .model-option-active.model-option-premium button,
 .model-option-active.model-option-standard button {
