@@ -172,7 +172,7 @@ div.stButton > button {
 div.stButton > button:hover {
     transform: translateY(-2px) scale(1.01);
     border-color: #818cf8 !important;
-    color: #ffffff !important;
+    color: #000000 !important;
     background: rgba(49, 46, 129, 0.85) !important;
     box-shadow: 0 0 20px rgba(129, 140, 248, 0.5) !important;
 }
@@ -249,6 +249,68 @@ div.stButton > button:hover {
     box-shadow: 0 0 14px rgba(129, 140, 248, 0.6) !important;
 }
 [data-testid="stBottomBlockContainer"] { background: transparent !important; }
+
+/* GPT-OSS 20B (⚡ Free): ungu-biru gradient */
+.model-option-standard button {
+    border: 1px solid rgba(129, 140, 248, 0.55) !important;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(56, 189, 248, 0.25)) !important;
+    color: #e0e7ff !important;
+    box-shadow: 0 0 10px rgba(129, 140, 248, 0.3) !important;
+}
+
+/* Model Premium (💎): emas berjalan */
+@keyframes goldShine {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+.model-option-premium button {
+    border: 1px solid rgba(252, 211, 77, 0.6) !important;
+    background: linear-gradient(90deg,
+        rgba(251, 191, 36, 0.18) 0%,
+        rgba(252, 211, 77, 0.4)  25%,
+        rgba(255, 235, 130, 0.55) 50%,
+        rgba(252, 211, 77, 0.4)  75%,
+        rgba(251, 191, 36, 0.18) 100%) !important;
+    background-size: 200% 100% !important;
+    animation: goldShine 3s linear infinite !important;
+    color: #fef3c7 !important;
+    box-shadow: 0 0 12px rgba(252, 211, 77, 0.45) !important;
+    text-shadow: 0 0 4px rgba(255, 235, 130, 0.5) !important;
+}
+
+/* Selected/Active: HITAM solid + checklist hijau */
+.model-option-active button {
+    background: #000000 !important;
+    border: 1px solid #f8fafc !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.4) inset,
+        0 0 18px rgba(248, 250, 252, 0.5),
+        0 0 8px rgba(129, 140, 248, 0.4) !important;
+    font-weight: 700 !important;
+}
+/* Override tier styling saat aktif */
+.model-option-active.model-option-premium button,
+.model-option-active.model-option-standard button {
+    background: #000000 !important;
+    animation: none !important;
+    text-shadow: none !important;
+}
+@keyframes placeholderRainbow {
+    0%   { color: #818cf8; }     /* indigo */
+    16%  { color: #ec4899; }     /* pink */
+    33%  { color: #38bdf8; }     /* cyan */
+    50%  { color: #fcd34d; }     /* gold */
+    66%  { color: #22c55e; }     /* green */
+    83%  { color: #f97316; }     /* orange */
+    100% { color: #818cf8; }
+}
+[data-testid="stChatInput"] textarea::placeholder {
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    animation: placeholderRainbow 4s linear infinite !important;
+    opacity: 1 !important;
+}
 
 /* ========================================= */
 /* KARTU THINKING/LOADING (kecil, splash/Home/Arena) */
