@@ -870,74 +870,69 @@ else:
 
         # FAB model picker + chat input
         spacer_col, fab_col = st.columns([12, 1])
-        with fab_col:
-            with st.popover("🧠", use_container_width=True):
-                st.markdown("**✨ Pilih Model AI**")
-                st.caption("⚡ Gratis · 💎 Premium")
-                for label, model_id in AVAILABLE_MODELS.items():
-                    is_active  = (label == st.session_state["home_selected_model"])
-                    css_tier   = "model-option-premium" if label in PREMIUM_MODELS else "model-option-standard"
-                    css_active = " model-option-active" if is_active else ""
-                    st.markdown(f'<div class="model-option-btn {css_tier}{css_active}">', unsafe_allow_html=True)
-                    # Sanitize model_id: '/' '.' '-' -> '_' (Streamlit key rules)
-                    safe_key = "pick_home_" + model_id.replace("/", "_").replace(".", "_").replace("-", "_")
-                    if st.button(
-                        ("✅ " if is_active else "") + label,
-                        key=safe_key,
-                        use_container_width=True,
-                    ):
-                        st.session_state["home_selected_model"] = label
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
-
-        home_input = st.chat_input("✨ Ask Yuki anything... ✨", key="home_chat")
-
-        model_choice_label = st.session_state["home_selected_model"]
-        selected_model_id  = AVAILABLE_MODELS[model_choice_label]
-        query_to_process   = home_input if home_input else default_val
-
-        if query_to_process:
-            if not groq_key:
-                st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
-            else:
-                st.markdown(f"""
-                    <div class="user-bubble-container">
-                        <div class="user-bubble">{query_to_process}</div>
-                    </div>
-                """, unsafe_allow_html=True)
-
-                loading_ph = st.empty()
-                short_model_name = model_choice_label.split("—")[0].strip()
-                loading_ph.markdown(
-                    get_terminal_loader_html(
-                        text=f"{short_model_name} sedang berpikir",
-                        token="reasoning",
-                    ),
-                    unsafe_allow_html=True,
-                )
-
-                start_time = time.time()
-                try:
-                    res_home = client.chat.completions.create(
-                        model=selected_model_id,
-                        messages=[
-                            {"role": "system", "content": YUKI_SYSTEM_PROMPT},
-                            {"role": "user",   "content": query_to_process},
-                        ],
-                    )
-                    response_text = res_home.choices[0].message.content
-                except Exception as e:
-                    response_text = f"❌ Ups, terjadi kesalahan: {e}"
-
-                elapsed = time.time() - start_time
-                if elapsed < 1.5:
-                    time.sleep(1.5 - elapsed)
-
-                loading_ph.empty()
-
-                st.session_state["home_chat_history"].append({"role": "user",      "content": query_to_process})
-                st.session_state["home_chat_history"].append({"role": "assistant", "content": response_text})
-                st.rerun()
+        with fab_col:with st.popover("🧠", use_container_width=True):
+    st.markdown("**✨ Pilih Model AI**")
+    st.caption("⚡ Gratis · 💎 Premium")
+    for label, model_id in AVAILABLE_MODELS.items():
+        is_active = (label == st.session_state["home_selected_model"])
+        is_premium = label in PREMIUM_MODELS
+        
+        # Tentukan style berdasarkan tier
+        if is_premium:
+            # PREMIUM: Emas berjalan
+            btn_style = """
+                background: linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, #d97706, #b45309, #78350f) !important;
+                background-size: 300% 100% !important;
+                border: 2px solid #fbbf24 !important;
+                color: white !important;
+                font-weight: 700 !important;
+                box-shadow: 0 0 25px rgba(252, 211, 77, 0.3) !important;
+                text-shadow: 0 1px 4px rgba(0,0,0,0.5) !important;
+            """
+            icon = "💎"
+        else:
+            # STANDARD: Ungu biru
+            btn_style = """
+                background: linear-gradient(135deg, #4f46e5, #3b82f6) !important;
+                border: 2px solid #6366f1 !important;
+                color: white !important;
+                font-weight: 600 !important;
+                box-shadow: 0 0 20px rgba(99, 102, 241, 0.4) !important;
+            """
+            icon = "⚡"
+        
+        # Jika aktif, timpa dengan style hitam
+        if is_active:
+            btn_style = """
+                background: #000000 !important;
+                border: 2px solid #ffffff !important;
+                color: white !important;
+                font-weight: 700 !important;
+                box-shadow: 0 0 30px rgba(255, 255, 255, 0.2) !important;
+            """
+            icon = "✅"
+        
+        # Render tombol dengan inline style
+        safe_key = "pick_home_" + model_id.replace("/", "_").replace(".", "_").replace("-", "_")
+        st.markdown(f"""
+            <style>
+                div[data-testid="stButton"] > button[key="{safe_key}"] {{
+                    {btn_style}
+                    border-radius: 12px !important;
+                    padding: 10px 14px !important;
+                    width: 100% !important;
+                    transition: all 0.3s ease !important;
+                }}
+                div[data-testid="stButton"] > button[key="{safe_key}"]:hover {{
+                    transform: scale(1.03) !important;
+                    box-shadow: 0 0 40px rgba(255,255,255,0.2) !important;
+                }}
+            </style>
+        """, unsafe_allow_html=True)
+        
+        if st.button(f"{icon} {label}", key=safe_key, use_container_width=True):
+            st.session_state["home_selected_model"] = label
+            st.rerun()
 
     # ============================================================
     # 9. HALAMAN 2: ARENA BATTLE (MULTI AI)
