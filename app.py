@@ -235,33 +235,87 @@ st.markdown("""
         color: white !important;
     }
 
-    /* Bar pemilih model, dibuat fixed menempel PERSIS di atas kotak chat_input
-       (karena st.chat_input Streamlit selalu docked sendiri di bawah layar,
-       tidak bisa dimasukkan literal ke dalam satu widget yang sama) */
-    .st-key-model_picker_bar {
+    /* ========================================= */
+    /* FAB LINGKARAN PEMILIH MODEL (di atas kotak chat_input, kanan) */
+    /* ========================================= */
+    .st-key-model_fab {
         position: fixed;
-        left: 50%;
-        bottom: 84px;
-        transform: translateX(-50%);
-        width: min(640px, 92vw);
-        z-index: 999;
-        background: rgba(15, 23, 42, 0.92);
-        backdrop-filter: blur(16px);
+        right: 34px;
+        bottom: 86px;
+        z-index: 1000;
+    }
+    .st-key-model_fab [data-testid="stPopover"] > button {
+        width: 46px !important;
+        height: 46px !important;
+        border-radius: 50% !important;
+        padding: 0 !important;
+        min-height: 46px !important;
+        background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8) !important;
+        background-size: 200% 200% !important;
+        animation: auroraBG 6s ease infinite !important;
+        border: 2px solid rgba(255, 255, 255, 0.25) !important;
+        box-shadow: 0 4px 18px rgba(129, 140, 248, 0.55) !important;
+        font-size: 1.15rem !important;
+    }
+    .st-key-model_fab [data-testid="stPopover"] > button:hover {
+        transform: scale(1.08);
+        box-shadow: 0 4px 24px rgba(236, 72, 153, 0.65) !important;
+    }
+    [data-testid="stPopoverBody"] {
+        background: rgba(15, 23, 42, 0.97) !important;
+        backdrop-filter: blur(18px) !important;
+        border: 1px solid rgba(129, 140, 248, 0.35) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+    }
+    .model-option-btn button {
+        border-radius: 10px !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+    }
+    .model-option-standard button {
+        border: 1px solid rgba(56, 189, 248, 0.35) !important;
+        background: rgba(56, 189, 248, 0.08) !important;
+    }
+    .model-option-premium button {
+        border: 1px solid rgba(236, 72, 153, 0.4) !important;
+        background: linear-gradient(135deg, rgba(129,140,248,0.15), rgba(236,72,153,0.15)) !important;
+    }
+    .model-option-active button {
+        border: 1px solid #818cf8 !important;
+        box-shadow: 0 0 14px rgba(129, 140, 248, 0.6) !important;
+    }
+
+    /* ========================================= */
+    /* KARTU THINKING/LOADING (dipakai di Home & Arena, seragam) */
+    /* ========================================= */
+    @keyframes thinkingGlow {
+        0%, 100% { box-shadow: 0 0 14px rgba(129, 140, 248, 0.35); border-color: rgba(129, 140, 248, 0.4); }
+        50% { box-shadow: 0 0 24px rgba(236, 72, 153, 0.55); border-color: rgba(236, 72, 153, 0.55); }
+    }
+    .thinking-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(12px);
         border: 1px solid rgba(129, 140, 248, 0.3);
-        border-bottom: none;
-        border-radius: 18px 18px 0 0;
-        padding: 8px 14px 2px 14px;
-        box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.25);
+        border-radius: 14px;
+        padding: 14px 20px;
+        margin: 8px 0;
+        animation: thinkingGlow 2.2s ease-in-out infinite;
     }
-    .st-key-model_picker_bar [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-        background: transparent !important;
-        border: none !important;
-        color: #f8fafc !important;
-        padding-left: 0 !important;
+    .thinking-dots span {
+        display: inline-block;
+        opacity: 0.2;
+        animation: dotPulse 1.3s infinite;
+        font-weight: 700;
     }
-    .st-key-model_picker_bar [data-testid="stCaptionContainer"] {
-        margin-top: -6px;
-        padding-bottom: 2px;
+    .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotPulse {
+        0%, 80%, 100% { opacity: 0.2; }
+        40% { opacity: 1; }
     }
 
     .arena-card {
@@ -346,12 +400,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Fungsi untuk memunculkan Loading Animasi Logo Berubah Warna & Ukuran
+# Dibungkus dalam "thinking-card" (kartu glow + titik animasi) supaya
+# tampilannya konsisten dan lebih hidup di semua halaman (Home & Arena).
 def get_logo_loader_html(text="Yuki sedang merangkai kode..."):
     logo_url = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop"
     return f"""
-        <div class="logo-loader-container">
-            <img src="{logo_url}" class="animated-loader-logo" alt="Loading Logo">
-            <span class="loader-label">{text}</span>
+        <div class="thinking-card">
+            <div class="logo-loader-container" style="padding:0;">
+                <img src="{logo_url}" class="animated-loader-logo" alt="Loading Logo">
+            </div>
+            <span class="loader-label">{text}<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></span>
         </div>
     """
 
@@ -468,21 +526,32 @@ else:
                 st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
                 st.rerun()
 
-        # ---------------- BAR PEMILIH MODEL (fixed, menempel di atas chat_input) ----------------
-        # Catatan: st.chat_input Streamlit selalu docked sendiri di paling bawah viewport,
-        # jadi dropdown ini dibuat "melayang" (position: fixed) tepat di atasnya
-        # via CSS class .st-key-model_picker_bar, supaya terlihat menyatu seperti satu bar.
-        with st.container(key="model_picker_bar"):
-            model_choice_label = st.selectbox(
-                "Model",
-                options=list(AVAILABLE_MODELS.keys()),
-                index=0,
-                key="home_model_picker",
-                label_visibility="collapsed"
-            )
-            selected_model_id = AVAILABLE_MODELS[model_choice_label]
-            badge = "💎 Premium (gratis)" if model_choice_label in PREMIUM_MODELS else "⚡ Standar (gratis)"
-            st.caption(f"**{badge}** — {MODEL_DESCRIPTIONS.get(selected_model_id, '')}")
+        # ---------------- FAB LINGKARAN PEMILIH MODEL (kanan atas kotak input) ----------------
+        # Lingkaran kecil melayang (position: fixed) tepat di atas kotak chat_input,
+        # sebelah kanan. Diklik -> muncul popover berisi semua pilihan model berwarna.
+        if "home_selected_model" not in st.session_state:
+            st.session_state["home_selected_model"] = list(AVAILABLE_MODELS.keys())[0]
+
+        with st.container(key="model_fab"):
+            with st.popover("🧠", use_container_width=False):
+                st.markdown("**✨ Pilih Model AI**")
+                st.caption("Semua model gratis (free tier Groq)")
+                for label, model_id in AVAILABLE_MODELS.items():
+                    is_active = (label == st.session_state["home_selected_model"])
+                    css_tier = "model-option-premium" if label in PREMIUM_MODELS else "model-option-standard"
+                    css_active = " model-option-active" if is_active else ""
+                    st.markdown(f'<div class="model-option-btn {css_tier}{css_active}">', unsafe_allow_html=True)
+                    if st.button(
+                        ("✅ " if is_active else "") + label,
+                        key=f"pick_home_{model_id}",
+                        use_container_width=True
+                    ):
+                        st.session_state["home_selected_model"] = label
+                        st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
+
+        model_choice_label = st.session_state["home_selected_model"]
+        selected_model_id = AVAILABLE_MODELS[model_choice_label]
 
         default_val = st.session_state.pop("shortcut_prompt", "")
         home_input = st.chat_input("Ask anything...")
@@ -493,7 +562,8 @@ else:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             else:
                 loading_ph = st.empty()
-                loading_ph.markdown(get_logo_loader_html(f"{model_choice_label} sedang berpikir..."), unsafe_allow_html=True)
+                short_model_name = model_choice_label.split("—")[0].strip()
+                loading_ph.markdown(get_logo_loader_html(f"{short_model_name} sedang berpikir"), unsafe_allow_html=True)
                 
                 start_time = time.time()
                 try:
@@ -577,7 +647,7 @@ else:
                     """, unsafe_allow_html=True)
                     
                     loading_a = st.empty()
-                    loading_a.markdown(get_logo_loader_html(f"{pilihan_a} sedang merespons..."), unsafe_allow_html=True)
+                    loading_a.markdown(get_logo_loader_html(f"{pilihan_a} sedang merespons"), unsafe_allow_html=True)
                     
                     start_a = time.time()
                     try:
@@ -611,7 +681,7 @@ else:
                     """, unsafe_allow_html=True)
                     
                     loading_b = st.empty()
-                    loading_b.markdown(get_logo_loader_html(f"{pilihan_b} sedang merespons..."), unsafe_allow_html=True)
+                    loading_b.markdown(get_logo_loader_html(f"{pilihan_b} sedang merespons"), unsafe_allow_html=True)
                     
                     start_b = time.time()
                     try:
