@@ -1,7 +1,6 @@
 import streamlit as st
 from openai import OpenAI
 import time
-import google.generativeai as genai # Tambahan library untuk Gemini
 
 # Konfigurasi Halaman
 st.set_page_config(page_title="Ampera Multi AI - Yuki Coding Studio", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
