@@ -437,8 +437,11 @@ else:
                 
                 start_time = time.time()
                 try:
+                    # FIX BUG 1: sebelumnya AVAILABLE_MODELS["llama-3.1-8b-instant"] -> KeyError,
+                    # karena key dictionary adalah nama tampilan ("Llama 3.1 (8B)"),
+                    # bukan id model itu sendiri. Sekarang langsung pakai id model-nya.
                     res_home = client.chat.completions.create(
-                        model=AVAILABLE_MODELS["llama-3.1-8b-instant"],
+                        model="llama-3.1-8b-instant",
                         messages=[
                             {"role": "system", "content": YUKI_SYSTEM_PROMPT},
                             {"role": "user", "content": query_to_process}
@@ -466,13 +469,23 @@ else:
         
         st.markdown("<br>", unsafe_allow_html=True)
         col_sel_a, col_sel_b = st.columns(2)
+        # FIX BUG 2: sebelumnya hanya ada SATU selectbox ("pilihan_model") dan variabel
+        # "pilihan_a" / "pilihan_b" tidak pernah didefinisikan -> NameError.
+        # Sekarang dibuat dua selectbox terpisah, satu di tiap kolom.
         with col_sel_a:
-            pilihan_model = st.selectbox("🧠 Pilih Petarung AI:", 
-     options=[
-        "llama-3.3-70b-versatile", 
-        "llama-3.1-8b-instant"
-    ]
-)
+            pilihan_a = st.selectbox(
+                "🧠 Petarung A:",
+                options=list(AVAILABLE_MODELS.keys()),
+                index=0,
+                key="pilihan_a_select"
+            )
+        with col_sel_b:
+            pilihan_b = st.selectbox(
+                "🧠 Petarung B:",
+                options=list(AVAILABLE_MODELS.keys()),
+                index=1,
+                key="pilihan_b_select"
+            )
         st.markdown("<br>", unsafe_allow_html=True)
         arena_input = st.chat_input("Kirim tantangan koding ke Arena...")
         
@@ -488,7 +501,7 @@ else:
             """, unsafe_allow_html=True)
             
             if not groq_key:
-                st.error("groq_API_KEY belum diatur di Streamlit Secrets!")
+                st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             elif pilihan_a == pilihan_b:
                 st.warning("⚠️ Hei, kamu memilih dua model yang sama! Silakan ganti salah satunya.")
             else:
