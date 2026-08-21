@@ -166,10 +166,21 @@ div.stButton > button:hover {
     background: rgba(255, 255, 255, 0.08) !important;
 }
 [data-testid="stChatInput"] textarea { color: #f8fafc !important; background: transparent !important; }
+/* ==== CHAT INPUT RAINBOW PLACEHOLDER ==== */
+@keyframes rainbowText {
+    0% { color: #818cf8; }
+    16% { color: #ec4899; }
+    33% { color: #38bdf8; }
+    50% { color: #fcd34d; }
+    66% { color: #22c55e; }
+    83% { color: #f97316; }
+    100% { color: #818cf8; }
+}
+
 [data-testid="stChatInput"] textarea::placeholder {
     font-weight: 600 !important;
     letter-spacing: 0.02em !important;
-    animation: placeholderRainbow 4s linear infinite !important;
+    animation: rainbowText 4s linear infinite !important;
     opacity: 1 !important;
 }
 [data-testid="stChatInput"] > div > button {
@@ -509,46 +520,73 @@ if not st.session_state["has_entered"]:
 # 7. APLIKASI UTAMA
 # ============================================================
 else:
-    # ==== SIDEBAR ====
-    with st.sidebar:
-        # Tombol tutup sidebar
-        if st.button("✕ Tutup", key="close_sidebar", help="Tutup Sidebar"):
-            st.session_state["sidebar_collapsed"] = True
-            st.rerun()
-        
-        st.markdown(f"""
-            <div class="logo-container">
-                <img src="{LOGO_URL}" class="logo-img" alt="Logo">
-                <div class="logo-text">AMPERA MULTI AI</div>
-            </div>
-        """, unsafe_allow_html=True)
+    # ==== SIDEBAR (Collapse Handler) ====
+    if st.session_state.get("sidebar_collapsed"):
+        # Mini sidebar with icons only
+        with st.sidebar:
+            st.markdown('<div style="height: 30px;"></div>', unsafe_allow_html=True)
+            col1, col2, col3 = st.columns([1, 3, 1])
+            with col2:
+                if st.button("🏠", key="mini_home", use_container_width=True):
+                    st.session_state["current_page"] = "🏠 Home Dashboard"
+                    st.session_state["sidebar_collapsed"] = False
+                    st.rerun()
+                if st.button("⚔️", key="mini_multi", use_container_width=True):
+                    st.session_state["current_page"] = "⚔️ Multi Ai"
+                    st.session_state["sidebar_collapsed"] = False
+                    st.rerun()
+                if st.button("📊", key="mini_leader", use_container_width=True):
+                    st.session_state["current_page"] = "📊 Leaderboard"
+                    st.session_state["sidebar_collapsed"] = False
+                    st.rerun()
+                if st.button("🔍", key="mini_search", use_container_width=True):
+                    st.session_state["current_page"] = "🔍 Search"
+                    st.session_state["sidebar_collapsed"] = False
+                    st.rerun()
+                st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
+                if st.button("☰ Buka", key="mini_expand", use_container_width=True):
+                    st.session_state["sidebar_collapsed"] = False
+                    st.rerun()
+    else:
+        # Full sidebar
+        with st.sidebar:
+            if st.button("✕ Tutup", key="close_sidebar", help="Tutup Sidebar"):
+                st.session_state["sidebar_collapsed"] = True
+                st.rerun()
+            
+            st.markdown(f"""
+                <div class="logo-container">
+                    <img src="{LOGO_URL}" class="logo-img" alt="Logo">
+                    <div class="logo-text">AMPERA MULTI AI</div>
+                </div>
+            """, unsafe_allow_html=True)
 
-        if st.button("🏠 Home Dashboard", use_container_width=True, key="sidebar_home"):
-            st.session_state["current_page"] = "🏠 Home Dashboard"
-            st.rerun()
-        if st.button("⚔️ Multi Ai", use_container_width=True, key="sidebar_arena"):
-            st.session_state["current_page"] = "⚔️ Multi Ai"
-            st.rerun()
-        if st.button("📊 Leaderboard", use_container_width=True, key="sidebar_leaderboard"):
-            st.session_state["current_page"] = "📊 Leaderboard"
-            st.rerun()
-        if st.button("🔍 Search", use_container_width=True, key="sidebar_search"):
-            st.session_state["current_page"] = "🔍 Search"
-            st.rerun()
+            if st.button("🏠 Home Dashboard", use_container_width=True, key="sidebar_home"):
+                st.session_state["current_page"] = "🏠 Home Dashboard"
+                st.rerun()
+            if st.button("⚔️ Multi Ai", use_container_width=True, key="sidebar_arena"):
+                st.session_state["current_page"] = "⚔️ Multi Ai"
+                st.rerun()
+            if st.button("📊 Leaderboard", use_container_width=True, key="sidebar_leaderboard"):
+                st.session_state["current_page"] = "📊 Leaderboard"
+                st.rerun()
+            if st.button("🔍 Search", use_container_width=True, key="sidebar_search"):
+                st.session_state["current_page"] = "🔍 Search"
+                st.rerun()
 
-        st.markdown('<div class="sidebar-section-header">Notebook</div>', unsafe_allow_html=True)
-        if st.button("➕ Notebook baru", use_container_width=True, key="sidebar_notebook"):
-            st.info("Fitur Notebook baru dipilih!")
+            st.markdown('<div class="sidebar-section-header">Notebook</div>', unsafe_allow_html=True)
+            if st.button("➕ Notebook baru", use_container_width=True, key="sidebar_notebook"):
+                st.info("Fitur Notebook baru dipilih!")
 
-        st.markdown('<div class="sidebar-section-header">Yesterday</div>', unsafe_allow_html=True)
-        if st.button("⚡ Python Binary Search", use_container_width=True, key="sidebar_yesterday_python"):
-            st.session_state["current_page"] = "🏠 Home Dashboard"
-            st.session_state["shortcut_prompt"] = "Jelaskan kembali tentang Python Binary Search."
-            st.rerun()
-        if st.button("🛠️ Fix Bug Index Error", use_container_width=True, key="sidebar_yesterday_bug"):
-            st.session_state["current_page"] = "🏠 Home Dashboard"
-            st.session_state["shortcut_prompt"] = "Bagaimana cara mengatasi IndexError di Python?"
-            st.rerun()
+            st.markdown('<div class="sidebar-section-header">Yesterday</div>', unsafe_allow_html=True)
+            if st.button("⚡ Python Binary Search", use_container_width=True, key="sidebar_yesterday_python"):
+                st.session_state["current_page"] = "🏠 Home Dashboard"
+                st.session_state["shortcut_prompt"] = "Jelaskan kembali tentang Python Binary Search."
+                st.rerun()
+            if st.button("🛠️ Fix Bug Index Error", use_container_width=True, key="sidebar_yesterday_bug"):
+                st.session_state["current_page"] = "🏠 Home Dashboard"
+                st.session_state["shortcut_prompt"] = "Bagaimana cara mengatasi IndexError di Python?"
+                st.rerun()
 
     selected_menu = st.session_state["current_page"]
 
