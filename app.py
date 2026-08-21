@@ -617,6 +617,12 @@ html body .model-option-btn.model-option-active button::before {
     border-radius: 999px;
     animation: phase7_progressSlide 56s linear infinite;
 }
+button[key="..."] {
+    background: linear-gradient(...) !important;
+    background-size: 300% 100% !important;  /* <-- KUNCI ANIMASI */
+    animation: blueShineStandard 3s linear infinite !important;  /* <-- ANIMASI BERJALAN */
+    ...
+}
 </style>
 """, unsafe_allow_html=True)
 
