@@ -876,7 +876,6 @@ else:
                     
                     safe_key = "pick_home_" + model_id.replace("/", "_").replace(".", "_").replace("-", "_")
                     
-                    # Gunakan markdown button dengan custom HTML
                     if st.button(f"{icon} {label}", key=safe_key, use_container_width=True):
                         st.session_state["home_selected_model"] = label
                         st.rerun()
