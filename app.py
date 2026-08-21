@@ -1223,29 +1223,25 @@ else:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             else:
                 import random
-                st.markdown(f"""
-                    <div class="user-bubble-container">
-                        <div class="user-bubble">{query_to_process}</div>
-                    </div>
-                """, unsafe_allow_html=True)
+                st.markdown(
+                    f'<div class="user-bubble-container"><div class="user-bubble">{query_to_process}</div></div>',
+                    unsafe_allow_html=True
+                )
 
                 loading_ph = st.empty()
                 short_model_name = model_choice_label.split("—")[0].strip()
                 
-                # Tampilkan loader dengan animasi (7 detik)
-                start_time = time.time()
-                while True:
-                    loading_ph.markdown(
-                        get_terminal_loader_html(
-                            text=f"{short_model_name} sedang berpikir",
-                            token="reasoning",
-                        ),
-                        unsafe_allow_html=True,
-                    )
-                    elapsed = time.time() - start_time
-                    if elapsed >= 7.0:
-                        break
-                    time.sleep(0.5)
+                # Tampilkan loader sekali (animasi CSS yang bekerja)
+                loading_ph.markdown(
+                    get_terminal_loader_html(
+                        text=f"{short_model_name} sedang berpikir",
+                        token="reasoning",
+                    ),
+                    unsafe_allow_html=True,
+                )
+
+                # Tunggu 7 detik sambil loader beranimasi
+                time.sleep(7)
 
                 # Panggil API
                 try:
