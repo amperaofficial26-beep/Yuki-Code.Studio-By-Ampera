@@ -439,6 +439,20 @@ html body .model-option-btn.model-option-active button::before {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(129, 140, 248, 0.1);
     overflow: hidden;
     position: relative;
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+        filter: blur(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
 }
 
 .professional-loader::before {
@@ -450,6 +464,7 @@ html body .model-option-btn.model-option-active button::before {
     height: 2px;
     background: linear-gradient(90deg, transparent, #818cf8, #ec4899, #818cf8, transparent);
     animation: shimmerLine 2s linear infinite;
+    animation-delay: 0.6s;
 }
 
 @keyframes shimmerLine {
@@ -462,6 +477,20 @@ html body .model-option-btn.model-option-active button::before {
     align-items: center;
     gap: 14px;
     margin-bottom: 16px;
+    animation: fadeSlideRight 0.5s ease forwards;
+    animation-delay: 0.2s;
+    opacity: 0;
+}
+
+@keyframes fadeSlideRight {
+    0% {
+        opacity: 0;
+        transform: translateX(-15px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .loader-logo-container {
@@ -476,6 +505,7 @@ html body .model-option-btn.model-option-active button::before {
     object-fit: cover;
     border: 2px solid rgba(129, 140, 248, 0.5);
     animation: logoFloat 3s ease-in-out infinite;
+    animation-delay: 0.8s;
 }
 
 @keyframes logoFloat {
@@ -537,6 +567,20 @@ html body .model-option-btn.model-option-active button::before {
     background: rgba(15, 23, 42, 0.6);
     border-radius: 10px;
     border: 1px solid rgba(129, 140, 248, 0.15);
+    animation: fadeSlideUp 0.5s ease forwards;
+    animation-delay: 0.35s;
+    opacity: 0;
+}
+
+@keyframes fadeSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .loader-icon {
@@ -577,6 +621,14 @@ html body .model-option-btn.model-option-active button::before {
     background: rgba(129, 140, 248, 0.1);
     border-radius: 999px;
     overflow: hidden;
+    animation: fadeIn 0.5s ease forwards;
+    animation-delay: 0.45s;
+    opacity: 0;
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
 }
 
 .loader-progress-bar {
@@ -609,7 +661,13 @@ html body .model-option-btn.model-option-active button::before {
     border: 1px solid rgba(129, 140, 248, 0.1);
     flex: 1;
     min-width: 80px;
+    animation: fadeSlideUp 0.5s ease forwards;
+    opacity: 0;
 }
+
+.metric:nth-child(1) { animation-delay: 0.5s; }
+.metric:nth-child(2) { animation-delay: 0.6s; }
+.metric:nth-child(3) { animation-delay: 0.7s; }
 
 .metric-label {
     font-size: 0.65rem;
