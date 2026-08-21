@@ -141,7 +141,7 @@ div.stButton > button:hover {
     box-shadow: 0 0 20px rgba(129, 140, 248, 0.5) !important;
 }
 
-/* ==== CHAT INPUT ==== */
+/* ==== CHAT INPUT (Glass Effect) ==== */
 [data-testid="stBottom"], [data-testid="stBottomBlockContainer"], [data-testid="stChatInputContainer"] {
     background: transparent !important;
     background-color: transparent !important;
@@ -149,19 +149,23 @@ div.stButton > button:hover {
     box-shadow: none !important;
 }
 
+[data-testid="stBottom"] div { background-color: transparent !important; border: none !important; }
+
 [data-testid="stChatInput"] {
-    background: rgba(15, 23, 42, 0.6) !important;
-    backdrop-filter: blur(16px) !important;
-    border: 1px solid rgba(129, 140, 248, 0.2) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-radius: 9999px !important;
     padding: 4px 12px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
 }
 [data-testid="stChatInput"]:focus-within {
-    border-color: #818cf8 !important;
-    box-shadow: 0 0 20px rgba(129, 140, 248, 0.4) !important;
+    border-color: rgba(129, 140, 248, 0.5) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 20px rgba(129, 140, 248, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
 }
-[data-testid="stChatInput"] textarea { color: #f8fafc !important; }
+[data-testid="stChatInput"] textarea { color: #f8fafc !important; background: transparent !important; }
 [data-testid="stChatInput"] textarea::placeholder {
     font-weight: 600 !important;
     letter-spacing: 0.02em !important;
