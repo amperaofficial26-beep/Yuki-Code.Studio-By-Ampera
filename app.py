@@ -19,11 +19,11 @@ client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if 
 # 2. MODEL & PROMPT
 # ============================================================
 AVAILABLE_MODELS = {
-    "⚡ GPT-OSS 20B — Chat & Coding Ringan":      "openai/gpt-oss-20b",      # FREE (Standard)
-    "💎 GPT-OSS 120B — Reasoning Mendalam":        "openai/gpt-oss-120b",     # Premium
-    "💎 Compound — Browsing Web & Eksekusi Kode":  "groq/compound",           # Premium
-    "💎 Compound Mini — Web Search Ringkas":       "groq/compound-mini",      # Premium
-    "💎 Qwen3.6 27B — Reasoning & Matematika":     "qwen/qwen3.6-27b",        # Premium
+    "⚡ GPT-OSS 20B — Chat & Coding Ringan":      "openai/gpt-oss-20b",      # FREE (Standard - Biru Ungu)
+    "💎 GPT-OSS 120B — Reasoning Mendalam":        "openai/gpt-oss-120b",     # Premium (Emas)
+    "💎 Compound — Browsing Web & Eksekusi Kode":  "groq/compound",           # Premium (Emas)
+    "⚡ Compound Mini — Web Search Ringkas":       "groq/compound-mini",      # FREE (Standard - Biru Ungu)
+    "💎 Qwen3.6 27B — Reasoning & Matematika":     "qwen/qwen3.6-27b",        # Premium (Emas)
 }
 PREMIUM_MODELS   = {k for k in AVAILABLE_MODELS if k.startswith("💎")}
 STANDARD_MODELS  = {k for k in AVAILABLE_MODELS if k not in PREMIUM_MODELS}
@@ -226,10 +226,24 @@ div.stButton > button:hover {
     margin-bottom: 4px !important;
 }
 
-/* Button Premium - Emas Berjalan (child 2-5) */
+/* Button Standard (Biru Ungu) - GPT-OSS 20B (child 1) dan Compound Mini (child 4) */
+[data-testid="stPopoverBody"] > div > div:nth-child(1) button,
+[data-testid="stPopoverBody"] > div > div:nth-child(4) button {
+    background: linear-gradient(90deg, #1e1b4b, #3730a3, #4f46e5, #6366f1, #4f46e5, #3730a3, #1e1b4b) !important;
+    background-size: 300% 100% !important;
+    animation: blueShineStandard 3s linear infinite !important;
+    border: 2px solid #818cf8 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Button Premium (Emas) - GPT-OSS 120B (child 2), Compound (child 3), Qwen3.6 (child 5) */
 [data-testid="stPopoverBody"] > div > div:nth-child(2) button,
 [data-testid="stPopoverBody"] > div > div:nth-child(3) button,
-[data-testid="stPopoverBody"] > div > div:nth-child(4) button,
 [data-testid="stPopoverBody"] > div > div:nth-child(5) button {
     background: linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, #d97706, #b45309, #78350f) !important;
     background-size: 300% 100% !important;
@@ -243,28 +257,14 @@ div.stButton > button:hover {
     transition: all 0.3s ease !important;
 }
 
-/* Button Standard (GPT-OSS 20B) - Biru Ungu Berjalan (child 1) */
-[data-testid="stPopoverBody"] > div > div:nth-child(1) button {
-    background: linear-gradient(90deg, #1e1b4b, #3730a3, #4f46e5, #6366f1, #4f46e5, #3730a3, #1e1b4b) !important;
-    background-size: 300% 100% !important;
-    animation: blueShineStandard 3s linear infinite !important;
-    border: 2px solid #818cf8 !important;
-    color: #ffffff !important;
-    font-weight: 700 !important;
-    border-radius: 12px !important;
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
-    transition: all 0.3s ease !important;
-}
-
 /* Hover effects */
-[data-testid="stPopoverBody"] > div > div:nth-child(1) button:hover {
+[data-testid="stPopoverBody"] > div > div:nth-child(1) button:hover,
+[data-testid="stPopoverBody"] > div > div:nth-child(4) button:hover {
     box-shadow: 0 0 35px rgba(99, 102, 241, 0.7) !important;
     transform: scale(1.02) !important;
 }
 [data-testid="stPopoverBody"] > div > div:nth-child(2) button:hover,
 [data-testid="stPopoverBody"] > div > div:nth-child(3) button:hover,
-[data-testid="stPopoverBody"] > div > div:nth-child(4) button:hover,
 [data-testid="stPopoverBody"] > div > div:nth-child(5) button:hover {
     box-shadow: 0 0 35px rgba(252, 211, 77, 0.6) !important;
     transform: scale(1.02) !important;
@@ -1232,16 +1232,20 @@ else:
                 loading_ph = st.empty()
                 short_model_name = model_choice_label.split("—")[0].strip()
                 
-                # Tampilkan loader dengan animasi angka berubah
+                # Tampilkan loader dengan animasi (7 detik)
                 start_time = time.time()
-                # Tampilkan loader sekali dengan animasi CSS
-                loading_ph.markdown(
-                    get_terminal_loader_html(
-                        text=f"{short_model_name} sedang berpikir",
-                        token="reasoning",
-                    ),
-                    unsafe_allow_html=True,
+                while True:
+                    loading_ph.markdown(
+                        get_terminal_loader_html(
+                            text=f"{short_model_name} sedang berpikir",
+                            token="reasoning",
+                        ),
+                        unsafe_allow_html=True,
                     )
+                    elapsed = time.time() - start_time
+                    if elapsed >= 7.0:
+                        break
+                    time.sleep(0.5)
 
                 # Panggil API
                 try:
