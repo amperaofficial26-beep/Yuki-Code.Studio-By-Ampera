@@ -814,127 +814,180 @@ else:
 
     selected_menu = st.session_state["current_page"]
 
-    # ============================================================
-    # 8. HALAMAN 1: HOME DASHBOARD
-    # ============================================================
-    if selected_menu == "🏠 Home Dashboard":
-        if "home_chat_history" not in st.session_state:
+   # ============================================================
+# 8. HALAMAN 1: HOME DASHBOARD
+# ============================================================
+if selected_menu == "🏠 Home Dashboard":
+    if "home_chat_history" not in st.session_state:
+        st.session_state["home_chat_history"] = []
+    if "home_selected_model" not in st.session_state:
+        st.session_state["home_selected_model"] = list(AVAILABLE_MODELS.keys())[0]
+
+    # Tampilkan history chat jika ada
+    if len(st.session_state["home_chat_history"]) > 0:
+        if st.button("➕ Percakapan Baru", key="new_chat_home"):
             st.session_state["home_chat_history"] = []
-        if "home_selected_model" not in st.session_state:
-            st.session_state["home_selected_model"] = list(AVAILABLE_MODELS.keys())[0]
-
-        if len(st.session_state["home_chat_history"]) == 0:
-            st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
-            st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
-
-            st.markdown("<h3>Get started</h3>", unsafe_allow_html=True)
-            gc1, gc2, gc3 = st.columns(3)
-
-            with gc1:
-                if st.button("🌐 **Landing Page**\n\nCreate a modern landing page", use_container_width=True, key="gs_landing"):
-                    st.session_state["shortcut_prompt"] = "Buatkan kode landing page modern menggunakan HTML dan Tailwind CSS."
-                    st.rerun()
-                if st.button("💻 **Design to Code**\n\nUpload an image and convert", use_container_width=True, key="gs_design"):
-                    st.session_state["shortcut_prompt"] = "Bagaimana cara mengubah desain UI menjadi kode program?"
-                    st.rerun()
-            with gc2:
-                if st.button("📊 **Dashboard**\n\nInteractive charts & tables", use_container_width=True, key="gs_dashboard"):
-                    st.session_state["shortcut_prompt"] = "Buatkan kerangka aplikasi dashboard interaktif menggunakan Python Streamlit."
-                    st.rerun()
-                if st.button("📦 **Fullstack App**\n\nCreate templated full-stack app", use_container_width=True, key="gs_fullstack"):
-                    st.session_state["shortcut_prompt"] = "Berikan arsitektur dasar untuk aplikasi web fullstack."
-                    st.rerun()
-            with gc3:
-                if st.button("🎮 **Make a Game**\n\nPlayable browser game", use_container_width=True, key="gs_game"):
-                    st.session_state["shortcut_prompt"] = "Buatkan game sederhana menggunakan HTML5 Canvas dan JavaScript."
-                    st.rerun()
-                if st.button("🏪 **Storefront**\n\nCreate online shop layout", use_container_width=True, key="gs_store"):
-                    st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
-                    st.rerun()
-        else:
-            if st.button("➕ Percakapan Baru", key="new_chat_home"):
-                st.session_state["home_chat_history"] = []
-                st.rerun()
-            for msg in st.session_state["home_chat_history"]:
-                if msg["role"] == "user":
-                    st.markdown(f"""
-                        <div class="user-bubble-container">
-                            <div class="user-bubble">{msg["content"]}</div>
-                        </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown(msg["content"])
-                    st.markdown("---")
-
-        default_val = st.session_state.pop("shortcut_prompt", "")
-
-        # FAB model picker + chat input
-        spacer_col, fab_col = st.columns([12, 1])
-        with fab_col:
-                with st.popover("🧠", use_container_width=True):
-                     st.markdown("**✨ Pilih Model AI**")
-                     st.caption("⚡ Gratis · 💎 Premium")
-    for label, model_id in AVAILABLE_MODELS.items():
-        is_active = (label == st.session_state["home_selected_model"])
-        is_premium = label in PREMIUM_MODELS
-        
-        # Tentukan style berdasarkan tier
-        if is_premium:
-            # PREMIUM: Emas berjalan
-            btn_style = """
-                background: linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, #d97706, #b45309, #78350f) !important;
-                background-size: 300% 100% !important;
-                border: 2px solid #fbbf24 !important;
-                color: white !important;
-                font-weight: 700 !important;
-                box-shadow: 0 0 25px rgba(252, 211, 77, 0.3) !important;
-                text-shadow: 0 1px 4px rgba(0,0,0,0.5) !important;
-            """
-            icon = "💎"
-        else:
-            # STANDARD: Ungu biru
-            btn_style = """
-                background: linear-gradient(135deg, #4f46e5, #3b82f6) !important;
-                border: 2px solid #6366f1 !important;
-                color: white !important;
-                font-weight: 600 !important;
-                box-shadow: 0 0 20px rgba(99, 102, 241, 0.4) !important;
-            """
-            icon = "⚡"
-        
-        # Jika aktif, timpa dengan style hitam
-        if is_active:
-            btn_style = """
-                background: #000000 !important;
-                border: 2px solid #ffffff !important;
-                color: white !important;
-                font-weight: 700 !important;
-                box-shadow: 0 0 30px rgba(255, 255, 255, 0.2) !important;
-            """
-            icon = "✅"
-        
-        # Render tombol dengan inline style
-        safe_key = "pick_home_" + model_id.replace("/", "_").replace(".", "_").replace("-", "_")
-        st.markdown(f"""
-            <style>
-                div[data-testid="stButton"] > button[key="{safe_key}"] {{
-                    {btn_style}
-                    border-radius: 12px !important;
-                    padding: 10px 14px !important;
-                    width: 100% !important;
-                    transition: all 0.3s ease !important;
-                }}
-                div[data-testid="stButton"] > button[key="{safe_key}"]:hover {{
-                    transform: scale(1.03) !important;
-                    box-shadow: 0 0 40px rgba(255,255,255,0.2) !important;
-                }}
-            </style>
-        """, unsafe_allow_html=True)
-        
-        if st.button(f"{icon} {label}", key=safe_key, use_container_width=True):
-            st.session_state["home_selected_model"] = label
             st.rerun()
+        
+        for msg in st.session_state["home_chat_history"]:
+            if msg["role"] == "user":
+                st.markdown(f"""
+                    <div class="user-bubble-container">
+                        <div class="user-bubble">{msg["content"]}</div>
+                    </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(msg["content"])
+                st.markdown("---")
+    else:
+        # Tampilan awal (Get Started)
+        st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
 
+        st.markdown("<h3>Get started</h3>", unsafe_allow_html=True)
+        gc1, gc2, gc3 = st.columns(3)
+
+        with gc1:
+            if st.button("🌐 **Landing Page**\n\nCreate a modern landing page", use_container_width=True, key="gs_landing"):
+                st.session_state["shortcut_prompt"] = "Buatkan kode landing page modern menggunakan HTML dan Tailwind CSS."
+                st.rerun()
+            if st.button("💻 **Design to Code**\n\nUpload an image and convert", use_container_width=True, key="gs_design"):
+                st.session_state["shortcut_prompt"] = "Bagaimana cara mengubah desain UI menjadi kode program?"
+                st.rerun()
+        with gc2:
+            if st.button("📊 **Dashboard**\n\nInteractive charts & tables", use_container_width=True, key="gs_dashboard"):
+                st.session_state["shortcut_prompt"] = "Buatkan kerangka aplikasi dashboard interaktif menggunakan Python Streamlit."
+                st.rerun()
+            if st.button("📦 **Fullstack App**\n\nCreate templated full-stack app", use_container_width=True, key="gs_fullstack"):
+                st.session_state["shortcut_prompt"] = "Berikan arsitektur dasar untuk aplikasi web fullstack."
+                st.rerun()
+        with gc3:
+            if st.button("🎮 **Make a Game**\n\nPlayable browser game", use_container_width=True, key="gs_game"):
+                st.session_state["shortcut_prompt"] = "Buatkan game sederhana menggunakan HTML5 Canvas dan JavaScript."
+                st.rerun()
+            if st.button("🏪 **Storefront**\n\nCreate online shop layout", use_container_width=True, key="gs_store"):
+                st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
+                st.rerun()
+
+    # ==== AMBIL SHORTCUT PROMPT ====
+    default_val = st.session_state.pop("shortcut_prompt", "")
+
+    # ==== FAB MODEL PICKER + CHAT INPUT ====
+    spacer_col, fab_col = st.columns([12, 1])
+    with fab_col:
+        with st.popover("🧠", use_container_width=True):
+            st.markdown("**✨ Pilih Model AI**")
+            st.caption("⚡ Gratis · 💎 Premium")
+            
+            for label, model_id in AVAILABLE_MODELS.items():
+                is_active = (label == st.session_state["home_selected_model"])
+                is_premium = label in PREMIUM_MODELS
+                
+                # Tentukan style berdasarkan tier
+                if is_premium:
+                    btn_style = """
+                        background: linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, #d97706, #b45309, #78350f) !important;
+                        background-size: 300% 100% !important;
+                        border: 2px solid #fbbf24 !important;
+                        color: white !important;
+                        font-weight: 700 !important;
+                        box-shadow: 0 0 25px rgba(252, 211, 77, 0.3) !important;
+                        text-shadow: 0 1px 4px rgba(0,0,0,0.5) !important;
+                    """
+                    icon = "💎"
+                else:
+                    btn_style = """
+                        background: linear-gradient(135deg, #4f46e5, #3b82f6) !important;
+                        border: 2px solid #6366f1 !important;
+                        color: white !important;
+                        font-weight: 600 !important;
+                        box-shadow: 0 0 20px rgba(99, 102, 241, 0.4) !important;
+                    """
+                    icon = "⚡"
+                
+                if is_active:
+                    btn_style = """
+                        background: #000000 !important;
+                        border: 2px solid #ffffff !important;
+                        color: white !important;
+                        font-weight: 700 !important;
+                        box-shadow: 0 0 30px rgba(255, 255, 255, 0.2) !important;
+                    """
+                    icon = "✅"
+                
+                safe_key = "pick_home_" + model_id.replace("/", "_").replace(".", "_").replace("-", "_")
+                
+                st.markdown(f"""
+                    <style>
+                        div[data-testid="stButton"] > button[key="{safe_key}"] {{
+                            {btn_style}
+                            border-radius: 12px !important;
+                            padding: 10px 14px !important;
+                            width: 100% !important;
+                            transition: all 0.3s ease !important;
+                        }}
+                        div[data-testid="stButton"] > button[key="{safe_key}"]:hover {{
+                            transform: scale(1.03) !important;
+                            box-shadow: 0 0 40px rgba(255,255,255,0.2) !important;
+                        }}
+                    </style>
+                """, unsafe_allow_html=True)
+                
+                if st.button(f"{icon} {label}", key=safe_key, use_container_width=True):
+                    st.session_state["home_selected_model"] = label
+                    st.rerun()
+
+    # ==== CHAT INPUT (PASTI MUNCUL) ====
+    home_input = st.chat_input("✨ Ask Yuki anything... ✨", key="home_chat")
+
+    model_choice_label = st.session_state["home_selected_model"]
+    selected_model_id = AVAILABLE_MODELS[model_choice_label]
+    
+    # Proses query
+    query_to_process = home_input if home_input else default_val
+
+    if query_to_process:
+        if not groq_key:
+            st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
+        else:
+            st.markdown(f"""
+                <div class="user-bubble-container">
+                    <div class="user-bubble">{query_to_process}</div>
+                </div>
+            """, unsafe_allow_html=True)
+
+            loading_ph = st.empty()
+            short_model_name = model_choice_label.split("—")[0].strip()
+            loading_ph.markdown(
+                get_terminal_loader_html(
+                    text=f"{short_model_name} sedang berpikir",
+                    token="reasoning",
+                ),
+                unsafe_allow_html=True,
+            )
+
+            start_time = time.time()
+            try:
+                res_home = client.chat.completions.create(
+                    model=selected_model_id,
+                    messages=[
+                        {"role": "system", "content": YUKI_SYSTEM_PROMPT},
+                        {"role": "user",   "content": query_to_process},
+                    ],
+                )
+                response_text = res_home.choices[0].message.content
+            except Exception as e:
+                response_text = f"❌ Ups, terjadi kesalahan: {e}"
+
+            elapsed = time.time() - start_time
+            if elapsed < 1.5:
+                time.sleep(1.5 - elapsed)
+
+            loading_ph.empty()
+
+            st.session_state["home_chat_history"].append({"role": "user", "content": query_to_process})
+            st.session_state["home_chat_history"].append({"role": "assistant", "content": response_text})
+            st.rerun()
     # ============================================================
     # 9. HALAMAN 2: ARENA BATTLE (MULTI AI)
     # ============================================================
