@@ -964,12 +964,12 @@ else:
                 # Tampilkan loader dengan animasi angka berubah
                 start_time = time.time()
                 # Tampilkan loader sekali dengan animasi CSS
-                    loading_ph.markdown(
-                        get_terminal_loader_html(
-                            text=f"{short_model_name} sedang berpikir",
-                            token="reasoning",
-                        ),
-                        unsafe_allow_html=True,
+                loading_ph.markdown(
+                    get_terminal_loader_html(
+                        text=f"{short_model_name} sedang berpikir",
+                        token="reasoning",
+                    ),
+                    unsafe_allow_html=True,
                     )
 
                 # Panggil API
