@@ -1239,53 +1239,8 @@ if not st.session_state["has_entered"]:
 # 7. APLIKASI UTAMA SETELAH MASUK
 # ============================================================
 else:
-    # ==== MINI SIDEBAR (icon saja saat sidebar ditutup) ====
-    st.markdown("""
-        <div class="mini-sidebar" id="miniSidebar">
-            <button class="mini-sidebar-item active" data-label="Home" onclick="navigateTo('🏠 Home Dashboard')" id="nav_home">🏠</button>
-            <button class="mini-sidebar-item" data-label="Multi Ai" onclick="navigateTo('⚔️ Multi Ai')" id="nav_multi">⚔️</button>
-            <button class="mini-sidebar-item" data-label="Leaderboard" onclick="navigateTo('📊 Leaderboard')" id="nav_leader">📊</button>
-            <button class="mini-sidebar-item" data-label="Search" onclick="navigateTo('🔍 Search')" id="nav_search">🔍</button>
-            <button class="mini-sidebar-expand" onclick="expandSidebar()" title="Buka Sidebar">☰</button>
-        </div>
-        
-        <script>
-            function navigateTo(page) {
-                // Update active state
-                document.querySelectorAll('.mini-sidebar-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                event.target.classList.add('active');
-                
-                // Navigate using Streamlit
-                window.parent.postMessage({
-                    type: 'streamlit:setComponentValue',
-                    value: page
-                }, '*');
-            }
-            
-            function expandSidebar() {
-                var sidebar = document.querySelector('[data-testid="stSidebar"]');
-                var miniSidebar = document.getElementById('miniSidebar');
-                sidebar.style.display = 'block';
-                miniSidebar.classList.remove('show');
-            }
-            
-            function collapseSidebar() {
-                var sidebar = document.querySelector('[data-testid="stSidebar"]');
-                var miniSidebar = document.getElementById('miniSidebar');
-                sidebar.style.display = 'none';
-                miniSidebar.classList.add('show');
-            }
-        </script>
-    """, unsafe_allow_html=True)
-    
     # ==== SIDEBAR ====
     with st.sidebar:
-        # Tombol tutup sidebar
-        st.markdown("""
-            <button class="sidebar-collapse" onclick="collapseSidebar()" title="Tutup Sidebar">✕</button>
-        """, unsafe_allow_html=True)
         st.markdown("""
             <div class="logo-container">
                 <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop" class="logo-img" alt="Logo Arena">
