@@ -111,8 +111,96 @@ h1, h2, h3 {
     font-family: 'Poppins', sans-serif !important;
 }
 
-/* ==== SIDEBAR TOGGLE ==== */
-.sidebar-toggle-btn {
+/* ==== MINI SIDEBAR (saat sidebar ditutup) ==== */
+.mini-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 100vh;
+    background: linear-gradient(180deg, rgba(30, 27, 75, 0.95), rgba(15, 23, 42, 0.98));
+    backdrop-filter: blur(16px);
+    border-right: 1px solid rgba(129, 140, 248, 0.2);
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 60px;
+    gap: 8px;
+}
+
+.mini-sidebar.show {
+    display: flex;
+}
+
+.mini-sidebar-item {
+    width: 44px;
+    height: 44px;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(129, 140, 248, 0.2);
+    border-radius: 12px;
+    color: #94a3b8;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.mini-sidebar-item:hover {
+    background: rgba(129, 140, 248, 0.3);
+    color: white;
+    border-color: #818cf8;
+    transform: scale(1.1);
+}
+
+.mini-sidebar-item.active {
+    background: linear-gradient(135deg, #818cf8, #6366f1);
+    color: white;
+    border-color: #818cf8;
+    box-shadow: 0 0 15px rgba(129, 140, 248, 0.5);
+}
+
+.mini-sidebar-item:hover::after {
+    content: attr(data-label);
+    position: absolute;
+    left: 55px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(15, 23, 42, 0.95);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    border: 1px solid rgba(129, 140, 248, 0.3);
+    z-index: 10001;
+}
+
+.mini-sidebar-expand {
+    position: absolute;
+    bottom: 20px;
+    width: 44px;
+    height: 44px;
+    background: rgba(129, 140, 248, 0.2);
+    border: 1px solid rgba(129, 140, 248, 0.3);
+    border-radius: 12px;
+    color: #818cf8;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.mini-sidebar-expand:hover {
+    background: rgba(129, 140, 248, 0.4);
+    color: white;
+    transform: scale(1.1);
+}
     position: fixed;
     top: 16px;
     left: 16px;
@@ -1151,23 +1239,43 @@ if not st.session_state["has_entered"]:
 # 7. APLIKASI UTAMA SETELAH MASUK
 # ============================================================
 else:
-    # ==== SIDEBAR TOGGLE (tombol saat sidebar ditutup) ====
+    # ==== MINI SIDEBAR (icon saja saat sidebar ditutup) ====
     st.markdown("""
-        <button class="sidebar-toggle-btn" id="sidebarToggle" onclick="openSidebar()">
-            ☰
-        </button>
+        <div class="mini-sidebar" id="miniSidebar">
+            <button class="mini-sidebar-item active" data-label="Home" onclick="navigateTo('🏠 Home Dashboard')" id="nav_home">🏠</button>
+            <button class="mini-sidebar-item" data-label="Multi Ai" onclick="navigateTo('⚔️ Multi Ai')" id="nav_multi">⚔️</button>
+            <button class="mini-sidebar-item" data-label="Leaderboard" onclick="navigateTo('📊 Leaderboard')" id="nav_leader">📊</button>
+            <button class="mini-sidebar-item" data-label="Search" onclick="navigateTo('🔍 Search')" id="nav_search">🔍</button>
+            <button class="mini-sidebar-expand" onclick="expandSidebar()" title="Buka Sidebar">☰</button>
+        </div>
+        
         <script>
-            function openSidebar() {
-                var sidebar = document.querySelector('[data-testid="stSidebar"]');
-                var toggle = document.getElementById('sidebarToggle');
-                sidebar.classList.remove('sidebar-collapsed');
-                toggle.style.display = 'none';
+            function navigateTo(page) {
+                // Update active state
+                document.querySelectorAll('.mini-sidebar-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                event.target.classList.add('active');
+                
+                // Navigate using Streamlit
+                window.parent.postMessage({
+                    type: 'streamlit:setComponentValue',
+                    value: page
+                }, '*');
             }
-            function closeSidebar() {
+            
+            function expandSidebar() {
                 var sidebar = document.querySelector('[data-testid="stSidebar"]');
-                var toggle = document.getElementById('sidebarToggle');
-                sidebar.classList.add('sidebar-collapsed');
-                toggle.style.display = 'flex';
+                var miniSidebar = document.getElementById('miniSidebar');
+                sidebar.style.display = 'block';
+                miniSidebar.classList.remove('show');
+            }
+            
+            function collapseSidebar() {
+                var sidebar = document.querySelector('[data-testid="stSidebar"]');
+                var miniSidebar = document.getElementById('miniSidebar');
+                sidebar.style.display = 'none';
+                miniSidebar.classList.add('show');
             }
         </script>
     """, unsafe_allow_html=True)
@@ -1176,9 +1284,7 @@ else:
     with st.sidebar:
         # Tombol tutup sidebar
         st.markdown("""
-            <button class="sidebar-collapse" onclick="closeSidebar()" title="Tutup Sidebar">
-                ✕
-            </button>
+            <button class="sidebar-collapse" onclick="collapseSidebar()" title="Tutup Sidebar">✕</button>
         """, unsafe_allow_html=True)
         st.markdown("""
             <div class="logo-container">
