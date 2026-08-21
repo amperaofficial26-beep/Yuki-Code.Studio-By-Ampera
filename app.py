@@ -218,8 +218,57 @@ div.stButton > button:hover {
 }
 
 /* ============================================================
-   MODEL PICKER - BUTTON POPUP BERGERAK & WARNA-WARNI
+   MODEL PICKER - BUTTON STYLING (LANGSUNG KE BUTTON)
    ============================================================ */
+
+/* Semua button di dalam popover body */
+[data-testid="stPopoverBody"] [data-testid="element-container"] {
+    margin-bottom: 4px !important;
+}
+
+/* Button Premium - Emas Berjalan (child 2-5) */
+[data-testid="stPopoverBody"] > div > div:nth-child(2) button,
+[data-testid="stPopoverBody"] > div > div:nth-child(3) button,
+[data-testid="stPopoverBody"] > div > div:nth-child(4) button,
+[data-testid="stPopoverBody"] > div > div:nth-child(5) button {
+    background: linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, #d97706, #b45309, #78350f) !important;
+    background-size: 300% 100% !important;
+    animation: goldShinePremium 3s linear infinite !important;
+    border: 2px solid #fbbf24 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 0 25px rgba(252, 211, 77, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Button Standard (GPT-OSS 20B) - Biru Ungu Berjalan (child 1) */
+[data-testid="stPopoverBody"] > div > div:nth-child(1) button {
+    background: linear-gradient(90deg, #1e1b4b, #3730a3, #4f46e5, #6366f1, #4f46e5, #3730a3, #1e1b4b) !important;
+    background-size: 300% 100% !important;
+    animation: blueShineStandard 3s linear infinite !important;
+    border: 2px solid #818cf8 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Hover effects */
+[data-testid="stPopoverBody"] > div > div:nth-child(1) button:hover {
+    box-shadow: 0 0 35px rgba(99, 102, 241, 0.7) !important;
+    transform: scale(1.02) !important;
+}
+[data-testid="stPopoverBody"] > div > div:nth-child(2) button:hover,
+[data-testid="stPopoverBody"] > div > div:nth-child(3) button:hover,
+[data-testid="stPopoverBody"] > div > div:nth-child(4) button:hover,
+[data-testid="stPopoverBody"] > div > div:nth-child(5) button:hover {
+    box-shadow: 0 0 35px rgba(252, 211, 77, 0.6) !important;
+    transform: scale(1.02) !important;
+}
 
 /* FAB button utama - animasi lompat pelan + warna warni */
 @keyframes fabBounce {
@@ -619,12 +668,22 @@ def _build_terminal_delta():
         for idx, n in enumerate(nums)
     )
 
-def get_terminal_loader_html(text="Yuki sedang berpikir", token="..."):
-    """Loader terminal-style SEQUENTIAL dengan angka dinamis via JavaScript."""
+def get_terminal_loader_html(text="Yuki sedang berpikir", token="...", temp=None, step=None, ctx=None):
+    """Loader terminal-style SEQUENTIAL dengan angka dinamis."""
+    import random
     token_chars = _build_terminal_token(token)
     delta_stack = _build_terminal_delta()
+    
+    # Gunakan nilai random jika tidak diberikan
+    if temp is None:
+        temp = round(random.uniform(0.5, 1.1), 2)
+    if step is None:
+        step = random.randint(50, 550)
+    if ctx is None:
+        ctx = f"{round(random.uniform(2.0, 12.0), 1)}k tok"
+    
     return f"""
-        <div class="terminal-card" id="terminal-loader">
+        <div class="terminal-card">
             <img src="{LOGO_URL}" class="term-logo" alt="logo">
             <div class="term-body">
                 <div class="term-line">
@@ -636,11 +695,11 @@ def get_terminal_loader_html(text="Yuki sedang berpikir", token="..."):
                 <div class="term-params">
                     <span class="term-param">
                         <span class="term-key">temp=</span>
-                        <span class="term-param-pulse" id="temp-val">0.72</span>
+                        <span class="term-param-pulse">{temp}</span>
                     </span>
                     <span class="term-param">
                         <span class="term-key">step=</span>
-                        <span class="term-param-pulse" id="step-val">128</span>
+                        <span class="term-param-pulse">{step}</span>
                     </span>
                     <span class="term-param">
                         <span class="term-key">Δ=</span>
@@ -648,23 +707,12 @@ def get_terminal_loader_html(text="Yuki sedang berpikir", token="..."):
                     </span>
                     <span class="term-param">
                         <span class="term-key">ctx=</span>
-                        <span class="term-param-pulse" id="ctx-val">8.2k tok</span>
+                        <span class="term-param-pulse">{ctx}</span>
                     </span>
                 </div>
                 <div class="term-progress"></div>
             </div>
         </div>
-        <script>
-            // Animasi angka berubah setiap 800ms
-            setInterval(function() {{
-                var tempEl = document.getElementById('temp-val');
-                var stepEl = document.getElementById('step-val');
-                var ctxEl = document.getElementById('ctx-val');
-                if (tempEl) tempEl.textContent = (Math.random() * 0.6 + 0.5).toFixed(2);
-                if (stepEl) stepEl.textContent = Math.floor(Math.random() * 500 + 50);
-                if (ctxEl) ctxEl.textContent = (Math.random() * 10 + 2).toFixed(1) + 'k tok';
-            }}, 800);
-        </script>
     """
 
 def stream_response(text):
@@ -866,53 +914,16 @@ else:
                     
                     if is_active:
                         icon = "✅"
-                        btn_type = "active"
                     elif is_premium:
                         icon = "💎"
-                        btn_type = "premium"
                     else:
                         icon = "⚡"
-                        btn_type = "standard"
                     
                     safe_key = "pick_home_" + model_id.replace("/", "_").replace(".", "_").replace("-", "_")
                     
                     if st.button(f"{icon} {label}", key=safe_key, use_container_width=True):
                         st.session_state["home_selected_model"] = label
                         st.rerun()
-                    
-                    # Inject JavaScript untuk styling setelah render
-                    st.markdown(f"""
-                    <script>
-                        (function() {{
-                            var buttons = document.querySelectorAll('button');
-                            for (var i = 0; i < buttons.length; i++) {{
-                                if (buttons[i].textContent.includes('{icon}') && buttons[i].textContent.includes('{label.split('—')[0].strip()}')) {{
-                                    if ('{btn_type}' === 'premium') {{
-                                        buttons[i].style.background = 'linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, #d97706, #b45309, #78350f)';
-                                        buttons[i].style.backgroundSize = '300% 100%';
-                                        buttons[i].style.animation = 'goldShinePremium 3s linear infinite';
-                                        buttons[i].style.border = '2px solid #fbbf24';
-                                        buttons[i].style.boxShadow = '0 0 25px rgba(252, 211, 77, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-                                    }} else if ('{btn_type}' === 'standard') {{
-                                        buttons[i].style.background = 'linear-gradient(90deg, #312e81, #4f46e5, #6366f1, #818cf8, #6366f1, #4f46e5, #312e81)';
-                                        buttons[i].style.backgroundSize = '300% 100%';
-                                        buttons[i].style.animation = 'blueShineStandard 3s linear infinite';
-                                        buttons[i].style.border = '2px solid #818cf8';
-                                        buttons[i].style.boxShadow = '0 0 20px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-                                    }} else {{
-                                        buttons[i].style.background = '#000000';
-                                        buttons[i].style.border = '2px solid #ffffff';
-                                        buttons[i].style.boxShadow = '0 0 0 2px rgba(255, 255, 255, 0.3) inset, 0 0 30px rgba(255, 255, 255, 0.2)';
-                                    }}
-                                    buttons[i].style.color = '#ffffff';
-                                    buttons[i].style.fontWeight = '700';
-                                    buttons[i].style.borderRadius = '12px';
-                                    buttons[i].style.textShadow = '0 1px 3px rgba(0,0,0,0.3)';
-                                }}
-                            }}
-                    }})();
-                    </script>
-                    """, unsafe_allow_html=True)
         
         # ==== CHAT INPUT ====
         home_input = st.chat_input("✨ Ask Yuki anything... ✨", key="home_chat")
@@ -926,6 +937,7 @@ else:
             if not groq_key:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             else:
+                import random
                 st.markdown(f"""
                     <div class="user-bubble-container">
                         <div class="user-bubble">{query_to_process}</div>
@@ -934,15 +946,33 @@ else:
 
                 loading_ph = st.empty()
                 short_model_name = model_choice_label.split("—")[0].strip()
-                loading_ph.markdown(
-                    get_terminal_loader_html(
-                        text=f"{short_model_name} sedang berpikir",
-                        token="reasoning",
-                    ),
-                    unsafe_allow_html=True,
-                )
-
+                
+                # Tampilkan loader dengan animasi angka berubah
                 start_time = time.time()
+                while True:
+                    # Update loader dengan nilai random
+                    temp = round(random.uniform(0.5, 1.1), 2)
+                    step = random.randint(50, 550)
+                    ctx = f"{round(random.uniform(2.0, 12.0), 1)}k tok"
+                    
+                    loading_ph.markdown(
+                        get_terminal_loader_html(
+                            text=f"{short_model_name} sedang berpikir",
+                            token="reasoning",
+                            temp=temp,
+                            step=step,
+                            ctx=ctx,
+                        ),
+                        unsafe_allow_html=True,
+                    )
+                    
+                    # Cek sudah 1.5 detik atau belum
+                    elapsed = time.time() - start_time
+                    if elapsed >= 1.5:
+                        break
+                    time.sleep(0.3)
+
+                # Panggil API
                 try:
                     res_home = client.chat.completions.create(
                         model=selected_model_id,
@@ -954,10 +984,6 @@ else:
                     response_text = res_home.choices[0].message.content
                 except Exception as e:
                     response_text = f"❌ Ups, terjadi kesalahan: {e}"
-
-                elapsed = time.time() - start_time
-                if elapsed < 1.5:
-                    time.sleep(1.5 - elapsed)
 
                 loading_ph.empty()
 
