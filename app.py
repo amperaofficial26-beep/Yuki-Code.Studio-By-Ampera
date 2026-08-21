@@ -871,8 +871,7 @@ else:
                     st.rerun()
 
         # ==== AMBIL SHORTCUT PROMPT ====
-        default_val = st.session_state.pop("shortcut_prompt", "")
-
+        default_val = st.session_state.pop("shortcut_prompt", "")  
         # ==== FAB MODEL PICKER + CHAT INPUT ====
         spacer_col, fab_col = st.columns([12, 1])
         with fab_col:
