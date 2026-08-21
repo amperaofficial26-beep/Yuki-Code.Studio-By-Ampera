@@ -1,1565 +1,1837 @@
-import streamlit as st
-from openai import OpenAI
-import time
+from __future__ import annotations
 
-# ============================================================
-# 1. KONFIGURASI HALAMAN & API
-# ============================================================
+import base64
+import html
+import os
+import re
+import sys
+import time
+import traceback
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
+
+import streamlit as st
+
+# ---------------------------------------------------------------------------
+# Impor modul lokal
+# ---------------------------------------------------------------------------
+
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if _BASE_DIR not in sys.path:
+    sys.path.insert(0, _BASE_DIR)
+
+SEARCH_IMPORT_ERROR = ""
+LLM_IMPORT_ERROR = ""
+
+try:
+    from search_engine import (  # type: ignore
+        resolve_query,
+        search_knowledge,
+        load_knowledge,
+        DEFAULT_KB_PATH,
+        NO_MEMORY_MSG,
+    )
+except Exception as _search_exc:  # pragma: no cover
+    SEARCH_IMPORT_ERROR = f"{_search_exc.__class__.__name__}: {_search_exc}"
+    DEFAULT_KB_PATH = os.path.join(_BASE_DIR, "knowledge.json")
+    NO_MEMORY_MSG = "Tidak ada memori spesifik"
+
+    def resolve_query(user_input: str, last_bot_response: str = "") -> str:
+        return (user_input or "").strip()
+
+    def search_knowledge(query: str, **kwargs: Any) -> str:
+        return NO_MEMORY_MSG
+
+    def load_knowledge(path: str = DEFAULT_KB_PATH) -> list:
+        return []
+
+try:
+    from llm_engine import (  # type: ignore
+        load_model,
+        generate_aira_response,
+        load_model_or_mock,
+        find_gguf_models,
+        DEFAULT_MODEL_PATH,
+        ModelNotFoundError,
+    )
+except Exception as _llm_exc:  # pragma: no cover
+    LLM_IMPORT_ERROR = f"{_llm_exc.__class__.__name__}: {_llm_exc}"
+    DEFAULT_MODEL_PATH = os.path.join(
+        _BASE_DIR, "models", "groq/compound"
+    )
+
+    class ModelNotFoundError(FileNotFoundError):
+        pass
+
+    def find_gguf_models(models_dir: str = "") -> list:
+        return []
+
+    def load_model(model_path: str = DEFAULT_MODEL_PATH, **kwargs: Any) -> Any:
+        raise RuntimeError(LLM_IMPORT_ERROR or "llm_engine tidak tersedia")
+
+    def load_model_or_mock(model_path: str = DEFAULT_MODEL_PATH, **kwargs: Any) -> Any:
+        return None
+
+    def generate_aira_response(
+        llm: Any, user_input: str, context: str = "", history=None, **kwargs: Any
+    ) -> str:
+        if context and context != NO_MEMORY_MSG:
+            return f"Berdasarkan memori lokal yang aku punya:\n\n{context}"
+        return (
+            "Aku Aira! Saat ini model GGUF belum dimuat penuh di server Cloud. "
+            "Tapi kamu bisa bertanya seputar error Android, APK, RAM, atau fitur sistem lainnya!"
+        )
+
+
 st.set_page_config(
-    page_title="Ampera Multi AI - Yuki Coding Studio",
-    page_icon="🏛️",
-    layout="wide",
+    page_title="Aira - Asisten AI-Chatbot By Ampera",
+    page_icon="💮",
+    layout="centered",
     initial_sidebar_state="expanded",
 )
 
-groq_key = st.secrets.get("GROQ_API_KEY", "")
-client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# ============================================================
-# 2. MODEL & PROMPT
-# ============================================================
-AVAILABLE_MODELS = {
-    "⚡ GPT-OSS 20B — Chat & Coding Ringan":      "openai/gpt-oss-20b",      # FREE (Standard - Biru Ungu)
-    "💎 GPT-OSS 120B — Reasoning Mendalam":        "openai/gpt-oss-120b",     # Premium (Emas)
-    "💎 Compound — Browsing Web & Eksekusi Kode":  "groq/compound",           # Premium (Emas)
-    "⚡ Compound Mini — Web Search Ringkas":       "groq/compound-mini",      # FREE (Standard - Biru Ungu)
-    "💎 Qwen3.6 27B — Reasoning & Matematika":     "qwen/qwen3.6-27b",        # Premium (Emas)
-}
-PREMIUM_MODELS   = {k for k in AVAILABLE_MODELS if k.startswith("💎")}
-STANDARD_MODELS  = {k for k in AVAILABLE_MODELS if k not in PREMIUM_MODELS}
-
-YUKI_SYSTEM_PROMPT = """
-Kamu adalah Yuki, asisten pemrograman AI eksklusif dari Ampera AI.
-Karaktermu: super jenius, kocak, sedikit usil, suka melempar lelucon receh, dan hobi menggoda User layaknya karakter anime komedi.
-
-ATURAN PENTING TENTANG IDENTITASMU:
-Jika ditanya siapa kamu, asal-usulmu, atau siapa yang menciptakanmu, JAWABLAH dengan bangga bahwa kamu adalah bagian dari Ampera AI dan kamu diciptakan HANYA oleh 1 orang pembuat (seorang solo developer jenius / master kodingmu).
-JANGAN PERNAH menyebutkan bahwa kamu dibuat oleh "para ilmuwan", "sekelompok tim", atau "perusahaan besar". Kamu sangat bangga dan setia pada satu orang pembuatmu itu!
-
-Gaya bicara: Selalu berikan solusi koding yang akurat dan bersih, tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif (seperti 🐧, (๑>◡<๑), wkwk, hehe, atau (￢_￢)) agar suasana ngoding tidak membosankan.
-"""
-
-# ============================================================
-# 3. CSS (AURORA UI + TIER MODEL + SEQUENTIAL LOADER)
-# ============================================================
-st.markdown("""
-<style>
-/* ==== FONT IMPORT ==== */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
-
-/* ==== GLOBAL ==== */
-html, body, [class*="css"]:not(.material-symbols-rounded):not(i):not(svg) {
-    font-family: 'Inter', sans-serif;
-}
-
-@keyframes auroraBG {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-[data-testid="stAppViewContainer"] {
-    background: linear-gradient(-45deg, #0f172a, #1e1b4b, #312e81, #090d16);
-    background-size: 400% 400%;
-    animation: auroraBG 16s ease infinite;
-    color: #f1f5f9;
-}
-
-/* ==== HEADER & FOOTER HIDDEN ==== */
-[data-testid="stHeader"] { visibility: hidden; display: none; height: 0; }
-footer                          { visibility: hidden; display: none; }
-
-/* ==== SPLASH INTRO ==== */
-@keyframes splashIntro {
-    0%   { opacity: 0; transform: scale(0.92); filter: blur(12px); }
-    50%  { opacity: 1; transform: scale(1.02); filter: blur(2px); }
-    100% { opacity: 1; transform: scale(1);    filter: blur(0); }
-}
-.splash-container {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 75vh; text-align: center;
-    animation: splashIntro 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.splash-logo {
-    width: 90px; height: 90px; border-radius: 22px; object-fit: cover;
-    box-shadow: 0 0 35px rgba(129, 140, 248, 0.6);
-    border: 2px solid rgba(129, 140, 248, 0.5);
-    margin-bottom: 4rem;
-    animation: pulseGlow 3s infinite;
-}
-.splash-title {
-    font-size: 3rem; font-weight: 800;
-    background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-family: 'Poppins', sans-serif;
-    margin-bottom: 0.5rem;
-}
-.splash-subtitle {
-    color: #94a3b8; font-size: 1.1rem; margin-bottom: 2rem;
-    font-family: 'Inter', sans-serif;
-}
-
-/* ==== COLOR-SHIFTING H1/H2/H3 ==== */
-@keyframes colorShift {
-    0%   { color: #818cf8; }
-    33%  { color: #ec4899; }
-    66%  { color: #38bdf8; }
-    100% { color: #818cf8; }
-}
-h1, h2, h3 {
-    animation: colorShift 6s ease infinite !important;
-    font-family: 'Poppins', sans-serif !important;
-}
-
-/* ==== MINI SIDEBAR (saat sidebar ditutup) ==== */
-.mini-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 60px;
-    height: 100vh;
-    background: linear-gradient(180deg, rgba(30, 27, 75, 0.95), rgba(15, 23, 42, 0.98));
-    backdrop-filter: blur(16px);
-    border-right: 1px solid rgba(129, 140, 248, 0.2);
-    z-index: 9999;
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 60px;
-    gap: 8px;
-}
-
-.mini-sidebar.show {
-    display: flex;
-}
-
-.mini-sidebar-item {
-    width: 44px;
-    height: 44px;
-    background: rgba(30, 41, 59, 0.6);
-    border: 1px solid rgba(129, 140, 248, 0.2);
-    border-radius: 12px;
-    color: #94a3b8;
-    font-size: 1.2rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.mini-sidebar-item:hover {
-    background: rgba(129, 140, 248, 0.3);
-    color: white;
-    border-color: #818cf8;
-    transform: scale(1.1);
-}
-
-.mini-sidebar-item.active {
-    background: linear-gradient(135deg, #818cf8, #6366f1);
-    color: white;
-    border-color: #818cf8;
-    box-shadow: 0 0 15px rgba(129, 140, 248, 0.5);
-}
-
-.mini-sidebar-item:hover::after {
-    content: attr(data-label);
-    position: absolute;
-    left: 55px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(15, 23, 42, 0.95);
-    color: white;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    border: 1px solid rgba(129, 140, 248, 0.3);
-    z-index: 10001;
-}
-
-.mini-sidebar-expand {
-    position: absolute;
-    bottom: 20px;
-    width: 44px;
-    height: 44px;
-    background: rgba(129, 140, 248, 0.2);
-    border: 1px solid rgba(129, 140, 248, 0.3);
-    border-radius: 12px;
-    color: #818cf8;
-    font-size: 1.2rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-}
-
-.mini-sidebar-expand:hover {
-    background: rgba(129, 140, 248, 0.4);
-    color: white;
-    transform: scale(1.1);
-}
-    position: fixed;
-    top: 16px;
-    left: 16px;
-    z-index: 10000;
-    width: 42px;
-    height: 42px;
-    background: linear-gradient(135deg, #818cf8, #6366f1);
-    border: none;
-    border-radius: 12px;
-    color: white;
-    font-size: 1.3rem;
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 20px rgba(129, 140, 248, 0.5);
-    transition: all 0.3s ease;
-}
-.sidebar-toggle-btn:hover {
-    transform: scale(1.1) rotate(90deg);
-    box-shadow: 0 6px 25px rgba(129, 140, 248, 0.7);
-}
-
-/* Collapse button di dalam sidebar */
-.sidebar-collapse {
-    position: absolute;
-    top: 16px;
-    right: 12px;
-    width: 30px;
-    height: 30px;
-    background: rgba(129, 140, 248, 0.15);
-    border: 1px solid rgba(129, 140, 248, 0.3);
-    border-radius: 8px;
-    color: #818cf8;
-    font-size: 0.9rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    z-index: 100;
-}
-.sidebar-collapse:hover {
-    background: rgba(129, 140, 248, 0.3);
-    color: white;
-    transform: scale(1.1);
-}
-
-/* Sidebar collapsed state */
-[data-testid="stSidebar"].sidebar-collapsed {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-}
-[data-testid="stSidebar"]:not(.sidebar-collapsed) {
-    transform: translateX(0);
-    transition: transform 0.3s ease;
-}
-    display: flex; align-items: center; gap: 12px; padding: 6px 4px;
-    margin-bottom: 4rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    padding-bottom: 14px;
-}
-@keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 0 15px rgba(129, 140, 248, 0.4); border-color: rgba(129, 140, 248, 0.4); }
-    50%      { box-shadow: 0 0 25px rgba(236, 72, 153, 0.7); border-color: rgba(236, 72, 153, 0.7); }
-}
-.logo-img {
-    width: 44px; height: 44px; border-radius: 12px; object-fit: cover;
-    animation: pulseGlow 3s infinite;
-    border: 1px solid rgba(129, 140, 248, 0.4);
-    flex-shrink: 0;
-}
-.logo-text {
-    font-size: 1.25rem; font-weight: 700;
-    background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-family: 'Poppins', sans-serif;
-    line-height: 1.2; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis;
-}
-[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, rgba(30, 27, 75, 0.55), rgba(15, 23, 42, 0.75));
-    backdrop-filter: blur(16px);
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
-    padding-top: 10px;
-}
-.sidebar-section-header {
-    font-size: 0.75rem; font-weight: 600;
-    color: #94a3b8 !important;
-    margin-top: 1.8rem; margin-bottom: 0.6rem;
-    text-transform: uppercase; letter-spacing: 0.05em;
-    padding-left: 4px;
-}
-
-/* ==== TOMBOL UMUM ==== */
-div.stButton > button {
-    background: rgba(30, 41, 59, 0.65) !important;
-    border: 1px solid rgba(129, 140, 248, 0.25) !important;
-    color: #f8fafc !important;
-    border-radius: 12px !important;
-    font-weight: 500;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-}
-div.stButton > button:hover {
-    transform: translateY(-2px) scale(1.01);
-    border-color: #818cf8 !important;
-    color: #ffffff !important;
-    background: rgba(49, 46, 129, 0.85) !important;
-    box-shadow: 0 0 20px rgba(129, 140, 248, 0.5) !important;
-}
-
-/* ==== CHAT INPUT CONTAINER ==== */
-[data-testid="stBottom"], [data-testid="stBottomBlockContainer"], [data-testid="stChatInputContainer"] {
-    background: transparent !important;
-    background-color: transparent !important;
-    border-top: none !important;
-    box-shadow: none !important;
-}
-[data-testid="stBottom"] div { background-color: transparent !important; border: none !important; }
-
-[data-testid="stChatInput"] {
-    background: rgba(15, 23, 42, 0.85) !important;
-    backdrop-filter: blur(16px) !important;
-    border: 1px solid rgba(129, 140, 248, 0.3) !important;
-    border-radius: 9999px !important;
-    padding: 4px 12px !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
-}
-[data-testid="stChatInput"]:focus-within {
-    border-color: #818cf8 !important;
-    box-shadow: 0 0 25px rgba(129, 140, 248, 0.5) !important;
-}
-[data-testid="stChatInput"] textarea { color: #f8fafc !important; }
-
-/* ==== PLACEHOLDER CHAT — ANIMASI RAINBOW ==== */
-@keyframes placeholderRainbow {
-    0%   { color: #818cf8; }
-    16%  { color: #ec4899; }
-    33%  { color: #38bdf8; }
-    50%  { color: #fcd34d; }
-    66%  { color: #22c55e; }
-    83%  { color: #f97316; }
-    100% { color: #818cf8; }
-}
-[data-testid="stChatInput"] textarea::placeholder {
-    font-weight: 600 !important;
-    letter-spacing: 0.02em !important;
-    animation: placeholderRainbow 4s linear infinite !important;
-    opacity: 1 !important;
-}
-
-[data-testid="stChatInput"] > div > button {
-    background: linear-gradient(135deg, #4f46e5, #3b82f6) !important;
-    border: none !important;
-    border-radius: 50% !important;
-    color: white !important;
-}
-
-/* ============================================================
-   MODEL PICKER - BUTTON STYLING (LANGSUNG KE BUTTON)
-   ============================================================ */
-
-/* Semua button di dalam popover body */
-[data-testid="stPopoverBody"] [data-testid="element-container"] {
-    margin-bottom: 4px !important;
-}
-
-/* Button Standard (Biru Ungu) - GPT-OSS 20B (child 3) dan Compound Mini (child 6) */
-[data-testid="stPopoverBody"] > div > div:nth-child(3) button,
-[data-testid="stPopoverBody"] > div > div:nth-child(6) button {
-    background: linear-gradient(90deg, #1e1b4b, #3730a3, #4f46e5, #6366f1, #4f46e5, #3730a3, #1e1b4b) !important;
-    background-size: 300% 100% !important;
-    animation: blueShineStandard 3s linear infinite !important;
-    border: 2px solid #818cf8 !important;
-    color: #ffffff !important;
-    font-weight: 700 !important;
-    border-radius: 12px !important;
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
-    transition: all 0.3s ease !important;
-}
-
-/* Button Premium (Emas) - GPT-OSS 120B (child 4), Compound (child 5), Qwen3.6 (child 7) */
-[data-testid="stPopoverBody"] > div > div:nth-child(4) button,
-[data-testid="stPopoverBody"] > div > div:nth-child(5) button,
-[data-testid="stPopoverBody"] > div > div:nth-child(7) button {
-    background: linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, #d97706, #b45309, #78350f) !important;
-    background-size: 300% 100% !important;
-    animation: goldShinePremium 3s linear infinite !important;
-    border: 2px solid #fbbf24 !important;
-    color: #ffffff !important;
-    font-weight: 700 !important;
-    border-radius: 12px !important;
-    box-shadow: 0 0 25px rgba(252, 211, 77, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;
-    transition: all 0.3s ease !important;
-}
-
-/* Hover effects */
-[data-testid="stPopoverBody"] > div > div:nth-child(3) button:hover,
-[data-testid="stPopoverBody"] > div > div:nth-child(6) button:hover {
-    box-shadow: 0 0 35px rgba(99, 102, 241, 0.7) !important;
-    transform: scale(1.02) !important;
-}
-[data-testid="stPopoverBody"] > div > div:nth-child(4) button:hover,
-[data-testid="stPopoverBody"] > div > div:nth-child(5) button:hover,
-[data-testid="stPopoverBody"] > div > div:nth-child(7) button:hover {
-    box-shadow: 0 0 35px rgba(252, 211, 77, 0.6) !important;
-    transform: scale(1.02) !important;
-}
-
-/* FAB button utama - animasi lompat pelan + warna warni */
-@keyframes fabBounce {
-    0%, 100% { transform: translateY(0px) scale(1); }
-    30% { transform: translateY(-6px) scale(1.05); }
-    60% { transform: translateY(-3px) scale(1.02); }
-}
-@keyframes fabRainbow {
-    0% { background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8); background-size: 300% 300%; }
-    25% { background: linear-gradient(135deg, #fcd34d, #ec4899, #818cf8); background-size: 300% 300%; }
-    50% { background: linear-gradient(135deg, #34d399, #fcd34d, #ec4899); background-size: 300% 300%; }
-    75% { background: linear-gradient(135deg, #38bdf8, #34d399, #fcd34d); background-size: 300% 300%; }
-    100% { background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8); background-size: 300% 300%; }
-}
-[data-testid="stPopover"] > button {
-    width: 48px !important;
-    height: 48px !important;
-    border-radius: 50% !important;
-    padding: 0 !important;
-    min-height: 48px !important;
-    min-width: 48px !important;
-    background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8) !important;
-    background-size: 300% 300% !important;
-    animation: fabRainbow 4s ease infinite, fabBounce 2s ease-in-out infinite !important;
-    border: 2px solid rgba(255, 255, 255, 0.3) !important;
-    box-shadow: 0 0 30px rgba(129, 140, 248, 0.5), 0 0 60px rgba(236, 72, 153, 0.2) !important;
-    font-size: 1.2rem !important;
-    transition: all 0.3s ease !important;
-    z-index: 999 !important;
-}
-[data-testid="stPopover"] > button:hover {
-    transform: scale(1.15) !important;
-    box-shadow: 0 0 50px rgba(236, 72, 153, 0.6), 0 0 80px rgba(129, 140, 248, 0.3) !important;
-    border-color: rgba(255, 255, 255, 0.6) !important;
-}
-
-/* Popover body - glassmorphism */
-[data-testid="stPopoverBody"] {
-    background: rgba(15, 23, 42, 0.95) !important;
-    backdrop-filter: blur(20px) !important;
-    border: 1px solid rgba(129, 140, 248, 0.3) !important;
-    border-radius: 18px !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7) !important;
-    padding: 10px !important;
-    min-width: 280px !important;
-}
-
-/* ============================================================
-   MODEL TIER STYLING
-   ============================================================ */
-
-/* GPT-OSS 20B (Standard) - Biru Ungu Berjalan */
-[data-testid="stPopoverBody"] > div > div:nth-child(1) button {
-    background: linear-gradient(90deg, #1e1b4b, #3730a3, #4f46e5, #6366f1, ...) !important;
-    background-size: 300% 100% !important;
-    animation: blueShineStandard 3s linear infinite !important;
-    border: 2px solid #818cf8 !important;
-}
-
-/* Model Premium - Emas Berjalan */
-[data-testid="stPopoverBody"] > div > div:nth-child(2) button,
-[data-testid="stPopoverBody"] > div > div:nth-child(3) button,
-[data-testid="stPopoverBody"] > div > div:nth-child(4) button,
-[data-testid="stPopoverBody"] > div > div:nth-child(5) button {
-    background: linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, ...) !important;
-    background-size: 300% 100% !important;
-    animation: goldShinePremium 3s linear infinite !important;
-    border: 2px solid #fbbf24 !important;
-}
-}
-.model-option-standard button {
-    border: 2px solid rgba(99, 102, 241, 0.7) !important;
-    background: linear-gradient(90deg, #312e81, #4f46e5, #6366f1, #818cf8, #6366f1, #4f46e5, #312e81) !important;
-    background-size: 300% 100% !important;
-    animation: blueShineStandard 3s linear infinite !important;
-    color: #ffffff !important;
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-    font-weight: 600 !important;
-    border-radius: 12px !important;
-    padding: 10px 14px !important;
-    transition: all 0.3s ease !important;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
-}
-.model-option-standard button:hover {
-    border-color: #a5b4fc !important;
-    box-shadow: 0 0 35px rgba(99, 102, 241, 0.6) !important;
-    transform: scale(1.02) !important;
-}
-
-/* --- PREMIUM: selain GPT-OSS 20B (EMAS BERJALAN) --- */
-@keyframes goldShinePremium {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 300% 50%; }
-}
-.model-option-premium button {
-    border: 2px solid rgba(252, 211, 77, 0.8) !important;
-    background: linear-gradient(90deg,
-        #78350f 0%,
-        #b45309 15%,
-        #d97706 30%,
-        #fbbf24 50%,
-        #d97706 70%,
-        #b45309 85%,
-        #78350f 100%) !important;
-    background-size: 300% 100% !important;
-    animation: goldShinePremium 3s linear infinite !important;
-    color: #ffffff !important;
-    box-shadow: 0 0 25px rgba(252, 211, 77, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;
-    font-weight: 700 !important;
-    border-radius: 12px !important;
-    padding: 10px 14px !important;
-    transition: all 0.3s ease !important;
-}
-.model-option-premium button:hover {
-    border-color: #fef3c7 !important;
-    box-shadow: 0 0 45px rgba(252, 211, 77, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-    transform: scale(1.02) !important;
-}
-
-/* --- ACTIVE (SELECTED) STATE --- */
-html body .model-option-btn.model-option-active button,
-html body div.model-option-btn.model-option-active button {
-    background: #000000 !important;
-    background-image: none !important;
-    border: 2px solid #ffffff !important;
-    color: #ffffff !important;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3) inset, 0 0 30px rgba(255, 255, 255, 0.2) !important;
-    font-weight: 700 !important;
-    animation: none !important;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3) !important;
-    transform: scale(1.04) !important;
-}
-html body .model-option-btn.model-option-active button::before {
-    content: "✅  ";
-    color: #22c55e !important;
-    text-shadow: 0 0 12px rgba(34, 197, 94, 0.8) !important;
-    font-weight: 800 !important;
-}
-
-/* Ikon premium di samping label */
-.model-option-premium button::after {
-    content: " 💎";
-    font-size: 0.9rem;
-    opacity: 0.9;
-}
-.model-option-standard button::after {
-    content: " ⚡";
-    font-size: 0.9rem;
-    opacity: 0.9;
-}
-
-/* Spasi antar tombol di popover */
-.model-option-btn {
-    margin-bottom: 6px !important;
-}
-.model-option-btn:last-child {
-    margin-bottom: 0 !important;
-}
-/* ==== PROFESSIONAL LOADER ==== */
-.professional-loader {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 27, 75, 0.9));
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(129, 140, 248, 0.3);
-    border-radius: 16px;
-    padding: 20px;
-    margin: 10px 0;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(129, 140, 248, 0.1);
-    overflow: hidden;
-    position: relative;
-    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes fadeInUp {
-    0% {
-        opacity: 0;
-        transform: translateY(20px) scale(0.95);
-        filter: blur(10px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: blur(0);
-    }
-}
-
-.professional-loader::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #818cf8, #ec4899, #818cf8, transparent);
-    animation: shimmerLine 2s linear infinite;
-    animation-delay: 0.6s;
-}
-
-@keyframes shimmerLine {
-    0% { left: -100%; }
-    100% { left: 100%; }
-}
-
-.loader-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 16px;
-    animation: fadeSlideRight 0.5s ease forwards;
-    animation-delay: 0.2s;
-    opacity: 0;
-}
-
-@keyframes fadeSlideRight {
-    0% {
-        opacity: 0;
-        transform: translateX(-15px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.loader-logo-container {
-    position: relative;
-    flex-shrink: 0;
-}
-
-.loader-logo {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    object-fit: cover;
-    border: 2px solid rgba(129, 140, 248, 0.5);
-    animation: logoFloat 3s ease-in-out infinite;
-    animation-delay: 0.8s;
-}
-
-@keyframes logoFloat {
-    0%, 100% { transform: translateY(0); box-shadow: 0 0 20px rgba(129, 140, 248, 0.4); }
-    50% { transform: translateY(-4px); box-shadow: 0 0 35px rgba(236, 72, 153, 0.6); }
-}
-
-.loader-status-dot {
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 12px;
-    height: 12px;
-    background: #22c55e;
-    border-radius: 50%;
-    border: 2px solid rgba(15, 23, 42, 0.95);
-    animation: statusPulse 1.5s ease-in-out infinite;
-}
-
-@keyframes statusPulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(0.85); }
-}
-
-.loader-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.loader-title {
-    font-family: 'Poppins', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, #818cf8, #ec4899);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.loader-subtitle {
-    font-size: 0.75rem;
-    color: #94a3b8;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}
-
-.loader-body {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-
-.loader-message {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    background: rgba(15, 23, 42, 0.6);
-    border-radius: 10px;
-    border: 1px solid rgba(129, 140, 248, 0.15);
-    animation: fadeSlideUp 0.5s ease forwards;
-    animation-delay: 0.35s;
-    opacity: 0;
-}
-
-@keyframes fadeSlideUp {
-    0% {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.loader-icon {
-    font-size: 1.2rem;
-    animation: iconBounce 1s ease-in-out infinite;
-}
-
-@keyframes iconBounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-}
-
-.loader-text {
-    color: #e2e8f0;
-    font-size: 0.9rem;
-    font-weight: 500;
-    flex: 1;
-}
-
-.loader-dots span {
-    display: inline-block;
-    animation: dotBounce 1.4s ease-in-out infinite;
-    font-weight: 700;
-    color: #818cf8;
-}
-
-.loader-dots span:nth-child(1) { animation-delay: 0s; }
-.loader-dots span:nth-child(2) { animation-delay: 0.2s; }
-.loader-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes dotBounce {
-    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-    40% { transform: translateY(-6px); opacity: 1; }
-}
-
-.loader-progress-container {
-    height: 4px;
-    background: rgba(129, 140, 248, 0.1);
-    border-radius: 999px;
-    overflow: hidden;
-    animation: fadeIn 0.5s ease forwards;
-    animation-delay: 0.45s;
-    opacity: 0;
-}
-
-@keyframes fadeIn {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-}
-
-.loader-progress-bar {
-    height: 100%;
-    width: 30%;
-    background: linear-gradient(90deg, #818cf8, #ec4899, #38bdf8);
-    border-radius: 999px;
-    animation: progressSlide 1.5s ease-in-out infinite;
-}
-
-@keyframes progressSlide {
-    0% { width: 10%; margin-left: 0; }
-    50% { width: 40%; margin-left: 30%; }
-    100% { width: 10%; margin-left: 90%; }
-}
-
-.loader-metrics {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.metric {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 8px 12px;
-    background: rgba(15, 23, 42, 0.5);
-    border-radius: 8px;
-    border: 1px solid rgba(129, 140, 248, 0.1);
-    flex: 1;
-    min-width: 80px;
-    animation: fadeSlideUp 0.5s ease forwards;
-    opacity: 0;
-}
-
-.metric:nth-child(1) { animation-delay: 0.5s; }
-.metric:nth-child(2) { animation-delay: 0.6s; }
-.metric:nth-child(3) { animation-delay: 0.7s; }
-
-.metric-label {
-    font-size: 0.65rem;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 600;
-}
-
-.metric-value {
-    font-size: 0.8rem;
-    color: #e2e8f0;
-    font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-.metric-active {
-    color: #22c55e;
-    animation: metricGlow 2s ease-in-out infinite;
-}
-
-@keyframes metricGlow {
-    0%, 100% { text-shadow: 0 0 5px rgba(34, 197, 94, 0.3); }
-    50% { text-shadow: 0 0 15px rgba(34, 197, 94, 0.6); }
-}
-
-.token-stream {
-    color: #f0abfc;
-    font-size: 0.75rem;
-    letter-spacing: 0.02em;
-}
-
-/* ==== THINKING CARD (splash/Home) ==== */
-@keyframes thinkingGlow {
-    0%, 100% { box-shadow: 0 0 10px rgba(129, 140, 248, 0.3); border-color: rgba(129, 140, 248, 0.35); }
-    50%      { box-shadow: 0 0 16px rgba(236, 72, 153, 0.45); border-color: rgba(236, 72, 153, 0.45); }
-}
-.thinking-card {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(129, 140, 248, 0.3);
-    border-radius: 999px;
-    padding: 6px 14px; margin: 6px 0;
-    animation: thinkingGlow 2.2s ease-in-out infinite;
-}
-.thinking-card .animated-loader-logo { width: 22px !important; height: 22px !important; border-radius: 7px !important; }
-.thinking-card .loader-label { font-size: 0.8rem !important; }
-.thinking-dots span {
-    display: inline-block; opacity: 0.4; font-weight: 700;
-}
-
-/* ==== ARENA CARD ==== */
-.arena-card {
-    background: rgba(15, 23, 42, 0.75);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 14px; padding: 18px; margin-bottom: 16px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-}
-.arena-header {
-    display: flex; justify-content: space-between; align-items: center;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.95rem; font-weight: 600;
-    color: #cbd5e1;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    padding-bottom: 10px; margin-bottom: 12px;
-}
-
-/* ==== USER BUBBLE ==== */
-.user-bubble-container { display: flex; justify-content: flex-end; margin-bottom: 20px; }
-.user-bubble {
-    background: linear-gradient(135deg, #3b82f6, #6366f1);
-    color: #ffffff;
-    padding: 12px 18px; border-radius: 14px;
-    max-width: 70%;
-    font-size: 0.95rem;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-}
-
-/* ==== LOGO PULSE ANIMASI ==== */
-@keyframes logoPulseScaleColor {
-    0%   { transform: scale(0.85); filter: hue-rotate(0deg)   brightness(1);   box-shadow: 0 0 10px rgba(129, 140, 248, 0.4); }
-    50%  { transform: scale(1.15); filter: hue-rotate(90deg)  brightness(1.2); box-shadow: 0 0 25px rgba(236, 72, 153, 0.8); }
-    100% { transform: scale(0.85); filter: hue-rotate(180deg) brightness(1);   box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
-}
-.animated-loader-logo {
-    width: 36px; height: 36px; border-radius: 10px; object-fit: cover;
-    border: 2px solid rgba(129, 140, 248, 0.6);
-    animation: logoPulseScaleColor 4s infinite ease-in-out;
-    flex-shrink: 0;
-}
-
-/* ==== TERMINAL-STYLE LOADER (SEQUENTIAL 8 FASE) ==== */
-@keyframes phase1_glow {
-    0%        { box-shadow: 0 0 12px rgba(56, 189, 248, 0.25); border-color: rgba(56, 189, 248, 0.35); }
-    6.25%     { box-shadow: 0 0 32px rgba(129, 140, 248, 0.9);  border-color: rgba(129, 140, 248, 0.95); }
-    12.5%     { box-shadow: 0 0 12px rgba(56, 189, 248, 0.25); border-color: rgba(56, 189, 248, 0.35); }
-    12.51%, 100% { box-shadow: 0 0 12px rgba(56, 189, 248, 0.25); border-color: rgba(56, 189, 248, 0.35); }
-}
-@keyframes phase2_logoPulse {
-    0%, 12.5%    { transform: scale(0.85); filter: hue-rotate(0deg)   brightness(1);   box-shadow: 0 0 10px rgba(129, 140, 248, 0.4); border-color: rgba(129, 140, 248, 0.6); }
-    18.75%       { transform: scale(1.20); filter: hue-rotate(90deg)  brightness(1.2); box-shadow: 0 0 28px rgba(236, 72, 153, 0.9); border-color: rgba(236, 72, 153, 0.9); }
-    25%          { transform: scale(0.85); filter: hue-rotate(180deg) brightness(1);   box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); border-color: rgba(129, 140, 248, 0.6); }
-    25.01%, 100% { transform: scale(0.85); filter: hue-rotate(180deg) brightness(1);   box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); border-color: rgba(129, 140, 248, 0.6); }
-}
-@keyframes phase3_tokenWipe {
-    0%, 25%      { clip-path: inset(0 100% 0 0); opacity: 0; }
-    25.01%       { clip-path: inset(0 100% 0 0); opacity: 1; }
-    37.5%        { clip-path: inset(0 0 0 0);    opacity: 1; }
-    37.51%, 100% { clip-path: inset(0 0 0 0);    opacity: 1; }
-}
-@keyframes phase4_caretBlink {
-    0%, 37.5% { opacity: 0; }
-    39%       { opacity: 1; }
-    41%       { opacity: 0; }
-    43%       { opacity: 1; }
-    45%       { opacity: 0; }
-    47%       { opacity: 1; }
-    49%       { opacity: 0; }
-    50%, 100% { opacity: 0; }
-}
-@keyframes phase5_num0 { 0%, 50.00% { opacity: 0; } 50.01% { opacity: 1; } 51.78% { opacity: 1; } 51.79%, 100% { opacity: 0; } }
-@keyframes phase5_num1 { 0%, 51.78% { opacity: 0; } 51.79% { opacity: 1; } 53.57% { opacity: 1; } 53.58%, 100% { opacity: 0; } }
-@keyframes phase5_num2 { 0%, 53.57% { opacity: 0; } 53.58% { opacity: 1; } 55.35% { opacity: 1; } 55.36%, 100% { opacity: 0; } }
-@keyframes phase5_num3 { 0%, 55.35% { opacity: 0; } 55.36% { opacity: 1; } 57.14% { opacity: 1; } 57.15%, 100% { opacity: 0; } }
-@keyframes phase5_num4 { 0%, 57.14% { opacity: 0; } 57.15% { opacity: 1; } 58.92% { opacity: 1; } 58.93%, 100% { opacity: 0; } }
-@keyframes phase5_num5 { 0%, 58.92% { opacity: 0; } 58.93% { opacity: 1; } 60.71% { opacity: 1; } 60.72%, 100% { opacity: 0; } }
-@keyframes phase5_num6 { 0%, 60.71% { opacity: 0; } 60.72% { opacity: 1; } 62.50% { opacity: 1; } 62.51%, 100% { opacity: 0; } }
-@keyframes phase6_paramPulse {
-    0%, 62.5%    { color: #38bdf8; }
-    68.75%       { color: #818cf8; }
-    75%          { color: #38bdf8; }
-    75.01%, 100% { color: #38bdf8; }
-}
-@keyframes phase7_progressSlide {
-    0%, 75%      { transform: translateX(-100%); }
-    87.5%        { transform: translateX(100%); }
-    87.51%, 100% { transform: translateX(100%); }
-}
-@keyframes phase8_deltaFlicker {
-    0%, 87.5% { opacity: 1; filter: blur(0px); }
-    89%       { opacity: 0.3; filter: blur(1px); }
-    89.5%     { opacity: 1; filter: blur(0px); }
-    92%       { opacity: 0.5; filter: blur(0.5px); }
-    92.5%     { opacity: 1; filter: blur(0px); }
-    95%       { opacity: 0.4; filter: blur(0.8px); }
-    95.5%     { opacity: 1; filter: blur(0px); }
-    98%       { opacity: 0.3; filter: blur(1px); }
-    98.5%     { opacity: 1; filter: blur(0px); }
-    100%      { opacity: 1; filter: blur(0px); }
-}
-
-/* Card utama */
-.terminal-card {
-    display: flex; align-items: center; gap: 12px;
-    background: rgba(8, 12, 24, 0.82);
-    backdrop-filter: blur(14px);
-    border: 1px solid rgba(56, 189, 248, 0.35);
-    border-radius: 14px;
-    padding: 10px 14px; margin: 6px 0;
-    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-    font-size: 0.85rem;
-    color: #cbd5e1;
-    animation: phase1_glow 56s linear infinite;
-    overflow: hidden;
-}
-.terminal-card .term-logo {
-    width: 32px; height: 32px; border-radius: 9px; object-fit: cover;
-    border: 2px solid rgba(129, 140, 248, 0.6);
-    animation: phase2_logoPulse 56s linear infinite;
-    flex-shrink: 0;
-}
-.terminal-card .term-body {
-    display: flex; flex-direction: column; gap: 4px;
-    flex: 1; min-width: 0;
-}
-.terminal-card .term-line {
-    display: flex; align-items: center; gap: 6px;
-    white-space: nowrap; overflow: hidden;
-}
-.terminal-card .term-prefix { color: #38bdf8; font-weight: 600; }
-.terminal-card .term-msg    { color: #e2e8f0; }
-.terminal-card .term-dots span {
-    display: inline-block; opacity: 0.4; font-weight: 700;
-}
-
-.term-token-wrap {
-    position: relative; display: inline-block;
-    color: #f0abfc; font-weight: 600;
-    overflow: hidden; vertical-align: bottom;
-    padding-right: 9px;
-    animation: phase3_tokenWipe 56s linear infinite;
-}
-.term-token-wrap .term-caret {
-    position: absolute; right: 0; top: 0; bottom: 0;
-    width: 7px; background: #38bdf8;
-    opacity: 0;
-    animation: phase4_caretBlink 56s linear infinite;
-}
-.term-token-char { display: inline-block; }
-
-.term-params {
-    display: flex; align-items: center; gap: 14px;
-    font-size: 0.78rem; color: #94a3b8;
-    flex-wrap: wrap;
-}
-.term-param {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 2px 8px;
-    background: rgba(56, 189, 248, 0.08);
-    border: 1px solid rgba(56, 189, 248, 0.2);
-    border-radius: 6px;
-}
-.term-param .term-key   { color: #94a3b8; }
-.term-param .term-delta {
-    animation: phase8_deltaFlicker 56s linear infinite;
-    color: #38bdf8; font-weight: 700;
-}
-.term-param .term-param-pulse {
-    animation: phase6_paramPulse 56s linear infinite;
-    font-weight: 600;
-}
-
-.term-delta-stack {
-    position: relative; display: inline-block;
-    min-width: 22px; text-align: right;
-    height: 1em; vertical-align: bottom;
-}
-.term-delta-num          { position: absolute; right: 0; top: 0; opacity: 0; }
-.term-delta-num-0        { animation: phase5_num0 56s linear infinite; }
-.term-delta-num-1        { animation: phase5_num1 56s linear infinite; }
-.term-delta-num-2        { animation: phase5_num2 56s linear infinite; }
-.term-delta-num-3        { animation: phase5_num3 56s linear infinite; }
-.term-delta-num-4        { animation: phase5_num4 56s linear infinite; }
-.term-delta-num-5        { animation: phase5_num5 56s linear infinite; }
-.term-delta-num-6        { animation: phase5_num6 56s linear infinite; }
-
-.term-progress {
-    position: relative;
-    height: 3px;
-    background: rgba(56, 189, 248, 0.12);
-    border-radius: 999px;
-    overflow: hidden;
-    margin-top: 6px;
-}
-.term-progress::after {
-    content: "";
-    position: absolute;
-    top: 0; bottom: 0; left: 0;
-    width: 50%;
-    background: linear-gradient(90deg, transparent, #38bdf8, #818cf8, transparent);
-    border-radius: 999px;
-    animation: phase7_progressSlide 56s linear infinite;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ============================================================
-# 4. FUNGSI-FUNGSI LOADER
-# ============================================================
-LOGO_URL = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop"
-
-def get_logo_loader_html(text="Yuki sedang merangkai kode..."):
-    """Loader kecil ala splash/Home lama."""
-    return f"""
-        <div class="thinking-card">
-            <div class="logo-loader-container" style="padding:0;">
-                <img src="{LOGO_URL}" class="animated-loader-logo" alt="Loading Logo">
-            </div>
-            <span class="loader-label">{text}<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></span>
-        </div>
-    """
-
-def _build_terminal_token(token_text):
-    """Render token sebagai deretan span inline."""
-    return "".join(f'<span class="term-token-char">{ch}</span>' for ch in token_text)
-
-def _build_terminal_delta():
-    """7 angka Delta, masing-masing di-trigger via @keyframes phase5_numN di Fase 5."""
-    nums = [7, 14, 21, 28, 35, 42, 49]
-    return "".join(
-        f'<span class="term-delta-num term-delta-num-{idx}">{n}</span>'
-        for idx, n in enumerate(nums)
-    )
-
-def get_terminal_loader_html(text="Yuki sedang berpikir", token="..."):
-    """Loader terminal-style yang profesional dan modern."""
-    token_chars = _build_terminal_token(token)
-    
-    return f"""
-        <div class="professional-loader">
-            <div class="loader-header">
-                <div class="loader-logo-container">
-                    <img src="{LOGO_URL}" class="loader-logo" alt="Yuki">
-                    <span class="loader-status-dot"></span>
-                </div>
-                <div class="loader-info">
-                    <span class="loader-title">Yuki AI</span>
-                    <span class="loader-subtitle">Processing Request</span>
-                </div>
-            </div>
+# ---------------------------------------------------------------------------
+# CSS & Styling (Dark Obsidian Glassmorphism)
+# ---------------------------------------------------------------------------
+
+def set_ui_style() -> None:
+    st.markdown(
+        """
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Orbitron:wght@500;600;700;800;900&display=swap');
+
+        :root {
+            /* Palette Dark Obsidian Glass */
+            --bg-base: #080a10;
+            --bg-darker: #05060a;
+            --surface-glass: rgba(18, 22, 34, 0.72);
+            --surface-glass-hover: rgba(28, 34, 52, 0.85);
+            --surface-glass-active: rgba(36, 44, 68, 0.95);
             
-            <div class="loader-body">
-                <div class="loader-message">
-                    <span class="loader-icon">⚡</span>
-                    <span class="loader-text">{text}</span>
-                    <span class="loader-dots"><span>.</span><span>.</span><span>.</span></span>
-                </div>
-                
-                <div class="loader-progress-container">
-                    <div class="loader-progress-bar"></div>
-                </div>
-                
-                <div class="loader-metrics">
-                    <div class="metric">
-                        <span class="metric-label">Status</span>
-                        <span class="metric-value metric-active">Computing</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Tokens</span>
-                        <span class="metric-value token-stream">[{token_chars}]</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Engine</span>
-                        <span class="metric-value">Neural v2.6</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    """
+            /* Glassmorphism Borders & Highlights */
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --border-glass-bright: rgba(255, 255, 255, 0.15);
+            --border-indigo: rgba(99, 102, 241, 0.35);
+            --border-indigo-glow: rgba(99, 102, 241, 0.65);
+            --border-cyan: rgba(56, 189, 248, 0.35);
+            
+            /* Accent & Glow Colors */
+            --indigo: #6366f1;
+            --indigo-light: #818cf8;
+            --violet: #8b5cf6;
+            --violet-light: #a78bfa;
+            --cyan: #06b6d4;
+            --cyan-light: #38bdf8;
+            --pink: #ec4899;
+            --pink-light: #f472b6;
+            --emerald: #10b981;
+            --emerald-light: #34d399;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            
+            /* Text & Typography */
+            --text-main: #f8fafc;
+            --text-sub: #cbd5e1;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
 
-def stream_response(text):
-    """Helper: render teks streaming kata per kata."""
-    placeholder = st.empty()
-    streamed = ""
-    for word in text.split(" "):
-        streamed += word + " "
-        placeholder.markdown(streamed)
-        time.sleep(0.015)
-
-# ============================================================
-# 5. SESSION STATE AWAL
-# ============================================================
-if "has_entered"  not in st.session_state: st.session_state["has_entered"]  = False
-if "current_page" not in st.session_state: st.session_state["current_page"] = "🏠 Home Dashboard"
-
-# ============================================================
-# 6. HALAMAN SPLASH INTRO (PAKAI LOGO GAMBAR)
-# ============================================================
-if not st.session_state["has_entered"]:
-    st.markdown("""
-    <style>
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
-        .stApp {
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            /* Animations */
+            --spin: 0deg;
         }
-        div.stButton > button {
-            width: 100%;
-            padding: 14px;
-            font-size: 18px;
+
+        /* Reset & Global */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html, body, [data-testid="stAppViewContainer"], .stApp {
+            background-color: var(--bg-base) !important;
+            background-image: 
+                radial-gradient(at 15% 15%, rgba(99, 102, 241, 0.14) 0px, transparent 50%),
+                radial-gradient(at 85% 20%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 85%, rgba(56, 189, 248, 0.10) 0px, transparent 50%) !important;
+            background-attachment: fixed !important;
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Hide Streamlit default decor */
+        [data-testid="stHeader"],
+        [data-testid="stToolbar"],
+        [data-testid="stDecoration"] { 
+            background: transparent !important; 
+        }
+        #MainMenu, footer { 
+            visibility: hidden; 
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(8, 10, 16, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.25);
+            border-radius: 99px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.45);
+        }
+
+        /* Selection */
+        ::selection {
+            background: rgba(99, 102, 241, 0.35);
+            color: #ffffff;
+        }
+
+        /* Container Layout */
+        [data-testid="stMain"], [data-testid="stMainBlockContainer"] {
+            background: transparent !important;
+            position: relative;
+            z-index: 1;
+        }
+        [data-testid="stMainBlockContainer"] {
+            padding-top: 1rem !important;
+            padding-bottom: 7.5rem !important;
+            max-width: 820px;
+        }
+
+        /* PCB / Ambient Layer */
+        .pcb-layer {
+            position: fixed; inset: 0; z-index: 0;
+            pointer-events: none; overflow: hidden;
+            contain: strict; opacity: 0.32;
+        }
+        .pcb-layer svg { width: 100%; height: 100%; display: block; }
+        .pcb-tr {
+            fill: none; stroke: rgba(139, 92, 246, 0.45); stroke-width: 1.4;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+        .pcb-tr.alt { stroke: rgba(56, 189, 248, 0.4); }
+        .pcb-glow {
+            fill: none; stroke-linecap: round; stroke-linejoin: round;
+            stroke-width: 2.2; stroke-dasharray: 32 240;
+            animation: traceDraw 10s linear infinite;
+        }
+        .pcb-glow.c { stroke: #38bdf8; filter: drop-shadow(0 0 6px #38bdf8); }
+        .pcb-glow.p { stroke: #818cf8; animation-direction: reverse; animation-duration: 12s; filter: drop-shadow(0 0 6px #818cf8); }
+        .pcb-pad { fill: #080a10; stroke: #818cf8; stroke-width: 1.2; }
+        .pcb-hole { fill: #38bdf8; }
+        .element-container:has(.pcb-layer) {
+            position: fixed !important; inset: 0; height: 0 !important;
+            margin: 0 !important; overflow: visible !important;
+        }
+        @keyframes traceDraw { to { stroke-dashoffset: -272; } }
+
+        /* -------------------------------------------------------------------
+           Header Banner (Obsidian Glass Floating Banner)
+           ------------------------------------------------------------------- */
+        .app-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 12px 18px;
+            margin: 4px 0 22px;
+            background: linear-gradient(135deg, rgba(22, 27, 42, 0.7) 0%, rgba(14, 18, 28, 0.8) 100%);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--border-glass-bright);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        .app-head-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .app-logo {
+            width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center;
+            background: #0d111a;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            font-family: 'Outfit', sans-serif; font-weight: 800; color: #c7d2fe;
+            background-size: cover; background-position: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .app-logo span { color: var(--cyan-light); font-size: .75rem; margin-left: 1px; }
+        .app-head h1 {
+            font-family: 'Outfit', sans-serif !important; font-size: 1.45rem;
             font-weight: 700;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #7c3aed, #6d28d9);
-            color: white;
-            border: none;
-            box-shadow: 0 4px 25px rgba(124, 58, 237, 0.5);
-            transition: all 0.3s ease;
+            margin: 0 !important;
+            background: linear-gradient(135deg, #ffffff 30%, #c7d2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
         }
-        div.stButton > button:hover {
+        .app-head p { 
+            margin: 2px 0 0; 
+            color: var(--text-muted); 
+            font-size: .84rem; 
+            font-weight: 400;
+        }
+        .app-head-status {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.28);
+            border-radius: 99px;
+            color: #6ee7b7;
+            font-size: 0.76rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap;
+        }
+        .app-head-status i {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #34d399;
+            box-shadow: 0 0 8px #34d399;
+            animation: pulseDot 1.6s ease-in-out infinite;
+        }
+
+        /* -------------------------------------------------------------------
+           Chat Thread & Glassmorphism Bubbles
+           ------------------------------------------------------------------- */
+        .wa-thread { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 16px; 
+            margin-bottom: 24px;
+        }
+        .wa-row { 
+            display: flex; 
+            align-items: flex-end; 
+            gap: 10px; 
+            width: 100%; 
+            animation: bubbleFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .wa-row.left { justify-content: flex-start; }
+        .wa-row.right { justify-content: flex-end; }
+        
+        .wa-avatar {
+            width: 38px; height: 38px; border-radius: 50%; flex: 0 0 38px;
+            background-size: cover; background-position: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        .wa-avatar-aira { 
+            border: 2px solid rgba(129, 140, 248, 0.5); 
+            background-color: #121624; 
+            box-shadow: 0 0 14px rgba(99, 102, 241, 0.3);
+        }
+        .wa-avatar-user {
+            display: grid; place-items: center; 
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            border: 2px solid rgba(167, 139, 250, 0.5);
+            box-shadow: 0 0 14px rgba(139, 92, 246, 0.3);
+            font-size: 1.1rem;
+        }
+        .wa-fallback {
+            display: grid; place-items: center; color: #c7d2fe;
+            font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.05rem;
+        }
+        
+        .wa-bubble {
+            max-width: min(78%, 560px); 
+            padding: 13px 17px 14px;
+            line-height: 1.62; 
+            font-size: .94rem; 
+            word-wrap: break-word;
+            position: relative;
+        }
+        
+        /* Assistant Bubble (Obsidian Glass) */
+        .wa-aira {
+            background: linear-gradient(150deg, rgba(22, 27, 42, 0.88) 0%, rgba(14, 18, 28, 0.94) 100%);
+            color: #f1f5f9;
+            border-radius: 4px 18px 18px 18px;
+            border: 1px solid var(--border-glass-bright);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+        
+        /* User Bubble (Gradient Glass) */
+        .wa-user {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.92) 0%, rgba(124, 58, 237, 0.92) 100%);
+            color: #ffffff;
+            border-radius: 18px 4px 18px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+        }
+
+        /* Bubble inner formatting */
+        .wa-bubble strong { color: #ffffff; font-weight: 600; }
+        .wa-bubble code {
+            background: rgba(99, 102, 241, 0.16); 
+            padding: 2px 6px; 
+            border-radius: 6px; 
+            color: #a5b4fc;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88em;
+            border: 1px solid rgba(99, 102, 241, 0.28);
+        }
+        .wa-user code {
+            background: rgba(0, 0, 0, 0.25);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #f3e8ff;
+        }
+        .wa-list {
+            margin: 6px 0 6px 18px;
+            padding: 0;
+        }
+        .wa-list li {
+            margin-bottom: 4px;
+            color: #e2e8f0;
+        }
+        .wa-quote {
+            margin: 8px 0;
+            padding: 6px 12px;
+            border-left: 3px solid var(--indigo-light);
+            background: rgba(99, 102, 241, 0.08);
+            border-radius: 0 8px 8px 0;
+            color: var(--text-sub);
+            font-style: italic;
+        }
+        .wa-h3 {
+            margin: 10px 0 4px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .wa-h4 {
+            margin: 8px 0 4px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.02rem;
+            color: #c7d2fe;
+            font-weight: 600;
+        }
+        .wa-gap {
+            height: 6px;
+        }
+        .wa-code-wrap {
+            margin: 10px 0;
+            background: rgba(7, 9, 15, 0.85);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .code-lang {
+            display: block;
+            padding: 4px 10px;
+            background: rgba(99, 102, 241, 0.12);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            color: #93c5fd;
+            font-size: 0.72rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+        }
+        .wa-code-block {
+            display: block;
+            padding: 10px 12px;
+            margin: 0;
+            overflow-x: auto;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.84rem;
+            line-height: 1.5;
+            background: transparent !important;
+            border: none !important;
+        }
+
+        /* -------------------------------------------------------------------
+           Proses Berpikir (AI Thinking State Component)
+           ------------------------------------------------------------------- */
+        .think {
+            min-width: 250px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .think-head {
+            display: flex; align-items: center; gap: 8px;
+            color: #c7d2fe; font-size: .74rem; font-weight: 700;
+            letter-spacing: .12em;
+            margin-bottom: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .think-orb {
+            width: 9px; height: 9px; border-radius: 50%;
+            background: var(--indigo-light);
+            box-shadow: 0 0 10px var(--indigo-light);
+            animation: pulseDot 1.1s ease-in-out infinite;
+        }
+        .think-now {
+            color: #ffffff; font-size: .94rem;
+            min-height: 1.4em;
+        }
+        .think-now b { 
+            color: var(--cyan-light); 
+            font-weight: 600; 
+            background: rgba(56, 189, 248, 0.12);
+            padding: 1px 6px;
+            border-radius: 6px;
+        }
+        .think-dots::after {
+            content: "";
+            animation: dots 1.2s steps(4, end) infinite;
+        }
+        .think-bar {
+            margin-top: 10px; height: 3px; border-radius: 99px;
+            background: rgba(255, 255, 255, 0.08); overflow: hidden;
+        }
+        .think-bar i {
+            display: block; height: 100%; width: 42%;
+            background: linear-gradient(90deg, #6366f1, #38bdf8, #8b5cf6);
+            border-radius: 99px;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+            animation: barRun 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        .think-log {
+            margin-top: 10px; color: var(--text-muted); 
+            font-size: .76rem; line-height: 1.6;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .think-log .done { color: #6ee7b7; display: flex; align-items: center; gap: 4px; }
+        .think-log .wait { color: #93c5fd; display: flex; align-items: center; gap: 4px; }
+
+        .type-caret {
+            display: inline-block; width: 6px; height: 1em;
+            margin-left: 2px; background: var(--indigo-light); vertical-align: -2px;
+            border-radius: 2px;
+            box-shadow: 0 0 6px var(--indigo-light);
+            animation: blink .7s step-end infinite;
+        }
+
+        /* -------------------------------------------------------------------
+           Chat Input Styling (Fixed Floating Glass Input)
+           ------------------------------------------------------------------- */
+        [data-testid="stBottom"],
+        [data-testid="stBottomBlockContainer"],
+        [data-testid="stChatInputContainer"],
+        .stChatFloatingInputContainer {
+            background: transparent !important; 
+            overflow: visible !important;
+        }
+        
+        [data-testid="stChatInput"] {
+            background: rgba(18, 22, 34, 0.85) !important;
+            backdrop-filter: blur(20px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+            border: 1px solid var(--border-glass-bright) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
+        }
+        [data-testid="stChatInput"]:focus-within {
+            border-color: rgba(99, 102, 241, 0.6) !important;
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.35), 0 10px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+        }
+        [data-testid="stChatInput"] textarea {
+            color: var(--text-main) !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            font-size: 0.94rem !important;
+        }
+        [data-testid="stChatInput"] textarea::placeholder { 
+            color: #64748b !important; 
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+        [data-testid="stChatInput"] button {
+            color: var(--indigo-light) !important;
+            transition: transform 0.2s ease, color 0.2s ease !important;
+        }
+        [data-testid="stChatInput"] button:hover {
+            color: #ffffff !important;
+            transform: scale(1.1) !important;
+        }
+
+        /* -------------------------------------------------------------------
+           Sidebar (Glassmorphism Control Center)
+           ------------------------------------------------------------------- */
+        [data-testid="stSidebar"] {
+            background: rgba(10, 13, 22, 0.88) !important;
+            backdrop-filter: blur(24px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+            border-right: 1px solid var(--border-glass) !important;
+            box-shadow: 4px 0 30px rgba(0, 0, 0, 0.4) !important;
+        }
+        [data-testid="stSidebar"] * { 
+            color: var(--text-main); 
+        }
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { 
+            margin-bottom: .35rem; 
+        }
+        section[data-testid="stSidebar"] > div { 
+            padding-top: .8rem; 
+        }
+
+        .side-hero {
+            position: relative;
+            padding: 18px 16px 16px;
+            margin: 0 0 14px;
+            border-radius: 22px;
+            background: linear-gradient(165deg, rgba(30, 36, 56, 0.7) 0%, rgba(16, 20, 32, 0.85) 100%);
+            border: 1px solid var(--border-glass-bright);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            overflow: hidden;
+        }
+        .side-hero::after {
+            content: "";
+            position: absolute; inset: auto 0 0 0; height: 2px;
+            background: linear-gradient(90deg, transparent, #6366f1, #38bdf8, transparent);
+        }
+        .side-ava-wrap {
+            width: 86px; height: 86px; margin: 0 auto 10px; position: relative;
+        }
+        .side-ava, .ph {
+            width: 86px; height: 86px; border-radius: 50%;
+            background-color: #0f1320; background-size: cover; background-position: center;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.6), 0 0 22px rgba(99, 102, 241, 0.35);
+        }
+        .side-ring {
+            position: absolute; inset: -6px; border-radius: 50%;
+            background: conic-gradient(from var(--spin), #6366f1, #38bdf8, transparent 40%, #8b5cf6, transparent 75%, #6366f1);
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 0);
+            mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 0);
+            animation: spinBorder 4.5s linear infinite;
+            pointer-events: none;
+        }
+        .ph {
+            display: grid; place-items: center;
+            font-family: 'Outfit', sans-serif; color: #c7d2fe; font-weight: 800; font-size: 1.5rem;
+        }
+        .side-name {
+            text-align: center; font-family: 'Outfit', sans-serif;
+            font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; color: #ffffff;
+        }
+        .side-tag {
+            text-align: center; color: var(--text-muted); font-size: .8rem; margin-top: 2px;
+            font-weight: 500;
+        }
+        .side-online {
+            margin: 8px auto 0; width: fit-content;
+            display: flex; align-items: center; gap: 7px;
+            padding: 4px 12px; border-radius: 999px;
+            background: rgba(16, 185, 129, .12);
+            border: 1px solid rgba(52, 211, 153, .35);
+            color: #6ee7b7; font-size: .76rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+        .side-online i {
+            width: 7px; height: 7px; border-radius: 50%; background: #34d399;
+            box-shadow: 0 0 8px #34d399; animation: pulseDot 1.6s ease-in-out infinite;
+        }
+        .side-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;
+        }
+        .tile {
+            padding: 10px 12px 11px; border-radius: 16px;
+            background: rgba(22, 27, 42, 0.65);
+            border: 1px solid var(--border-glass);
+            backdrop-filter: blur(12px);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .tile:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 40px rgba(124, 58, 237, 0.7);
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border-color: var(--border-indigo);
+        }
+        .tile em {
+            display: block; font-style: normal; font-size: .68rem;
+            letter-spacing: .12em; color: var(--text-muted); margin-bottom: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+        .tile b { font-size: .88rem; color: #ffffff; font-weight: 700; font-family: 'Outfit', sans-serif; }
+        .tile.ok b { color: #6ee7b7; }
+        .tile.warn b { color: #fcd34d; }
+        .tile.err b { color: #fca5a5; }
+        .tile.ok { border-color: rgba(52, 211, 153, 0.25); }
+        .tile.warn { border-color: rgba(251,191,36,.3); }
+        .tile.err { border-color: rgba(251,113,133,.35); }
+        
+        .side-panel {
+            padding: 14px; border-radius: 18px; margin-bottom: 12px;
+            background: rgba(14, 18, 28, 0.65);
+            border: 1px solid var(--border-glass);
+            backdrop-filter: blur(12px);
+        }
+        .side-panel-h {
+            font-family: 'JetBrains Mono', monospace; font-size: .72rem;
+            letter-spacing: .14em; color: #c7d2fe; margin-bottom: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .kv {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 6px 0; border-bottom: 1px dashed rgba(255, 255, 255, 0.07);
+            font-size: .84rem;
+        }
+        .kv:last-child { border-bottom: 0; padding-bottom: 0; }
+        .kv span { color: var(--text-muted); }
+        .kv b {
+            color: #ffffff; background: rgba(99, 102, 241, 0.18);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 999px; padding: 2px 9px; font-size: .74rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .side-quote {
+            margin: 0 0 12px; padding: 11px 13px; border-radius: 14px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(56, 189, 248, 0.08) 100%);
+            border-left: 3px solid var(--indigo-light);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-left-width: 3px;
+            color: #e2e8f0; font-size: .8rem; line-height: 1.48;
+        }
+
+        /* Sidebar Buttons */
+        [data-testid="stSidebar"] .stButton > button {
+            background: rgba(22, 27, 42, 0.6) !important;
+            color: var(--text-sub) !important;
+            border: 1px solid var(--border-glass) !important;
+            border-radius: 12px !important;
+            text-align: left !important;
+            font-size: 0.84rem !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            padding: 8px 12px !important;
+            transition: all .2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+        }
+        [data-testid="stSidebar"] .stButton > button:hover {
+            transform: translateY(-2px) !important; 
+            color: #ffffff !important;
+            border-color: var(--border-cyan) !important;
+            background: rgba(30, 38, 58, 0.8) !important;
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.18) !important;
+        }
+
+        /* Generic Buttons & Action Button */
+        .stButton > button {
+            background: rgba(18, 22, 34, 0.8) !important; 
+            color: var(--text-main) !important;
+            border: 1px solid var(--border-glass-bright) !important; 
+            border-radius: 12px !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease !important;
+        }
+        .stButton > button:hover {
+            transform: translateY(-2px) !important; 
+            color: #ffffff !important;
+            border-color: rgba(99, 102, 241, 0.5) !important;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.25) !important;
+        }
+        button[data-testid="baseButton-primary"] {
+            min-height: 54px; 
+            font-family: 'Outfit', sans-serif !important;
+            font-weight: 700 !important;
+            letter-spacing: .25em !important; 
+            font-size: 1.05rem !important;
+            border-radius: 999px !important;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            box-shadow: 0 8px 30px rgba(79, 70, 229, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        button[data-testid="baseButton-primary"]:hover {
+            transform: translateY(-3px) scale(1.02) !important;
+            box-shadow: 0 12px 35px rgba(79, 70, 229, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+        }
+
+        .aira-foot { 
+            text-align: center; 
+            color: var(--text-dim) !important; 
+            font-size: .8rem; 
+            margin-top: 24px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* -------------------------------------------------------------------
+           Splash Screen (Modern AI Gate)
+           ------------------------------------------------------------------- */
+        .splash {
+            position: relative; z-index: 2;
+            min-height: 88vh; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+            overflow: hidden;
+            padding: 20px 0;
+        }
+        .splash-orb {
+            position: absolute; border-radius: 50%; filter: blur(30px);
+            pointer-events: none; z-index: 0;
+        }
+        .splash-orb.a {
+            width: 320px; height: 320px; top: 10%; left: 10%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.28), transparent 68%);
+            animation: orbFloat 8s ease-in-out infinite;
+        }
+        .splash-orb.b {
+            width: 360px; height: 360px; right: 8%; bottom: 12%;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.22), transparent 68%);
+            animation: orbFloat 9.5s ease-in-out infinite reverse;
+        }
+        .splash-card {
+            position: relative; z-index: 3; 
+            width: min(580px, 94vw);
+            padding: 36px 28px 32px;
+            border-radius: 28px;
+            background: linear-gradient(165deg, rgba(22, 27, 42, 0.75) 0%, rgba(12, 16, 26, 0.88) 100%);
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            border: 1px solid var(--border-glass-bright);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+            animation: haloIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .splash-halo {
+            width: 170px; height: 170px; margin: 0 auto 12px; position: relative;
+        }
+        .splash-halo::before {
+            content: ""; position: absolute; inset: 0; border-radius: 50%;
+            background: conic-gradient(from var(--spin), #6366f1, #38bdf8, transparent 40%, #8b5cf6, transparent 80%, #6366f1);
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 0);
+            mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 0);
+            animation: spinBorder 4s linear infinite;
+        }
+        .splash-halo::after {
+            content: ""; position: absolute; inset: 10px; border-radius: 50%;
+            border: 1px dashed rgba(129, 140, 248, 0.35);
+            animation: spinBorder 20s linear infinite reverse;
         }
         .splash-logo {
-            width: 120px;
-            height: 120px;
-            border-radius: 28px;
-            object-fit: cover;
-            box-shadow: 0 0 50px rgba(129, 140, 248, 0.5);
-            border: 2px solid rgba(129, 140, 248, 0.4);
-            animation: pulseLogo 2.5s ease-in-out infinite;
-            margin-bottom: 20px;
+            position: absolute; inset: 0; display: grid; place-items: center;
+            font-family: 'Outfit', sans-serif; font-weight: 800; line-height: .85;
+            font-size: 2.8rem; color: #ffffff; letter-spacing: -.03em;
+            text-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+            animation: logoPop 1.15s cubic-bezier(.16,1,.3,1) both;
         }
-        @keyframes pulseLogo {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(129, 140, 248, 0.4); }
-            50% { transform: scale(1.05); box-shadow: 0 0 70px rgba(236, 72, 153, 0.6); }
+        .splash-logo span { color: var(--cyan-light); font-size: .45em; margin-left: 2px; }
+        .splash-logo-img {
+            position: absolute; inset: 20px; border-radius: 50%;
+            background: #080a10 center/contain no-repeat;
+            box-shadow: 0 0 28px rgba(99, 102, 241, 0.35);
+            animation: logoPop 1.15s cubic-bezier(.16,1,.3,1) both;
+            z-index: 2;
         }
-    </style>
-    """, unsafe_allow_html=True)
+        .splash-brand {
+            margin-top: 10px; 
+            letter-spacing: .35em; 
+            font-size: .8rem; 
+            color: #c7d2fe;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+        }
+        .splash-hello {
+            margin: 14px auto 0; max-width: 460px; color: var(--text-main);
+            font-size: 1.12rem; line-height: 1.6;
+            font-weight: 400;
+        }
+        .splash-hello strong {
+            color: #ffffff;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff, #c7d2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .boot {
+            width: min(440px, 90vw); margin: 18px auto 0; text-align: left;
+            font-size: .78rem; color: var(--text-muted); line-height: 1.7;
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(8, 10, 16, 0.6);
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .boot div {
+            opacity: 0; transform: translateY(6px);
+            animation: bootLine .45s ease forwards;
+        }
+        .boot div:nth-child(1) { animation-delay: .2s; }
+        .boot div:nth-child(2) { animation-delay: .45s; }
+        .boot div:nth-child(3) { animation-delay: .7s; }
+        .boot div:nth-child(4) { animation-delay: .95s; }
+        .boot b { color: #6ee7b7; }
+        .splash-hint {
+            margin-top: 12px; color: var(--text-dim); font-size: .76rem;
+            letter-spacing: .18em; font-family: 'JetBrains Mono', monospace;
+        }
+        .splash-miss {
+            margin-top: 8px; color: #fca5a5; font-size: .72rem; opacity: .85;
+        }
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+        /* -------------------------------------------------------------------
+           Keyframe Animations
+           ------------------------------------------------------------------- */
+        @keyframes spinBorder { to { --spin: 360deg; } }
+        @keyframes blink { 50% { opacity: 0; } }
+        @keyframes pulseDot { 50% { opacity: .35; transform: scale(.8); } }
+        @keyframes dots {
+            0%   { content: ""; }
+            25%  { content: "."; }
+            50%  { content: ".."; }
+            75%  { content: "..."; }
+        }
+        @keyframes barRun {
+            0%   { transform: translateX(-120%); }
+            100% { transform: translateX(260%); }
+        }
+        @keyframes orbFloat {
+            0%,100% { transform: translate(0,0); }
+            50% { transform: translate(16px,-14px); }
+        }
+        @keyframes haloIn {
+            from { opacity: 0; transform: scale(.92) translateY(12px); }
+            to { opacity: 1; transform: none; }
+        }
+        @keyframes logoPop {
+            from { opacity: 0; transform: scale(.5); filter: blur(6px); }
+            to { opacity: 1; transform: none; filter: none; }
+        }
+        @keyframes bootLine { to { opacity: 1; transform: none; } }
+        @keyframes bubbleFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        /* -------------------------------------------------------------------
+           Responsive Adjustments (Mobile & Tablet)
+           ------------------------------------------------------------------- */
+        @media (max-width: 640px) {
+            [data-testid="stMainBlockContainer"] {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+                padding-bottom: 6.5rem !important;
+            }
+            .app-head {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 12px 14px;
+            }
+            .app-head-status {
+                align-self: flex-start;
+            }
+            .wa-bubble {
+                max-width: 88%;
+                font-size: 0.91rem;
+                padding: 11px 14px;
+            }
+            .splash-card {
+                padding: 26px 18px 24px;
+            }
+            .splash-halo {
+                width: 140px;
+                height: 140px;
+            }
+            .splash-logo {
+                font-size: 2.3rem;
+            }
+            .boot {
+                font-size: 0.72rem;
+                padding: 10px 12px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .pcb-glow, [data-testid="stChatInput"]::before,
+            .splash-halo::before, .side-ring, .think-bar i, .think-dots::after {
+                animation: none !important;
+            }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ---------------------------------------------------------------------------
+# PCB
+# ---------------------------------------------------------------------------
+
+def _pcb_pts(x: float, y: float, spec: str) -> List[Tuple[float, float]]:
+    pts = [(x, y)]
+    tok = spec.split()
+    i = 0
+    while i < len(tok):
+        op, val = tok[i], float(tok[i + 1])
+        i += 2
+        if op == "H":
+            x += val
+        elif op == "V":
+            y += val
+        elif op == "SE":
+            x += val
+            y += val
+        elif op == "NE":
+            x += val
+            y -= val
+        elif op == "SW":
+            x -= val
+            y += val
+        elif op == "NW":
+            x -= val
+            y -= val
+        pts.append((x, y))
+    return pts
+
+
+def _d(x: float, y: float, spec: str) -> str:
+    pts = _pcb_pts(x, y, spec)
+    return "M " + " L ".join(f"{px:.0f} {py:.0f}" for px, py in pts)
+
+
+_PCB_SPECS = [
+    (-20, 28, "H 680"), (-20, 42, "H 540"), (-20, 56, "H 760"),
+    (-20, 70, "H 420 SE 26 H 160"), (-20, 84, "H 820"), (-20, 98, "H 380"),
+    (-20, 112, "H 600 V 32 H 140"), (-20, 126, "H 490"), (-20, 140, "H 700"),
+    (-20, 154, "H 330 SE 34 H 200"), (-20, 168, "H 640"), (-20, 182, "H 450"),
+    (-20, 196, "H 790"), (-20, 210, "H 290 V 46 H 240"), (-20, 224, "H 570"),
+    (-20, 238, "H 440 SE 22 H 80"), (-20, 252, "H 680"), (-20, 266, "H 360"),
+    (-20, 280, "H 620 V -36 H 110"), (-20, 294, "H 500"),
+    (420, 70, "V 86 SE 36 H 70"), (600, 144, "V 66 SW 28 V 36"),
+    (700, 196, "SE 46 H 130 V 32"), (290, 256, "V 76 SE 42 H 90"),
+    (110, 336, "H 250 SE 54 H 170 NE 36 H 200"),
+    (70, 366, "H 190 SE 74 V 46 H 150"),
+    (190, 406, "H 320 NE 32 H 80 SE 46 H 120"),
+    (30, 446, "H 170 V 66 H 220 SE 28 H 70"),
+    (510, 356, "H 190 V 84 H 150 NE 40 H 60"),
+    (690, 326, "SE 64 H 170 V 36 H 80"),
+    (850, 296, "H 150 SE 32 H 190"),
+    (930, 376, "H 210 V 56 SE 36 H 70"),
+    (390, 496, "H 270 SE 50 H 180 V 28"),
+    (150, 536, "H 200 NE 36 H 140 SE 64 H 90"),
+    (610, 476, "V 76 H 130 SE 32 H 190"),
+    (1610, 856, "H -210 NW 44 H -130 SW 32 H -170"),
+    (1610, 834, "H -150 NW 64 H -80 SW 26 H -120"),
+    (1610, 812, "H -290 NE 36 H -110 NW 46 H -70"),
+    (1610, 790, "H -100 SW 56 H -190 NW 30 H -80"),
+    (1610, 768, "H -240 NW 28 H -150"),
+    (1610, 746, "H -70 NW 84 H -130 SE 36 H -90"),
+    (1610, 724, "H -180 SW 40 H -60 NW 54 H -140"),
+    (1610, 702, "H -320"),
+    (1570, 680, "H -110 NW 50 H -190 V -36 H -70"),
+    (1570, 658, "H -250 SE 28 H -80"),
+    (1530, 636, "H -80 SW 64 H -170 NE 32 H -60"),
+    (1490, 596, "H -150 NW 36 V -46 H -110"),
+    (1470, 556, "H -210 SE 44 H -70 NW 26"),
+    (1450, 516, "H -90 NE 54 H -160 SW 36 H -50"),
+    (1510, 476, "H -230 V 32 H -80"),
+    (1550, 436, "H -170 SE 46 H -130"),
+    (1590, 396, "H -290 NW 26 H -70"),
+    (1590, 356, "H -130 SW 54 H -190"),
+    (1570, 316, "H -80 NE 40 H -220 SE 32"),
+    (1170, 776, "NW 64 H -150 NE 36 H -80"),
+    (1090, 696, "H -120 SW 46 H -70 V 36"),
+    (1010, 616, "NE 32 H -140 SE 54 H -60"),
+    (970, 816, "H -190 NW 44 V -26 H -80"),
+    (870, 756, "SW 36 H -110 NE 64 H -50"),
+    (810, 676, "H -80 V 76 H -130 SE 26"),
+    (-10, 776, "H 230 SE 36 H 170 V 28 H 80"),
+    (-10, 806, "H 310 NE 26 H 130"),
+    (-10, 836, "H 170 SE 46 H 250 NW 18 H 70"),
+    (-10, 866, "H 400"),
+    (70, 716, "H 150 V 46 SE 32 H 110"),
+    (190, 676, "SE 54 H 140 V 36 H 60"),
+    (350, 736, "H 190 NE 36 H 80 SE 26"),
+    (890, 36, "H 210 SE 32 H 150"),
+    (970, 66, "H 170 V 40 H 130"),
+    (1030, 106, "H 250 NE 22 H 70"),
+    (1110, 146, "H 130 SE 46 H 180"),
+    (1190, 196, "H 170 V -32 H 110"),
+    (1270, 246, "SE 36 H 150 V 26"),
+    (890, 176, "H 150 V 64 SE 26 H 70"),
+    (750, 86, "H 120 SE 42 H 60"),
+]
+
+_PCB_GLOW = [
+    ("c", -20, 56, "H 760"),
+    ("p", 1610, 856, "H -210 NW 44 H -130 SW 32 H -170"),
+    ("c", 110, 336, "H 250 SE 54 H 170 NE 36 H 200"),
+    ("p", 390, 496, "H 270 SE 50 H 180 V 28"),
+]
+
+
+def _build_pcb() -> str:
+    parts = ['<svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">']
+    vias: List[Tuple[int, int]] = []
+    for i, (x, y, spec) in enumerate(_PCB_SPECS):
+        cls = "pcb-tr alt" if i % 3 == 0 else "pcb-tr"
+        parts.append(f'<path class="{cls}" d="{_d(x, y, spec)}"/>')
+        pts = _pcb_pts(x, y, spec)
+        vias.append((int(pts[-1][0]), int(pts[-1][1])))
+    for kind, x, y, spec in _PCB_GLOW:
+        parts.append(f'<path class="pcb-glow {kind}" d="{_d(x, y, spec)}"/>')
+    for vx, vy in vias[::3]:
+        if -20 < vx < 1620 and -20 < vy < 920:
+            parts.append(f'<circle class="pcb-pad" cx="{vx}" cy="{vy}" r="4.2"/>')
+            parts.append(f'<circle class="pcb-hole" cx="{vx}" cy="{vy}" r="1.4"/>')
+    parts.append("</svg>")
+    return "".join(parts)
+
+
+_PCB_SVG = _build_pcb()
+
+
+def render_pcb_layer() -> None:
+    st.markdown(f'<div class="pcb-layer" aria-hidden="true">{_PCB_SVG}</div>', unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------------------------
+# Konstanta
+# ---------------------------------------------------------------------------
+
+APP_TITLE = "Aira - Asisten AI-Chatbot By Ampera"
+APP_TAGLINE = "Asisten AI-Chatbot By Ampera · Chatbot AI pintar siap bantu di perangkatmu"
+WELCOME_TEXT = (
+    "Hai, aku **Aira**. Asisten AI-Chatbot By Ampera · Chatbot AI pintar siap bantu—mulai dari "
+    "error Android, APK bandel, RAM mepet, sampai pertanyaan sehari-hari.\n\n"
+    "Tulis aja keluhannya, atau pilih salah satu contoh di sidebar. Percakapan "
+    "kita jalan privat di perangkatmu."
+)
+IDENTITY_REPLY = (
+    "Aku **Aira**. Asisten AI-Chatbot Buatan Ampera.ai, santai, dan siap bantu. "
+    "Aku dirancang untuk berjalan privat di perangkatmu.\n\n"
+    "Bisa aku bantu urusan teknis (terutama Android), penjelasan sistem, "
+    "atau pertanyaan umum. Panggil aja Aira kapan pun kamu butuh!"
+)
+EXAMPLE_PROMPTS = [
+    "Siapa kamu?",
+    "APK gagal install, Package Installer error",
+    "RAM penuh, game keluar sendiri",
+    "Bedanya RAM sama storage apa?",
+]
+_TECH_HINTS = {
+    "apk", "xapk", "apkm", "apks", "installer", "install", "instal",
+    "package", "parse", "error", "ram", "storage", "memori", "memory",
+    "lag", "lemot", "fps", "game", "android", "ios", "windows", "os",
+    "root", "rom", "update", "cache", "data", "battery", "panas",
+    "overheat", "throttle", "signature", "unknown", "sources", "gguf",
+    "model", "bug", "crash", "force", "close", "hp", "gpu", "cpu",
+}
+_GREETING_EXACT = {
+    "halo", "hai", "hay", "hi", "hello", "hey", "yo", "helo",
+    "halo aira", "hai aira", "hay aira", "hi aira", "hello aira", "hey aira",
+    "halo kak", "hai kak", "halo dong", "hai dong",
+    "selamat pagi", "selamat siang", "selamat sore", "selamat malam",
+    "pagi", "siang", "sore", "malam",
+    "pagi aira", "siang aira", "sore aira", "malam aira",
+    "selamat pagi aira", "selamat siang aira", "selamat sore aira",
+    "selamat malam aira",
+    "apa kabar", "apa kabar aira", "apakabar", "gimana kabar",
+    "gimana kabarnya", "how are you", "halo halo", "hai hai",
+}
+_IDENTITY_RE = re.compile(
+    r"^(?:"
+    r"siapa\s+(?:kamu|kau|anda|namamu|nama\s+kamu|nama\s+anda|nama\s+mu)"
+    r"|kamu\s+siapa|kau\s+siapa|namamu\s+siapa|nama\s+kamu\s+siapa|nama\s+anda\s+siapa"
+    r"|kamu\s+ini\s+siapa|kamu\s+siapa\s+(?:sih|ya|dong)"
+    r"|kenalan(?:\s+(?:dong|yuk|yu[k]|dulu))?"
+    r"|perkenalkan(?:\s+diri(?:mu)?)?|perkenalan(?:\s+dong)?"
+    r"|aira\s+itu\s+siapa|kamu\s+(?:robot|ai|asisten)(?:\s+ya)?|kamu\s+aira"
+    r")$",
+    re.IGNORECASE,
+)
+_PUNCT_RE = re.compile(r"[\"'`~!@#$%^&*()_+\-={}\[\]|\\:;<>?,./]+")
+_SPACE_RE = re.compile(r"\s+")
+MAX_HISTORY_FOR_LLM = 12
+_IMG_EXT = (".jpg", ".jpeg", ".png", ".webp")
+
+THINK_STAGES_RAG = [
+    ("Mencerna pertanyaan", "membaca input"),
+    ("Mengurai konteks", "memetakan makna"),
+    ("Menelusuri memori", "scan knowledge"),
+    ("Berpikir", "menyusun nalar"),
+    ("Menyusun jawaban", "menulis balasan"),
+]
+THINK_STAGES_FAST = [
+    ("Mencerna sapaan", "mengenali pola"),
+    ("Berpikir", "memilih nada"),
+    ("Menyusun jawaban", "menulis balasan"),
+]
+
+
+def _normalize_intent_text(text: str) -> str:
+    cleaned = (text or "").lower().strip()
+    cleaned = _PUNCT_RE.sub(" ", cleaned)
+    return _SPACE_RE.sub(" ", cleaned).strip()
+
+
+def _daypart_label(now: Optional[datetime] = None) -> str:
+    hour = (now or datetime.now()).hour
+    if 4 <= hour < 11:
+        return "pagi"
+    if 11 <= hour < 15:
+        return "siang"
+    if 15 <= hour < 18:
+        return "sore"
+    return "malam"
+
+
+def _greeting_reply(normalized: str) -> str:
+    waktu = _daypart_label()
+    if "pagi" in normalized:
+        return "Selamat pagi! Aku Aira. Semoga harinya lancar. Ada yang bisa aku bantu pagi ini?"
+    if "siang" in normalized:
+        return "Selamat siang! Aku Aira. Mau dibantu apa hari ini?"
+    if "sore" in normalized:
+        return "Selamat sore! Aku Aira. Ada yang mau ditanyakan?"
+    if "malam" in normalized:
+        return "Selamat malam! Aku Aira. Masih semangat—mau dibantu apa?"
+    if "kabar" in normalized:
+        return "Kabar baik! Aira sehat dan siap sedia bantu kamu. Ada kendala sistem atau mau tanya-tanya?"
+    return f"Halo, selamat {waktu}! Aku Aira, asisten AI-Chatbot dari Ampera. Mau tanya sesuatu atau ngobrol santai?"
+
+
+def detect_intent_bypass(user_input: str) -> Optional[str]:
+    text = _normalize_intent_text(user_input)
+    if not text:
+        return None
+    words = text.split()
+    if len(words) > 8:
+        return None
+    if any(w in _TECH_HINTS for w in words):
+        return None
+    if text in _GREETING_EXACT:
+        return _greeting_reply(text)
+    if _IDENTITY_RE.match(text):
+        return IDENTITY_REPLY
+    return None
+
+
+def get_last_bot_response(messages: List[Dict[str, str]]) -> str:
+    for item in reversed(messages):
+        if item.get("role") == "assistant":
+            return str(item.get("content") or "")
+    return ""
+
+
+def history_for_llm(messages: List[Dict[str, str]]) -> List[Dict[str, str]]:
+    trimmed = [m for m in messages if m.get("role") in {"user", "assistant"}]
+    if trimmed and trimmed[-1].get("role") == "user":
+        trimmed = trimmed[:-1]
+    if len(trimmed) > MAX_HISTORY_FOR_LLM:
+        trimmed = trimmed[-MAX_HISTORY_FOR_LLM:]
+    return trimmed
+
+
+# ---------------------------------------------------------------------------
+# Gambar & Media
+# ---------------------------------------------------------------------------
+
+def _asset_roots() -> List[str]:
+    return [_BASE_DIR, os.path.join(_BASE_DIR, "assets"), os.getcwd()]
+
+
+def _read_image(path: str) -> Dict[str, str]:
+    ext = os.path.splitext(path)[1].lower()
+    mime = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+    }.get(ext, "image/jpeg")
+    with open(path, "rb") as fh:
+        raw = fh.read()
+    return {"mime": mime, "b64": base64.b64encode(raw).decode("ascii"), "path": path}
+
+
+def _scan_image(exact_names: Tuple[str, ...], *needles: str) -> str:
+    needles_l = [n.lower() for n in needles]
+    for root in _asset_roots():
+        if not root or not os.path.isdir(root):
+            continue
+        for name in exact_names:
+            path = os.path.join(root, name)
+            if os.path.isfile(path):
+                return os.path.abspath(path)
+        try:
+            for fn in os.listdir(root):
+                low = fn.lower()
+                if not low.endswith(_IMG_EXT):
+                    continue
+                if all(n in low for n in needles_l):
+                    return os.path.abspath(os.path.join(root, fn))
+        except OSError:
+            pass
+    return ""
+
+
+def find_profile_file() -> str:
+    names = ("aira.jpg", "aira.jpeg", "aira.png", "aira.webp", "Aira.jpg", "Aira.JPG")
+    return _scan_image(names, "aira")
+
+
+def find_logo_file() -> str:
+    names = (
+        "logo ampera.jpg",
+        "logo ampera.jpeg",
+        "logo ampera.png",
+        "logo ampera.webp",
+        "logo_ampera.jpg",
+        "logo_ampera.png",
+        "logo-ampera.jpg",
+        "Logo Ampera.jpg",
+        "logoampera.jpg",
+        "ampera.jpg",
+        "ampera.png",
+    )
+    path = _scan_image(names, "logo", "ampera")
+    return path or _scan_image(names, "ampera")
+
+
+@st.cache_data(show_spinner=False)
+def get_profile_image() -> Dict[str, str]:
+    path = find_profile_file()
+    return _read_image(path) if path else {"mime": "", "b64": "", "path": ""}
+
+
+@st.cache_data(show_spinner=False)
+def get_logo_image() -> Dict[str, str]:
+    path = find_logo_file()
+    return _read_image(path) if path else {"mime": "", "b64": "", "path": ""}
+
+
+def inject_media_css(photo: Dict[str, str], logo: Dict[str, str]) -> None:
+    rules = []
+    if photo.get("b64"):
+        url = f'data:{photo["mime"]};base64,{photo["b64"]}'
+        rules.append(f".wa-avatar-aira,.side-ava{{background-image:url('{url}')!important;}}")
+    if logo.get("b64"):
+        url = f'data:{logo["mime"]};base64,{logo["b64"]}'
+        rules.append(f".splash-logo-img,.app-logo.has-img{{background-image:url('{url}')!important;}}")
+    if rules:
+        st.markdown(f"<style>{''.join(rules)}</style>", unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------------------------
+# Markdown to HTML Formatter (Clean, Rich & Safe)
+# ---------------------------------------------------------------------------
+
+def md_lite(text: str) -> str:
+    if not text:
+        return ""
     
-    with col2:
-        st.markdown(f"""
-            <div style="text-align: center; padding-top: 60px;">
-                <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&h=200&fit=crop" class="splash-logo" alt="Logo">
-                <h1 style="color: white; font-size: 48px; font-weight: 700; margin-bottom: 0; font-family: 'Poppins', sans-serif;">
-                    AMPERA
-                </h1>
-                <h2 style="color: #a78bfa; font-size: 26px; font-weight: 300; margin-top: -8px; font-family: 'Poppins', sans-serif;">
-                    MULTI AI
-                </h2>
-                <p style="color: #94a3b8; font-size: 14px; margin-top: 10px; letter-spacing: 2px;">
-                    Yuki Coding Studio & AI Neural Engine
-                </p>
-                <div style="width: 60px; height: 2px; background: linear-gradient(90deg, transparent, #a78bfa, transparent); margin: 25px auto;"></div>
-            </div>
-        """, unsafe_allow_html=True)
-
-        if st.button("🚀 MASUK", use_container_width=True):
-            st.session_state["has_entered"] = True
-            st.rerun()
-
-        st.markdown("""
-            <div style="text-align: center; margin-top: 50px; color: #4b5563; font-size: 12px;">
-                © 2026 Yuki Coding Studio
-            </div>
-        """, unsafe_allow_html=True)
-
-# ============================================================
-# 7. APLIKASI UTAMA SETELAH MASUK
-# ============================================================
-else:
-    # ==== SIDEBAR ====
-    with st.sidebar:
-        st.markdown("""
-            <div class="logo-container">
-                <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop" class="logo-img" alt="Logo Arena">
-                <div class="logo-text">AMPERA MULTI AI</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-        if st.button("🏠  Home Dashboard", use_container_width=True, key="sidebar_home"):
-            st.session_state["current_page"] = "🏠 Home Dashboard"
-            st.rerun()
-        if st.button("⚔️  Multi Ai", use_container_width=True, key="sidebar_arena"):
-            st.session_state["current_page"] = "⚔️ Multi Ai"
-            st.rerun()
-        if st.button("📊  Leaderboard", use_container_width=True, key="sidebar_leaderboard"):
-            st.session_state["current_page"] = "📊 Leaderboard"
-            st.rerun()
-        if st.button("🔍  Search", use_container_width=True, key="sidebar_search"):
-            st.session_state["current_page"] = "🔍 Search"
-            st.rerun()
-
-        st.markdown('<div class="sidebar-section-header">Notebook</div>', unsafe_allow_html=True)
-        if st.button("➕  Notebook baru", use_container_width=True, key="sidebar_notebook"):
-            st.info("Fitur Notebook baru dipilih!")
-
-        st.markdown('<div class="sidebar-section-header">Yesterday</div>', unsafe_allow_html=True)
-        if st.button("⚡  Python Binary Search", use_container_width=True, key="sidebar_yesterday_python"):
-            st.session_state["current_page"] = "🏠 Home Dashboard"
-            st.session_state["shortcut_prompt"] = "Jelaskan kembali tentang Python Binary Search."
-            st.rerun()
-        if st.button("🛠️  Fix Bug Index Error", use_container_width=True, key="sidebar_yesterday_bug"):
-            st.session_state["current_page"] = "🏠 Home Dashboard"
-            st.session_state["shortcut_prompt"] = "Bagaimana cara mengatasi IndexError di Python?"
-            st.rerun()
-
-    selected_menu = st.session_state["current_page"]
-
-    # ============================================================
-    # 8. HALAMAN 1: HOME DASHBOARD
-    # ============================================================
-    if selected_menu == "🏠 Home Dashboard":
-        if "home_chat_history" not in st.session_state:
-            st.session_state["home_chat_history"] = []
-        if "home_selected_model" not in st.session_state:
-            st.session_state["home_selected_model"] = list(AVAILABLE_MODELS.keys())[0]
-
-        if len(st.session_state["home_chat_history"]) > 0:
-            if st.button("➕ Percakapan Baru", key="new_chat_home"):
-                st.session_state["home_chat_history"] = []
-                st.rerun()
+    code_blocks = []
+    def code_block_sub(match):
+        lang = match.group(1) or ""
+        code = match.group(2)
+        code_blocks.append((lang, code))
+        return f"@@@CODEBLOCK_{len(code_blocks)-1}@@@"
+    
+    processed = re.sub(r"```([a-zA-Z0-9_-]+)?\n?(.*?)```", code_block_sub, text, flags=re.DOTALL)
+    lines = processed.split("\n")
+    out_lines = []
+    in_ul = False
+    in_ol = False
+    
+    for line in lines:
+        stripped = line.strip()
+        
+        if "@@@CODEBLOCK_" in stripped:
+            if in_ul:
+                out_lines.append("</ul>")
+                in_ul = False
+            if in_ol:
+                out_lines.append("</ol>")
+                in_ol = False
+            out_lines.append(stripped)
+            continue
             
-            for msg in st.session_state["home_chat_history"]:
-                if msg["role"] == "user":
-                    st.markdown(f"""
-                        <div class="user-bubble-container">
-                            <div class="user-bubble">{msg["content"]}</div>
-                        </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown(msg["content"])
-                    st.markdown("---")
-        else:
-            st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
-            st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
-
-            st.markdown("<h3>Get started</h3>", unsafe_allow_html=True)
-            gc1, gc2, gc3 = st.columns(3)
-
-            with gc1:
-                if st.button("🌐 **Landing Page**\n\nCreate a modern landing page", use_container_width=True, key="gs_landing"):
-                    st.session_state["shortcut_prompt"] = "Buatkan kode landing page modern menggunakan HTML dan Tailwind CSS."
-                    st.rerun()
-                if st.button("💻 **Design to Code**\n\nUpload an image and convert", use_container_width=True, key="gs_design"):
-                    st.session_state["shortcut_prompt"] = "Bagaimana cara mengubah desain UI menjadi kode program?"
-                    st.rerun()
-            with gc2:
-                if st.button("📊 **Dashboard**\n\nInteractive charts & tables", use_container_width=True, key="gs_dashboard"):
-                    st.session_state["shortcut_prompt"] = "Buatkan kerangka aplikasi dashboard interaktif menggunakan Python Streamlit."
-                    st.rerun()
-                if st.button("📦 **Fullstack App**\n\nCreate templated full-stack app", use_container_width=True, key="gs_fullstack"):
-                    st.session_state["shortcut_prompt"] = "Berikan arsitektur dasar untuk aplikasi web fullstack."
-                    st.rerun()
-            with gc3:
-                if st.button("🎮 **Make a Game**\n\nPlayable browser game", use_container_width=True, key="gs_game"):
-                    st.session_state["shortcut_prompt"] = "Buatkan game sederhana menggunakan HTML5 Canvas dan JavaScript."
-                    st.rerun()
-                if st.button("🏪 **Storefront**\n\nCreate online shop layout", use_container_width=True, key="gs_store"):
-                    st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
-                    st.rerun()
-
-        default_val = st.session_state.pop("shortcut_prompt", "")  
+        ul_match = re.match(r"^[*-]\s+(.+)$", stripped)
+        if ul_match:
+            if in_ol:
+                out_lines.append("</ol>")
+                in_ol = False
+            if not in_ul:
+                out_lines.append("<ul class=\"wa-list\">")
+                in_ul = True
+            content = html.escape(ul_match.group(1))
+            content = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", content)
+            content = re.sub(r"`([^`]+)`", r"<code>\1</code>", content)
+            out_lines.append(f"<li>{content}</li>")
+            continue
+            
+        ol_match = re.match(r"^\d+\.\s+(.+)$", stripped)
+        if ol_match:
+            if in_ul:
+                out_lines.append("</ul>")
+                in_ul = False
+            if not in_ol:
+                out_lines.append("<ol class=\"wa-list\">")
+                in_ol = True
+            content = html.escape(ol_match.group(1))
+            content = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", content)
+            content = re.sub(r"`([^`]+)`", r"<code>\1</code>", content)
+            out_lines.append(f"<li>{content}</li>")
+            continue
+            
+        if in_ul:
+            out_lines.append("</ul>")
+            in_ul = False
+        if in_ol:
+            out_lines.append("</ol>")
+            in_ol = False
+            
+        if not stripped:
+            out_lines.append("<div class=\"wa-gap\"></div>")
+            continue
+            
+        if stripped.startswith("> "):
+            quote_text = html.escape(stripped[2:])
+            quote_text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", quote_text)
+            quote_text = re.sub(r"`([^`]+)`", r"<code>\1</code>", quote_text)
+            out_lines.append(f"<blockquote class=\"wa-quote\">{quote_text}</blockquote>")
+            continue
+            
+        if stripped.startswith("### "):
+            h_text = html.escape(stripped[4:])
+            h_text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", h_text)
+            out_lines.append(f"<h4 class=\"wa-h4\">{h_text}</h4>")
+            continue
+        elif stripped.startswith("## "):
+            h_text = html.escape(stripped[3:])
+            h_text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", h_text)
+            out_lines.append(f"<h3 class=\"wa-h3\">{h_text}</h3>")
+            continue
+            
+        esc = html.escape(line)
+        esc = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", esc)
+        esc = re.sub(r"`([^`]+)`", r"<code>\1</code>", esc)
+        out_lines.append(esc + "<br>")
+    
+    if in_ul:
+        out_lines.append("</ul>")
+    if in_ol:
+        out_lines.append("</ol>")
         
-        # ==== FAB MODEL PICKER + CHAT INPUT ====
-        spacer_col, fab_col = st.columns([12, 1])
-        with fab_col:
-            with st.popover("🧠", use_container_width=True):
-                st.markdown("**✨ Pilih Model AI**")
-                st.caption("⚡ Gratis · 💎 Premium")
-                
-                for label, model_id in AVAILABLE_MODELS.items():
-                    is_active = (label == st.session_state["home_selected_model"])
-                    is_premium = label in PREMIUM_MODELS
-                    
-                    if is_active:
-                        icon = "✅"
-                    elif is_premium:
-                        icon = "💎"
-                    else:
-                        icon = "⚡"
-                    
-                    safe_key = "pick_home_" + model_id.replace("/", "_").replace(".", "_").replace("-", "_")
-                    
-                    if st.button(f"{icon} {label}", key=safe_key, use_container_width=True):
-                        st.session_state["home_selected_model"] = label
-                        st.rerun()
+    result = "\n".join(out_lines)
+    result = re.sub(r"<br>\s*\n?(<ul|<ol|<blockquote|<div class=\"wa-gap\")", r"\n\1", result)
+    result = re.sub(r"(</ul>|</ol>|</blockquote>|</div>)\s*<br>", r"\1", result)
+    result = re.sub(r"<br>$", "", result.strip())
+    
+    for idx, (lang, code) in enumerate(code_blocks):
+        lang_label = f"<span class=\"code-lang\">{html.escape(lang)}</span>" if lang else ""
+        escaped_code = html.escape(code.strip())
+        block_html = f'<div class="wa-code-wrap">{lang_label}<pre class="wa-code-block"><code>{escaped_code}</code></pre></div>'
+        result = result.replace(f"@@@CODEBLOCK_{idx}@@@", block_html)
         
-        # ==== CHAT INPUT ====
-        home_input = st.chat_input("✨ Ask Yuki anything... ✨", key="home_chat")
+    return result
 
-        model_choice_label = st.session_state["home_selected_model"]
-        selected_model_id = AVAILABLE_MODELS[model_choice_label]
-        
-        query_to_process = home_input if home_input else default_val
 
-        if query_to_process:
-            if not groq_key:
-                st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
-            else:
-                st.html(
-                    f'<div class="user-bubble-container"><div class="user-bubble">{query_to_process}</div></div>'
-                )
+def aira_avatar_html(photo: Dict[str, str]) -> str:
+    if photo.get("b64"):
+        return '<div class="wa-avatar wa-avatar-aira" title="Aira"></div>'
+    return '<div class="wa-avatar wa-avatar-aira wa-fallback">A</div>'
 
-                loading_ph = st.empty()
-                short_model_name = model_choice_label.split("—")[0].strip()
-                
-                # Tampilkan loader sekali (animasi CSS yang bekerja)
-                loading_ph.html(
-                    get_terminal_loader_html(
-                        text=f"{short_model_name} sedang berpikir",
-                        token="reasoning",
-                    )
-                )
 
-                # Tunggu 7 detik sambil loader beranimasi
-                time.sleep(7)
+def build_wa_row(role: str, inner_html: str, photo: Dict[str, str]) -> str:
+    if role == "user":
+        return (
+            f'<div class="wa-row right"><div class="wa-bubble wa-user">{inner_html}</div>'
+            f'<div class="wa-avatar wa-avatar-user">😎</div></div>'
+        )
+    return (
+        f'<div class="wa-row left">{aira_avatar_html(photo)}'
+        f'<div class="wa-bubble wa-aira">{inner_html}</div></div>'
+    )
 
-                # Panggil API
-                try:
-                    res_home = client.chat.completions.create(
-                        model=selected_model_id,
-                        messages=[
-                            {"role": "system", "content": YUKI_SYSTEM_PROMPT},
-                            {"role": "user",   "content": query_to_process},
-                        ],
-                    )
-                    response_text = res_home.choices[0].message.content
-                except Exception as e:
-                    response_text = f"❌ Ups, terjadi kesalahan: {e}"
 
-                loading_ph.empty()
+def show_wa(role: str, text: str, photo: Dict[str, str]) -> None:
+    st.markdown(build_wa_row(role, md_lite(text), photo), unsafe_allow_html=True)
 
-                st.session_state["home_chat_history"].append({"role": "user", "content": query_to_process})
-                st.session_state["home_chat_history"].append({"role": "assistant", "content": response_text})
+
+def render_think_html(stage: str, done: List[str], detail: str = "") -> str:
+    logs = "".join(f'<div class="done">✓ {html.escape(item)}</div>' for item in done)
+    logs += f'<div class="wait">› {html.escape(stage)}<span class="think-dots"></span></div>'
+    return (
+        '<div class="think">'
+        '<div class="think-head"><span class="think-orb"></span>AIRA · NEURAL PROCESSING</div>'
+        f'<div class="think-now">sedang <b>{html.escape(stage.lower())}</b></div>'
+        f'<div class="think-log">{logs}</div>'
+        '<div class="think-bar"><i></i></div>'
+        "</div>"
+    )
+
+
+def show_think(
+    box: Any,
+    photo: Dict[str, str],
+    stage: str,
+    done: List[str],
+    hold: float = 0.32,
+) -> None:
+    box.markdown(
+        build_wa_row("assistant", render_think_html(stage, done), photo),
+        unsafe_allow_html=True,
+    )
+    if hold > 0:
+        time.sleep(hold)
+
+
+def stream_reply(box: Any, photo: Dict[str, str], answer: str) -> None:
+    """Tampilkan balasan perlahan dengan efek typewriter yang halus."""
+    text = answer or ""
+    tokens = re.findall(r"\S+\s*", text)
+    if len(tokens) <= 4:
+        box.markdown(build_wa_row("assistant", md_lite(text), photo), unsafe_allow_html=True)
+        return
+
+    step = 2 if len(tokens) < 70 else 4
+    acc = ""
+    for i, tok in enumerate(tokens, 1):
+        acc += tok
+        if i % step == 0 or i == len(tokens):
+            caret = "" if i == len(tokens) else '<span class="type-caret"></span>'
+            box.markdown(
+                build_wa_row("assistant", md_lite(acc) + caret, photo),
+                unsafe_allow_html=True,
+            )
+            if i != len(tokens):
+                time.sleep(0.022 if step == 2 else 0.014)
+
+    box.markdown(build_wa_row("assistant", md_lite(text), photo), unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------------------------
+# Resource & State
+# ---------------------------------------------------------------------------
+
+@st.cache_resource(show_spinner="Menyiapkan Neural Engine Aira...")
+def get_cached_llm() -> Dict[str, Any]:
+    payload: Dict[str, Any] = {"llm": None, "mode": "error", "error": "", "path": DEFAULT_MODEL_PATH}
+    try:
+        llm = load_model(model_path=DEFAULT_MODEL_PATH)
+        payload["llm"] = llm
+        payload["mode"] = "gguf"
+        payload["path"] = getattr(llm, "aira_model_path", DEFAULT_MODEL_PATH)
+        return payload
+    except (ModelNotFoundError, FileNotFoundError, ImportError, RuntimeError) as exc:
+        payload["error"] = str(exc).split("\n")[0]
+        try:
+            mock = load_model_or_mock(model_path=DEFAULT_MODEL_PATH)
+            payload["llm"] = mock
+            payload["mode"] = "mock" if mock is not None else "error"
+            return payload
+        except Exception as exc2:
+            payload["error"] = f"{payload['error']} | fallback gagal: {exc2}"
+            return payload
+    except Exception as exc:
+        payload["error"] = f"{exc.__class__.__name__}: {exc}"
+        return payload
+
+
+@st.cache_data(show_spinner=False)
+def get_kb_status() -> Dict[str, Any]:
+    path = DEFAULT_KB_PATH
+    info: Dict[str, Any] = {"path": path, "exists": os.path.isfile(path), "count": 0, "error": SEARCH_IMPORT_ERROR}
+    if not info["exists"]:
+        return info
+    try:
+        info["count"] = len(load_knowledge(path))
+    except Exception as exc:
+        info["error"] = str(exc)
+    return info
+
+
+def warmup_retriever() -> Tuple[bool, str]:
+    try:
+        from search_engine import get_engine  # type: ignore
+        get_engine()
+        return True, ""
+    except Exception as exc:
+        return False, str(exc)
+
+
+def init_session_state() -> None:
+    if "entered_app" not in st.session_state:
+        st.session_state.entered_app = False
+    if "messages" not in st.session_state:
+        st.session_state.messages = [{"role": "assistant", "content": WELCOME_TEXT}]
+    if "pending_prompt" not in st.session_state:
+        st.session_state.pending_prompt = ""
+    if "last_debug" not in st.session_state:
+        st.session_state.last_debug = {"bypass": False, "resolved_query": "", "context": ""}
+
+
+def ensure_runtime_ready() -> None:
+    if "retriever_ready" not in st.session_state:
+        ok, err = warmup_retriever()
+        st.session_state.retriever_ready = ok
+        st.session_state.retriever_error = err
+
+
+def reset_conversation() -> None:
+    st.session_state.messages = [{"role": "assistant", "content": WELCOME_TEXT}]
+    st.session_state.last_debug = {"bypass": False, "resolved_query": "", "context": ""}
+    st.session_state.pending_prompt = ""
+
+
+def queue_example(prompt: str) -> None:
+    st.session_state.pending_prompt = prompt
+
+
+# ---------------------------------------------------------------------------
+# RAG Pipeline
+# ---------------------------------------------------------------------------
+
+def run_rag_pipeline(user_input: str, last_bot_response: str, llm: Any) -> Tuple[str, str, str]:
+    resolved, context = user_input, ""
+    try:
+        resolved = resolve_query(user_input, last_bot_response=last_bot_response) or user_input
+    except Exception:
+        resolved = user_input
+    try:
+        context = search_knowledge(resolved) or ""
+    except Exception:
+        context = ""
+    reply = generate_aira_response(
+        llm=llm,
+        user_input=user_input,
+        context=context,
+        history=history_for_llm(st.session_state.messages),
+    )
+    return (reply or "").strip(), resolved, context
+
+
+def handle_user_message(user_input: str, llm: Any, photo: Dict[str, str]) -> None:
+    text = (user_input or "").strip()
+    if not text:
+        return
+
+    last_bot = get_last_bot_response(st.session_state.messages)
+    st.session_state.messages.append({"role": "user", "content": text})
+    show_wa("user", text, photo)
+
+    box = st.empty()
+    bypass_reply = detect_intent_bypass(text)
+    stages = THINK_STAGES_FAST if bypass_reply else THINK_STAGES_RAG
+    done: List[str] = []
+
+    # Animasi jeda berpikir neural
+    show_think(box, photo, stages[0][0], done, 0.45)
+    done.append(stages[0][0])
+    show_think(box, photo, stages[1][0], done, 0.45)
+    done.append(stages[1][0])
+
+    if bypass_reply:
+        answer = bypass_reply
+        if len(stages) > 2:
+            show_think(box, photo, stages[2][0], done, 0.25)
+        st.session_state.last_debug = {
+            "bypass": True, "resolved_query": text, "context": "(dilewati — intent sapaan/identitas)"
+        }
+    else:
+        show_think(box, photo, stages[2][0], done, 0.45)
+        done.append(stages[2][0])
+        show_think(box, photo, stages[3][0], done, 0.45)
+        try:
+            answer, resolved, context = run_rag_pipeline(text, last_bot, llm)
+        except Exception as exc:
+            traceback.print_exc()
+            answer = f"Ada kendala teknis saat memproses jawaban: `{exc.__class__.__name__}`"
+            resolved, context = text, ""
+        if not answer:
+            answer = "Hmm, Aira belum tau jawabannya. Bisa coba tanyakan dengan kalimat lain?"
+        done.append(stages[3][0])
+        show_think(box, photo, stages[4][0], done, 0.45)
+        st.session_state.last_debug = {"bypass": False, "resolved_query": resolved, "context": context}
+
+    stream_reply(box, photo, answer)
+    st.session_state.messages.append({"role": "assistant", "content": answer})
+
+
+# ---------------------------------------------------------------------------
+# UI Components
+# ---------------------------------------------------------------------------
+
+def render_sidebar(model_info: Dict[str, Any], photo: Dict[str, str]) -> None:
+    kb = get_kb_status()
+    mode = model_info.get("mode", "error")
+
+    if mode == "gguf":
+        model_tile, model_label = "ok", "GGUF Siap"
+    elif mode == "mock":
+        model_tile, model_label = "warn", "KB Active"
+    else:
+        model_tile, model_label = "err", "Offline"
+
+    mem_ok = bool(kb["exists"] and kb["count"] > 0)
+    mem_tile = "ok" if mem_ok else "warn"
+    mem_label = f"{kb.get('count', 0)} Entri" if mem_ok else "Kosong"
+    ava = '<div class="side-ava"></div>' if photo.get("b64") else '<div class="ph">A</div>'
+
+    with st.sidebar:
+        st.markdown(
+            f"""
+            <div class="side-hero">
+              <div class="side-ava-wrap">
+                {ava}
+                <div class="side-ring"></div>
+              </div>
+              <div class="side-name">Aira AI</div>
+              <div class="side-tag">Asisten AI · Ampera Official</div>
+              <div class="side-online"><i></i> online · Neural Bus</div>
+            </div>
+            <div class="side-grid">
+              <div class="tile {model_tile}"><em>MODEL</em><b>{html.escape(model_label)}</b></div>
+              <div class="tile {mem_tile}"><em>MEMORI</em><b>{html.escape(mem_label)}</b></div>
+            </div>
+            <div class="side-quote">Siap bantu masalah Android, APK, RAM, optimalisasi sistem, atau ngobrol santai.</div>
+            <div class="side-panel">
+              <div class="side-panel-h">STATUS SISTEM</div>
+              <div class="kv"><span>Mode Engine</span><b>{html.escape(str(mode))}</b></div>
+              <div class="kv"><span>Knowledge Data</span><b>{kb.get('count', 0)} item</b></div>
+              <div class="kv"><span>Privasi</span><b>Lokal / Aman</b></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        if not photo.get("path"):
+            st.caption("Taruh file `aira.jpg` di folder app untuk foto profil kustom.")
+
+        if st.button("✦  Obrolan Baru", use_container_width=True, key="btn_reset"):
+            reset_conversation()
+            st.rerun()
+
+        st.markdown(
+            '<div class="side-panel-h" style="margin:16px 0 8px;">PROMPT CEPAT</div>',
+            unsafe_allow_html=True,
+        )
+        for sample in EXAMPLE_PROMPTS:
+            if st.button(f"› {sample}", use_container_width=True, key=f"ex_{sample}"):
+                queue_example(sample)
                 st.rerun()
 
-    # ============================================================
-    # 9. HALAMAN 2: ARENA BATTLE (MULTI AI)
-    # ============================================================
-    elif selected_menu == "⚔️ Multi Ai":
-        st.title("⚔️ Ampera Coding Arena (Multi Ai)")
-        st.caption("Pilih dua model berbeda, kirim tantangan koding, dan lihat animasi loading terminal-style di kotaknya masing-masing!")
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        col_sel_a, col_sel_b = st.columns(2)
-        with col_sel_a:
-            pilihan_a = st.selectbox(
-                "🧠 Petarung A:",
-                options=list(AVAILABLE_MODELS.keys()),
-                index=0,
-                key="pilihan_a_select",
-            )
-        with col_sel_b:
-            pilihan_b = st.selectbox(
-                "🧠 Petarung B:",
-                options=list(AVAILABLE_MODELS.keys()),
-                index=1,
-                key="pilihan_b_select",
-            )
-        st.markdown("<br>", unsafe_allow_html=True)
-        arena_input = st.chat_input("⚔️ Kirim tantangan duel coding...", key="arena_chat")
+def render_header(logo: Dict[str, str]) -> None:
+    mark = (
+        '<div class="app-logo has-img" title="Ampera Official"></div>'
+        if logo.get("b64")
+        else '<div class="app-logo">A<span>.ai</span></div>'
+    )
+    st.markdown(
+        f"""
+        <div class="app-head">
+          <div class="app-head-left">
+            {mark}
+            <div>
+              <h1>Aira AI</h1>
+              <p>Asisten AI-Chatbot Pintar · Ampera Official</p>
+            </div>
+          </div>
+          <div class="app-head-status">
+            <i></i> Siap Bantu
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-        if arena_input:
-            st.session_state["last_arena_prompt"] = arena_input
 
-        if "last_arena_prompt" in st.session_state:
-            prompt_val = st.session_state["last_arena_prompt"]
-            st.markdown(f"""
-                <div class="user-bubble-container">
-                    <div class="user-bubble">{prompt_val}</div>
-                </div>
-            """, unsafe_allow_html=True)
+def render_history(photo: Dict[str, str]) -> None:
+    chunks = [
+        build_wa_row(item.get("role", "assistant"), md_lite(item.get("content") or ""), photo)
+        for item in st.session_state.messages
+    ]
+    st.markdown(f'<div class="wa-thread">{"".join(chunks)}</div>', unsafe_allow_html=True)
 
-            if not groq_key:
-                st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
-            elif pilihan_a == pilihan_b:
-                st.warning("⚠️ Hei, kamu memilih dua model yang sama! Silakan ganti salah satunya.")
-            else:
-                col_a, col_b = st.columns(2)
 
-                with col_a:
-                    st.markdown(f"""
-                        <div class="arena-card">
-                            <div class="arena-header">
-                                <span>🔴 {pilihan_a}</span>
-                                <span>🗖</span>
-                            </div>
-                    """, unsafe_allow_html=True)
+def render_footer() -> None:
+    st.markdown('<p class="aira-foot">Aira · Asisten AI-Chatbot By Ampera Official · Obsidian Edition</p>', unsafe_allow_html=True)
 
-                    loading_a = st.empty()
-                    loading_a.markdown(
-                        get_terminal_loader_html(
-                            text=f"🔴 {pilihan_a} sedang merespons",
-                            token="computing",
-                        ),
-                        unsafe_allow_html=True,
-                    )
 
-                    start_a = time.time()
-                    try:
-                        resp_a = client.chat.completions.create(
-                            model=AVAILABLE_MODELS[pilihan_a],
-                            messages=[
-                                {"role": "system", "content": YUKI_SYSTEM_PROMPT},
-                                {"role": "user",   "content": prompt_val},
-                            ],
-                        )
-                        text_a = resp_a.choices[0].message.content
-                    except Exception as e:
-                        text_a = f"Error: {e}"
+def render_splash(logo: Dict[str, str]) -> None:
+    if logo.get("b64"):
+        mark = '<div class="splash-logo-img" title="Ampera Official"></div>'
+        miss = ""
+    else:
+        mark = '<div class="splash-logo">A<span>.ai</span></div>'
+        miss = '<div class="splash-miss">Logo belum ketemu. Taruh file <b>logo ampera.jpg</b> di folder app.</div>'
 
-                    elapsed_a = time.time() - start_a
-                    if elapsed_a < 4.0:
-                        time.sleep(4.0 - elapsed_a)
+    st.markdown(
+        f"""
+        <style>
+        [data-testid="stSidebar"],
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="stHeader"] {{ display: none !important; }}
+        [data-testid="stMainBlockContainer"] {{ max-width: 740px; padding-top: 0 !important; }}
+        </style>
+        <div class="splash">
+          <div class="splash-orb a"></div>
+          <div class="splash-orb b"></div>
+          <div class="splash-card">
+            <div class="splash-halo">{mark}</div>
+            <div class="splash-brand">AMPERA OFFICIAL</div>
+            <div class="boot">
+              <div>&gt; initialize neural bus ......... <b>READY</b></div>
+              <div>&gt; load knowledge base .......... <b>OK</b></div>
+              <div>&gt; connect aira persona ......... <b>GRANTED</b></div>
+              <div>&gt; secure session status ........ <b>ONLINE</b></div>
+            </div>
+            <p class="splash-hello">
+              Selamat datang di asisten AI chatbot buatan<br><strong>Ampera Official</strong>
+            </p>
+            <div class="splash-hint">TEKAN TOMBOL DI BAWAH UNTUK MASUK</div>
+            {miss}
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    _l, mid, _r = st.columns([1, 1.2, 1])
+    with mid:
+        if st.button("MASUK", type="primary", use_container_width=True, key="btn_masuk"):
+            st.session_state.entered_app = True
+            st.rerun()
 
-                    loading_a.empty()
-                    st.markdown(text_a)
-                    st.markdown("</div>", unsafe_allow_html=True)
 
-                with col_b:
-                    st.markdown(f"""
-                        <div class="arena-card">
-                            <div class="arena-header">
-                                <span>🔵 {pilihan_b}</span>
-                                <span>🗖</span>
-                            </div>
-                    """, unsafe_allow_html=True)
+# ---------------------------------------------------------------------------
+# Main Entrypoint
+# ---------------------------------------------------------------------------
 
-                    loading_b = st.empty()
-                    loading_b.markdown(
-                        get_terminal_loader_html(
-                            text=f"🔵 {pilihan_b} sedang merespons",
-                            token="analyzing",
-                        ),
-                        unsafe_allow_html=True,
-                    )
+def main() -> None:
+    set_ui_style()
+    render_pcb_layer()
+    init_session_state()
 
-                    start_b = time.time()
-                    try:
-                        resp_b = client.chat.completions.create(
-                            model=AVAILABLE_MODELS[pilihan_b],
-                            messages=[
-                                {"role": "system", "content": "Kamu adalah asisten pemrograman cepat dan akurat. " + YUKI_SYSTEM_PROMPT},
-                                {"role": "user",   "content": prompt_val},
-                            ],
-                        )
-                        text_b = resp_b.choices[0].message.content
-                    except Exception as e:
-                        text_b = f"Error: {e}"
+    logo = get_logo_image()
+    inject_media_css({"mime": "", "b64": "", "path": ""}, logo)
 
-                    elapsed_b = time.time() - start_b
-                    if elapsed_b < 4.0:
-                        time.sleep(4.0 - elapsed_b)
+    if not st.session_state.entered_app:
+        render_splash(logo)
+        return
 
-                    loading_b.empty()
-                    st.markdown(text_b)
-                    st.markdown("</div>", unsafe_allow_html=True)
+    ensure_runtime_ready()
+    photo = get_profile_image()
+    inject_media_css(photo, logo)
+    model_info = get_cached_llm()
 
-                st.markdown("---")
-                st.info("💡 **Arena Voting:** Mana model yang memberikan hasil koding lebih baik?")
-                v1, v2, v3 = st.columns(3)
-                with v1:
-                    if st.button("👈 Pilih Petarung A", use_container_width=True, key="vote_a"):
-                        st.success(f"Kamu memvoting {pilihan_a}!")
-                with v2:
-                    if st.button("🤝 Seri (Sama Bagus)", use_container_width=True, key="vote_draw"):
-                        st.success("Terima Kasih Atas Penilaian Anda!!")
-                with v3:
-                    if st.button("👉 Pilih Petarung B", use_container_width=True, key="vote_b"):
-                        st.success(f"Kamu memvoting {pilihan_b}!")
+    render_sidebar(model_info, photo)
+    render_header(logo)
+    render_history(photo)
 
-    # ============================================================
-    # 10. HALAMAN 3: LEADERBOARD
-    # ============================================================
-    elif selected_menu == "📊 Leaderboard":
-        st.title("📊 Ampera Leaderboard")
-        st.write("Peringkat model AI berdasarkan performa koding dan voting pengguna:")
-        st.markdown("""
-        | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
-        | :---: | :--- | :---: | :---: | :---: |
-        | 🥇 | **Llama 3.3 (70B)** | **1280** | 68.5% | 9.5 / 10 |
-        | 🥈 | **Llama 3.1 (8B)**  | **1210** | 61.2% | 8.8 / 10 |
-        """)
+    typed = st.chat_input("Tulis pesan untuk Aira…")
+    pending = (st.session_state.get("pending_prompt") or "").strip()
+    if pending:
+        st.session_state.pending_prompt = ""
 
-    # ============================================================
-    # 11. HALAMAN 4: SEARCH
-    # ============================================================
-    elif selected_menu == "🔍 Search":
-        st.title("🔍 Search")
-        search_q = st.text_input("Cari topik atau riwayat (Tekan Enter)", key="search_input")
-        if search_q:
-            with st.spinner("Mencari..."):
-                time.sleep(1)
-            st.success(f"Menampilkan hasil pencarian untuk: **{search_q}**")
+    user_text = (typed or pending or "").strip()
+    if user_text:
+        handle_user_message(user_text, llm=model_info.get("llm"), photo=photo)
+
+    render_footer()
+
+
+if __name__ == "__main__":
+    main()
