@@ -226,9 +226,9 @@ div.stButton > button:hover {
     margin-bottom: 4px !important;
 }
 
-/* Button Standard (Biru Ungu) - GPT-OSS 20B (child 1) dan Compound Mini (child 4) */
-[data-testid="stPopoverBody"] > div > div:nth-child(1) button,
-[data-testid="stPopoverBody"] > div > div:nth-child(4) button {
+/* Button Standard (Biru Ungu) - GPT-OSS 20B (child 3) dan Compound Mini (child 6) */
+[data-testid="stPopoverBody"] > div > div:nth-child(3) button,
+[data-testid="stPopoverBody"] > div > div:nth-child(6) button {
     background: linear-gradient(90deg, #1e1b4b, #3730a3, #4f46e5, #6366f1, #4f46e5, #3730a3, #1e1b4b) !important;
     background-size: 300% 100% !important;
     animation: blueShineStandard 3s linear infinite !important;
@@ -241,10 +241,10 @@ div.stButton > button:hover {
     transition: all 0.3s ease !important;
 }
 
-/* Button Premium (Emas) - GPT-OSS 120B (child 2), Compound (child 3), Qwen3.6 (child 5) */
-[data-testid="stPopoverBody"] > div > div:nth-child(2) button,
-[data-testid="stPopoverBody"] > div > div:nth-child(3) button,
-[data-testid="stPopoverBody"] > div > div:nth-child(5) button {
+/* Button Premium (Emas) - GPT-OSS 120B (child 4), Compound (child 5), Qwen3.6 (child 7) */
+[data-testid="stPopoverBody"] > div > div:nth-child(4) button,
+[data-testid="stPopoverBody"] > div > div:nth-child(5) button,
+[data-testid="stPopoverBody"] > div > div:nth-child(7) button {
     background: linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, #d97706, #b45309, #78350f) !important;
     background-size: 300% 100% !important;
     animation: goldShinePremium 3s linear infinite !important;
@@ -258,14 +258,14 @@ div.stButton > button:hover {
 }
 
 /* Hover effects */
-[data-testid="stPopoverBody"] > div > div:nth-child(1) button:hover,
-[data-testid="stPopoverBody"] > div > div:nth-child(4) button:hover {
+[data-testid="stPopoverBody"] > div > div:nth-child(3) button:hover,
+[data-testid="stPopoverBody"] > div > div:nth-child(6) button:hover {
     box-shadow: 0 0 35px rgba(99, 102, 241, 0.7) !important;
     transform: scale(1.02) !important;
 }
-[data-testid="stPopoverBody"] > div > div:nth-child(2) button:hover,
-[data-testid="stPopoverBody"] > div > div:nth-child(3) button:hover,
-[data-testid="stPopoverBody"] > div > div:nth-child(5) button:hover {
+[data-testid="stPopoverBody"] > div > div:nth-child(4) button:hover,
+[data-testid="stPopoverBody"] > div > div:nth-child(5) button:hover,
+[data-testid="stPopoverBody"] > div > div:nth-child(7) button:hover {
     box-shadow: 0 0 35px rgba(252, 211, 77, 0.6) !important;
     transform: scale(1.02) !important;
 }
