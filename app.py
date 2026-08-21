@@ -814,31 +814,31 @@ else:
 
     selected_menu = st.session_state["current_page"]
 
-    # ============================================================
-    # 8. HALAMAN 1: HOME DASHBOARD
-    # ============================================================
-    if selected_menu == "🏠 Home Dashboard":
-        if "home_chat_history" not in st.session_state:
-            st.session_state["home_chat_history"] = []
-        if "home_selected_model" not in st.session_state:
-            st.session_state["home_selected_model"] = list(AVAILABLE_MODELS.keys())[0]
+# ============================================================
+# 8. HALAMAN 1: HOME DASHBOARD
+# ============================================================
+if selected_menu == "🏠 Home Dashboard":
+if "home_chat_history" not in st.session_state:
+    st.session_state["home_chat_history"] = []
+if "home_selected_model" not in st.session_state:
+    st.session_state["home_selected_model"] = list(AVAILABLE_MODELS.keys())[0]
+
+# Tampilkan history chat jika ada
+if len(st.session_state["home_chat_history"]) > 0:
+    if st.button("➕ Percakapan Baru", key="new_chat_home"):
+        st.session_state["home_chat_history"] = []
+        st.rerun()
     
-        # Tampilkan history chat jika ada
-        if len(st.session_state["home_chat_history"]) > 0:
-            if st.button("➕ Percakapan Baru", key="new_chat_home"):
-                st.session_state["home_chat_history"] = []
-                st.rerun()
-            
-            for msg in st.session_state["home_chat_history"]:
-                if msg["role"] == "user":
-                    st.markdown(f"""
-                        <div class="user-bubble-container">
-                            <div class="user-bubble">{msg["content"]}</div>
-                        </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown(msg["content"])
-                    st.markdown("---")
+    for msg in st.session_state["home_chat_history"]:
+        if msg["role"] == "user":
+            st.markdown(f"""
+                <div class="user-bubble-container">
+                    <div class="user-bubble">{msg["content"]}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(msg["content"])
+            st.markdown("---")
     else:
         # Tampilan awal (Get Started)
         st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
@@ -880,61 +880,49 @@ else:
             st.caption("⚡ Gratis · 💎 Premium")
             
             for label, model_id in AVAILABLE_MODELS.items():
-                is_active = (label == st.session_state["home_selected_model"])
-                is_premium = label in PREMIUM_MODELS
-                
-                # Tentukan warna background
-                if is_active:
-                    # AKTIF: Hitam dengan border putih
-                    bg_color = "#000000"
-                    border_color = "#ffffff"
-                    text_color = "#ffffff"
-                    shadow = "0 0 30px rgba(255,255,255,0.2)"
-                    icon = "✅"
-                elif is_premium:
-                    # PREMIUM: Emas gradasi
-                    bg_color = "linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, #d97706, #b45309, #78350f)"
-                    border_color = "#fbbf24"
-                    text_color = "#ffffff"
-                    shadow = "0 0 25px rgba(252, 211, 77, 0.3)"
-                    icon = "💎"
-                else:
-                    # STANDARD: Ungu-biru
-                    bg_color = "linear-gradient(135deg, #4f46e5, #3b82f6)"
-                    border_color = "#6366f1"
-                    text_color = "#ffffff"
-                    shadow = "0 0 20px rgba(99, 102, 241, 0.4)"
-                    icon = "⚡"
-                
-                # Buat tombol pakai HTML biar styling PASTI kena
-                safe_key = "pick_home_" + model_id.replace("/", "_").replace(".", "_").replace("-", "_")
-                
-                # Tampilkan tombol dengan style inline via HTML
-                st.markdown(f"""
-                    <style>
-                        button[key="{safe_key}"] {{
-                            background: {bg_color} !important;
-                            border: 2px solid {border_color} !important;
-                            color: {text_color} !important;
-                            border-radius: 12px !important;
-                            padding: 10px 14px !important;
-                            width: 100% !important;
-                            font-weight: 700 !important;
-                            box-shadow: {shadow} !important;
-                            text-shadow: 0 1px 4px rgba(0,0,0,0.3) !important;
-                            transition: all 0.3s ease !important;
-                            cursor: pointer !important;
-                        }}
-                        button[key="{safe_key}"]:hover {{
-                            transform: scale(1.03) !important;
-                            box-shadow: 0 0 40px rgba(255,255,255,0.15) !important;
-                        }}
-                    </style>
-                """, unsafe_allow_html=True)
-                
-                if st.button(f"{icon} {label}", key=safe_key, use_container_width=True):
-                    st.session_state["home_selected_model"] = label
-                    st.rerun()
+        is_active = (label == st.session_state["home_selected_model"])
+        is_premium = label in PREMIUM_MODELS
+        
+        # Tentukan warna berdasarkan tier
+        if is_active:
+            bg = "#000000"
+            border = "#ffffff"
+            icon = "✅"
+        elif is_premium:
+            bg = "linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, #d97706, #b45309, #78350f)"
+            border = "#fbbf24"
+            icon = "💎"
+        else:
+            bg = "linear-gradient(135deg, #4f46e5, #3b82f6)"
+            border = "#6366f1"
+            icon = "⚡"
+        
+        safe_key = "pick_home_" + model_id.replace("/", "_").replace(".", "_").replace("-", "_")
+        
+        # Styling langsung via CSS
+        st.markdown(f"""
+            <style>
+                button[key="{safe_key}"] {{
+                    background: {bg} !important;
+                    border: 2px solid {border} !important;
+                    color: white !important;
+                    border-radius: 12px !important;
+                    padding: 10px 14px !important;
+                    width: 100% !important;
+                    font-weight: 700 !important;
+                    box-shadow: 0 0 25px rgba(255,255,255,0.05) !important;
+                    transition: all 0.3s ease !important;
+                }}
+                button[key="{safe_key}"]:hover {{
+                    transform: scale(1.03) !important;
+                    box-shadow: 0 0 40px rgba(255,255,255,0.1) !important;
+                }}
+            </style>
+        """, unsafe_allow_html=True)
+        
+        if st.button(f"{icon} {label}", key=safe_key, use_container_width=True):
+            st.session_state["home_selected_model"] = label
+            st.rerun()
     # ==== CHAT INPUT (PASTI MUNCUL) ====
     home_input = st.chat_input("✨ Ask Yuki anything... ✨", key="home_chat")
 
