@@ -524,29 +524,30 @@ else:
     if st.session_state.get("sidebar_collapsed"):
         # Mini sidebar with icons only
         with st.sidebar:
-            st.markdown('<div style="height: 30px;"></div>', unsafe_allow_html=True)
-            col1, col2, col3 = st.columns([1, 3, 1])
-            with col2:
-                if st.button("🏠", key="mini_home", use_container_width=True):
-                    st.session_state["current_page"] = "🏠 Home Dashboard"
-                    st.session_state["sidebar_collapsed"] = False
-                    st.rerun()
-                if st.button("⚔️", key="mini_multi", use_container_width=True):
-                    st.session_state["current_page"] = "⚔️ Multi Ai"
-                    st.session_state["sidebar_collapsed"] = False
-                    st.rerun()
-                if st.button("📊", key="mini_leader", use_container_width=True):
-                    st.session_state["current_page"] = "📊 Leaderboard"
-                    st.session_state["sidebar_collapsed"] = False
-                    st.rerun()
-                if st.button("🔍", key="mini_search", use_container_width=True):
-                    st.session_state["current_page"] = "🔍 Search"
-                    st.session_state["sidebar_collapsed"] = False
-                    st.rerun()
-                st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
-                if st.button("☰ Buka", key="mini_expand", use_container_width=True):
-                    st.session_state["sidebar_collapsed"] = False
-                    st.rerun()
+            st.markdown('<div style="padding: 10px;"></div>', unsafe_allow_html=True)
+            
+            # Icon navigation
+            nav_cols = st.columns(4)
+            nav_items = [
+                ("🏠", "🏠 Home Dashboard", "nav_home"),
+                ("⚔️", "⚔️ Multi Ai", "nav_multi"),
+                ("📊", "📊 Leaderboard", "nav_leader"),
+                ("🔍", "🔍 Search", "nav_search"),
+            ]
+            
+            for i, (icon, page, key) in enumerate(nav_items):
+                with nav_cols[i]:
+                    if st.button(icon, key=key, use_container_width=True, help=page):
+                        st.session_state["current_page"] = page
+                        st.session_state["sidebar_collapsed"] = False
+                        st.rerun()
+            
+            st.markdown('<div style="padding: 10px;"></div>', unsafe_allow_html=True)
+            
+            # Tombol buka sidebar
+            if st.button("☰ Buka Sidebar", key="mini_expand", use_container_width=True):
+                st.session_state["sidebar_collapsed"] = False
+                st.rerun()
     else:
         # Full sidebar
         with st.sidebar:
