@@ -865,24 +865,55 @@ else:
                     is_premium = label in PREMIUM_MODELS
                     
                     if is_active:
-                        css_class = "model-option-active"
                         icon = "✅"
+                        btn_type = "active"
                     elif is_premium:
-                        css_class = "model-option-premium"
                         icon = "💎"
+                        btn_type = "premium"
                     else:
-                        css_class = "model-option-standard"
                         icon = "⚡"
+                        btn_type = "standard"
                     
                     safe_key = "pick_home_" + model_id.replace("/", "_").replace(".", "_").replace("-", "_")
                     
-                    # Gunakan container dengan class untuk styling
-                    container = st.container()
-                    container.markdown(f'<div class="model-option-btn {css_class}">', unsafe_allow_html=True)
-                    if container.button(f"{icon} {label}", key=safe_key, use_container_width=True):
+                    # Gunakan markdown button dengan custom HTML
+                    if st.button(f"{icon} {label}", key=safe_key, use_container_width=True):
                         st.session_state["home_selected_model"] = label
                         st.rerun()
-                    container.markdown('</div>', unsafe_allow_html=True)
+                    
+                    # Inject JavaScript untuk styling setelah render
+                    st.markdown(f"""
+                    <script>
+                        (function() {{
+                            var buttons = document.querySelectorAll('button');
+                            for (var i = 0; i < buttons.length; i++) {{
+                                if (buttons[i].textContent.includes('{icon}') && buttons[i].textContent.includes('{label.split('—')[0].strip()}')) {{
+                                    if ('{btn_type}' === 'premium') {{
+                                        buttons[i].style.background = 'linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, #d97706, #b45309, #78350f)';
+                                        buttons[i].style.backgroundSize = '300% 100%';
+                                        buttons[i].style.animation = 'goldShinePremium 3s linear infinite';
+                                        buttons[i].style.border = '2px solid #fbbf24';
+                                        buttons[i].style.boxShadow = '0 0 25px rgba(252, 211, 77, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
+                                    }} else if ('{btn_type}' === 'standard') {{
+                                        buttons[i].style.background = 'linear-gradient(90deg, #312e81, #4f46e5, #6366f1, #818cf8, #6366f1, #4f46e5, #312e81)';
+                                        buttons[i].style.backgroundSize = '300% 100%';
+                                        buttons[i].style.animation = 'blueShineStandard 3s linear infinite';
+                                        buttons[i].style.border = '2px solid #818cf8';
+                                        buttons[i].style.boxShadow = '0 0 20px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
+                                    }} else {{
+                                        buttons[i].style.background = '#000000';
+                                        buttons[i].style.border = '2px solid #ffffff';
+                                        buttons[i].style.boxShadow = '0 0 0 2px rgba(255, 255, 255, 0.3) inset, 0 0 30px rgba(255, 255, 255, 0.2)';
+                                    }}
+                                    buttons[i].style.color = '#ffffff';
+                                    buttons[i].style.fontWeight = '700';
+                                    buttons[i].style.borderRadius = '12px';
+                                    buttons[i].style.textShadow = '0 1px 3px rgba(0,0,0,0.3)';
+                                }}
+                            }}
+                    }})();
+                    </script>
+                    """, unsafe_allow_html=True)
         
         # ==== CHAT INPUT ====
         home_input = st.chat_input("✨ Ask Yuki anything... ✨", key="home_chat")
