@@ -195,13 +195,13 @@ div.stButton > button:hover {
 
 /* ==== PLACEHOLDER CHAT — ANIMASI RAINBOW ==== */
 @keyframes placeholderRainbow {
-    0%   { color: #818cf8; }   /* indigo */
-    16%  { color: #ec4899; }   /* pink   */
-    33%  { color: #38bdf8; }   /* cyan   */
-    50%  { color: #fcd34d; }   /* gold   */
-    66%  { color: #22c55e; }   /* green  */
-    83%  { color: #f97316; }   /* orange */
-    100% { color: #818cf8; }   /* back   */
+    0%   { color: #818cf8; }
+    16%  { color: #ec4899; }
+    33%  { color: #38bdf8; }
+    50%  { color: #fcd34d; }
+    66%  { color: #22c55e; }
+    83%  { color: #f97316; }
+    100% { color: #818cf8; }
 }
 [data-testid="stChatInput"] textarea::placeholder {
     font-weight: 600 !important;
@@ -427,38 +427,24 @@ html body .model-option-btn.model-option-active button::before {
 }
 
 /* ==== TERMINAL-STYLE LOADER (SEQUENTIAL 8 FASE) ==== */
-/*  8 fase x 7 detik = cycle 56 detik (loop forever)  */
-/*  Fase 1 (0-7s)   : Border glow pulse              */
-/*  Fase 2 (7-14s)  : Logo pulse color/scale         */
-/*  Fase 3 (14-21s) : Token wipe reveal              */
-/*  Fase 4 (21-28s) : Caret blink                    */
-/*  Fase 5 (28-35s) : Delta counter spin             */
-/*  Fase 6 (35-42s) : Param color pulse              */
-/*  Fase 7 (42-49s) : Progress bar slide             */
-/*  Fase 8 (49-56s) : Delta counter flicker          */
-
-/* FASE 1 — Border glow pulse */
 @keyframes phase1_glow {
     0%        { box-shadow: 0 0 12px rgba(56, 189, 248, 0.25); border-color: rgba(56, 189, 248, 0.35); }
     6.25%     { box-shadow: 0 0 32px rgba(129, 140, 248, 0.9);  border-color: rgba(129, 140, 248, 0.95); }
     12.5%     { box-shadow: 0 0 12px rgba(56, 189, 248, 0.25); border-color: rgba(56, 189, 248, 0.35); }
     12.51%, 100% { box-shadow: 0 0 12px rgba(56, 189, 248, 0.25); border-color: rgba(56, 189, 248, 0.35); }
 }
-/* FASE 2 — Logo pulse color & scale */
 @keyframes phase2_logoPulse {
     0%, 12.5%    { transform: scale(0.85); filter: hue-rotate(0deg)   brightness(1);   box-shadow: 0 0 10px rgba(129, 140, 248, 0.4); border-color: rgba(129, 140, 248, 0.6); }
     18.75%       { transform: scale(1.20); filter: hue-rotate(90deg)  brightness(1.2); box-shadow: 0 0 28px rgba(236, 72, 153, 0.9); border-color: rgba(236, 72, 153, 0.9); }
     25%          { transform: scale(0.85); filter: hue-rotate(180deg) brightness(1);   box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); border-color: rgba(129, 140, 248, 0.6); }
     25.01%, 100% { transform: scale(0.85); filter: hue-rotate(180deg) brightness(1);   box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); border-color: rgba(129, 140, 248, 0.6); }
 }
-/* FASE 3 — Token wipe reveal */
 @keyframes phase3_tokenWipe {
     0%, 25%      { clip-path: inset(0 100% 0 0); opacity: 0; }
     25.01%       { clip-path: inset(0 100% 0 0); opacity: 1; }
     37.5%        { clip-path: inset(0 0 0 0);    opacity: 1; }
     37.51%, 100% { clip-path: inset(0 0 0 0);    opacity: 1; }
 }
-/* FASE 4 — Caret blink (4 kedip / 7 detik) */
 @keyframes phase4_caretBlink {
     0%, 37.5% { opacity: 0; }
     39%       { opacity: 1; }
@@ -469,7 +455,6 @@ html body .model-option-btn.model-option-active button::before {
     49%       { opacity: 0; }
     50%, 100% { opacity: 0; }
 }
-/* FASE 5 — Delta counter spin (7 angka, masing-masing 1 detik) */
 @keyframes phase5_num0 { 0%, 50.00% { opacity: 0; } 50.01% { opacity: 1; } 51.78% { opacity: 1; } 51.79%, 100% { opacity: 0; } }
 @keyframes phase5_num1 { 0%, 51.78% { opacity: 0; } 51.79% { opacity: 1; } 53.57% { opacity: 1; } 53.58%, 100% { opacity: 0; } }
 @keyframes phase5_num2 { 0%, 53.57% { opacity: 0; } 53.58% { opacity: 1; } 55.35% { opacity: 1; } 55.36%, 100% { opacity: 0; } }
@@ -477,20 +462,17 @@ html body .model-option-btn.model-option-active button::before {
 @keyframes phase5_num4 { 0%, 57.14% { opacity: 0; } 57.15% { opacity: 1; } 58.92% { opacity: 1; } 58.93%, 100% { opacity: 0; } }
 @keyframes phase5_num5 { 0%, 58.92% { opacity: 0; } 58.93% { opacity: 1; } 60.71% { opacity: 1; } 60.72%, 100% { opacity: 0; } }
 @keyframes phase5_num6 { 0%, 60.71% { opacity: 0; } 60.72% { opacity: 1; } 62.50% { opacity: 1; } 62.51%, 100% { opacity: 0; } }
-/* FASE 6 — Param color pulse */
 @keyframes phase6_paramPulse {
     0%, 62.5%    { color: #38bdf8; }
     68.75%       { color: #818cf8; }
     75%          { color: #38bdf8; }
     75.01%, 100% { color: #38bdf8; }
 }
-/* FASE 7 — Progress bar slide */
 @keyframes phase7_progressSlide {
     0%, 75%      { transform: translateX(-100%); }
     87.5%        { transform: translateX(100%); }
     87.51%, 100% { transform: translateX(100%); }
 }
-/* FASE 8 — Delta counter flicker */
 @keyframes phase8_deltaFlicker {
     0%, 87.5% { opacity: 1; filter: blur(0px); }
     89%       { opacity: 0.3; filter: blur(1px); }
@@ -538,7 +520,6 @@ html body .model-option-btn.model-option-active button::before {
     display: inline-block; opacity: 0.4; font-weight: 700;
 }
 
-/* Token wrapper — clip-path reveal di Fase 3 */
 .term-token-wrap {
     position: relative; display: inline-block;
     color: #f0abfc; font-weight: 600;
@@ -554,7 +535,6 @@ html body .model-option-btn.model-option-active button::before {
 }
 .term-token-char { display: inline-block; }
 
-/* Baris parameter */
 .term-params {
     display: flex; align-items: center; gap: 14px;
     font-size: 0.78rem; color: #94a3b8;
@@ -577,7 +557,6 @@ html body .model-option-btn.model-option-active button::before {
     font-weight: 600;
 }
 
-/* Delta counter stack */
 .term-delta-stack {
     position: relative; display: inline-block;
     min-width: 22px; text-align: right;
@@ -592,7 +571,6 @@ html body .model-option-btn.model-option-active button::before {
 .term-delta-num-5        { animation: phase5_num5 56s linear infinite; }
 .term-delta-num-6        { animation: phase5_num6 56s linear infinite; }
 
-/* Progress bar sliding (Fase 7) */
 .term-progress {
     position: relative;
     height: 3px;
@@ -609,12 +587,6 @@ html body .model-option-btn.model-option-active button::before {
     background: linear-gradient(90deg, transparent, #38bdf8, #818cf8, transparent);
     border-radius: 999px;
     animation: phase7_progressSlide 56s linear infinite;
-}
-button[key="..."] {
-    background: linear-gradient(...) !important;
-    background-size: 300% 100% !important;  /* <-- KUNCI ANIMASI */
-    animation: blueShineStandard 3s linear infinite !important;  /* <-- ANIMASI BERJALAN */
-    ...
 }
 </style>
 """, unsafe_allow_html=True)
@@ -636,7 +608,7 @@ def get_logo_loader_html(text="Yuki sedang merangkai kode..."):
     """
 
 def _build_terminal_token(token_text):
-    """Render token sebagai deretan span inline. Reveal oleh wrapper (clip-path wipe)."""
+    """Render token sebagai deretan span inline."""
     return "".join(f'<span class="term-token-char">{ch}</span>' for ch in token_text)
 
 def _build_terminal_delta():
@@ -759,7 +731,6 @@ if not st.session_state["has_entered"]:
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
-        # Logo gambar + Branding
         st.markdown(f"""
             <div style="text-align: center; padding-top: 60px;">
                 <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&h=200&fit=crop" class="splash-logo" alt="Logo">
@@ -776,12 +747,10 @@ if not st.session_state["has_entered"]:
             </div>
         """, unsafe_allow_html=True)
 
-        # Tombol MASUK
         if st.button("🚀 MASUK", use_container_width=True):
             st.session_state["has_entered"] = True
             st.rerun()
 
-        # Footer
         st.markdown("""
             <div style="text-align: center; margin-top: 50px; color: #4b5563; font-size: 12px;">
                 © 2026 Yuki Coding Studio
@@ -792,7 +761,6 @@ if not st.session_state["has_entered"]:
 # 7. APLIKASI UTAMA SETELAH MASUK
 # ============================================================
 else:
-    # ==== SIDEBAR ====
     with st.sidebar:
         st.markdown("""
             <div class="logo-container">
@@ -839,7 +807,6 @@ else:
         if "home_selected_model" not in st.session_state:
             st.session_state["home_selected_model"] = list(AVAILABLE_MODELS.keys())[0]
 
-        # Tampilkan history chat jika ada
         if len(st.session_state["home_chat_history"]) > 0:
             if st.button("➕ Percakapan Baru", key="new_chat_home"):
                 st.session_state["home_chat_history"] = []
@@ -856,7 +823,6 @@ else:
                     st.markdown(msg["content"])
                     st.markdown("---")
         else:
-            # Tampilan awal (Get Started)
             st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
             st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
 
@@ -885,8 +851,8 @@ else:
                     st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
                     st.rerun()
 
-        # ==== AMBIL SHORTCUT PROMPT ====
         default_val = st.session_state.pop("shortcut_prompt", "")  
+        
         # ==== FAB MODEL PICKER + CHAT INPUT ====
         spacer_col, fab_col = st.columns([12, 1])
         with fab_col:
@@ -898,7 +864,6 @@ else:
                     is_active = (label == st.session_state["home_selected_model"])
                     is_premium = label in PREMIUM_MODELS
                     
-                    # Tentukan class dan style berdasarkan tier
                     if is_active:
                         css_class = "model-option-active"
                         icon = "✅"
@@ -919,13 +884,12 @@ else:
                         st.rerun()
                     container.markdown('</div>', unsafe_allow_html=True)
         
-        # ==== CHAT INPUT (PASTI MUNCUL) ====
+        # ==== CHAT INPUT ====
         home_input = st.chat_input("✨ Ask Yuki anything... ✨", key="home_chat")
 
         model_choice_label = st.session_state["home_selected_model"]
         selected_model_id = AVAILABLE_MODELS[model_choice_label]
         
-        # Proses query
         query_to_process = home_input if home_input else default_val
 
         if query_to_process:
@@ -1015,7 +979,6 @@ else:
             else:
                 col_a, col_b = st.columns(2)
 
-                # -------- Model A --------
                 with col_a:
                     st.markdown(f"""
                         <div class="arena-card">
@@ -1055,7 +1018,6 @@ else:
                     st.markdown(text_a)
                     st.markdown("</div>", unsafe_allow_html=True)
 
-                # -------- Model B --------
                 with col_b:
                     st.markdown(f"""
                         <div class="arena-card">
@@ -1095,7 +1057,6 @@ else:
                     st.markdown(text_b)
                     st.markdown("</div>", unsafe_allow_html=True)
 
-                # -------- Voting --------
                 st.markdown("---")
                 st.info("💡 **Arena Voting:** Mana model yang memberikan hasil koding lebih baik?")
                 v1, v2, v3 = st.columns(3)
