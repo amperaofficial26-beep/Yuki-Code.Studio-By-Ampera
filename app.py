@@ -771,7 +771,8 @@ if not st.session_state["has_entered"]:
             <div style="text-align: center; margin-top: 50px; color: #4b5563; font-size: 12px;">
                 © 2026 Yuki Coding Studio
             </div>
-        """, unsafe_allow_html=True)    
+        """, unsafe_allow_html=True)
+
 # ============================================================
 # 7. APLIKASI UTAMA SETELAH MASUK
 # ============================================================
@@ -828,8 +829,8 @@ else:
             if st.button("➕ Percakapan Baru", key="new_chat_home"):
                 st.session_state["home_chat_history"] = []
                 st.rerun()
-    
-    for msg in st.session_state["home_chat_history"]:
+            
+            for msg in st.session_state["home_chat_history"]:
                 if msg["role"] == "user":
                     st.markdown(f"""
                         <div class="user-bubble-container">
@@ -839,8 +840,8 @@ else:
                 else:
                     st.markdown(msg["content"])
                     st.markdown("---")
-    else:
-           # Tampilan awal (Get Started)
+        else:
+            # Tampilan awal (Get Started)
             st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
             st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan cukup tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
 
@@ -922,16 +923,18 @@ else:
                     
                     if st.button(f"{icon} {label}", key=safe_key, use_container_width=True):
                         st.session_state["home_selected_model"] = label
-    # ==== CHAT INPUT (PASTI MUNCUL) ====
-    home_input = st.chat_input("✨ Ask Yuki anything... ✨", key="home_chat")
+                        st.rerun()
+        
+        # ==== CHAT INPUT (PASTI MUNCUL) ====
+        home_input = st.chat_input("✨ Ask Yuki anything... ✨", key="home_chat")
 
-    model_choice_label = st.session_state["home_selected_model"]
+        model_choice_label = st.session_state["home_selected_model"]
         selected_model_id = AVAILABLE_MODELS[model_choice_label]
         
         # Proses query
         query_to_process = home_input if home_input else default_val
 
-   if query_to_process:
+        if query_to_process:
             if not groq_key:
                 st.error("GROQ_API_KEY belum diatur di Streamlit Secrets!")
             else:
@@ -951,8 +954,7 @@ else:
                     unsafe_allow_html=True,
                 )
 
-
-            start_time = time.time()
+                start_time = time.time()
                 try:
                     res_home = client.chat.completions.create(
                         model=selected_model_id,
@@ -965,13 +967,13 @@ else:
                 except Exception as e:
                     response_text = f"❌ Ups, terjadi kesalahan: {e}"
 
-
                 elapsed = time.time() - start_time
                 if elapsed < 1.5:
-                    time.sleep(1.5 - elapsed
-            loading_ph.empty()
+                    time.sleep(1.5 - elapsed)
 
-            st.session_state["home_chat_history"].append({"role": "user", "content": query_to_process})
+                loading_ph.empty()
+
+                st.session_state["home_chat_history"].append({"role": "user", "content": query_to_process})
                 st.session_state["home_chat_history"].append({"role": "assistant", "content": response_text})
                 st.rerun()
 
