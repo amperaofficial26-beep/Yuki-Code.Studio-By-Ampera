@@ -872,8 +872,8 @@ else:
         spacer_col, fab_col = st.columns([12, 1])
         with fab_col:
                 with st.popover("🧠", use_container_width=True):
-    st.markdown("**✨ Pilih Model AI**")
-    st.caption("⚡ Gratis · 💎 Premium")
+                     st.markdown("**✨ Pilih Model AI**")
+                     st.caption("⚡ Gratis · 💎 Premium")
     for label, model_id in AVAILABLE_MODELS.items():
         is_active = (label == st.session_state["home_selected_model"])
         is_premium = label in PREMIUM_MODELS
