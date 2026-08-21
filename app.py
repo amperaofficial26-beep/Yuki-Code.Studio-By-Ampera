@@ -271,32 +271,32 @@ div.stButton > button:hover {
    MODEL TIER STYLING
    ============================================================ */
 
-/* --- STANDARD: GPT-OSS 20B (UNGU BIRU) --- */
+/* --- STANDARD: GPT-OSS 20B (UNGU BIRU BERJALAN) --- */
+@keyframes blueShineStandard {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+}
 .model-option-standard button {
     border: 2px solid rgba(99, 102, 241, 0.7) !important;
-    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%) !important;
+    background: linear-gradient(90deg, #312e81, #4f46e5, #6366f1, #818cf8, #6366f1, #4f46e5, #312e81) !important;
+    background-size: 300% 100% !important;
+    animation: blueShineStandard 3s linear infinite !important;
     color: #ffffff !important;
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3) !important;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
     font-weight: 600 !important;
     border-radius: 12px !important;
     padding: 10px 14px !important;
     transition: all 0.3s ease !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
 }
 .model-option-standard button:hover {
     border-color: #a5b4fc !important;
-    background: linear-gradient(135deg, #6366f1 0%, #60a5fa 100%) !important;
     box-shadow: 0 0 35px rgba(99, 102, 241, 0.6) !important;
     transform: scale(1.02) !important;
 }
 
 /* --- PREMIUM: selain GPT-OSS 20B (EMAS BERJALAN) --- */
 @keyframes goldShinePremium {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 300% 50%; }
-}
-/* --- STANDARD: GPT-OSS 20B (UNGU BIRU BERJALAN) --- */
-@keyframes blueShineStandard {
     0% { background-position: 0% 50%; }
     100% { background-position: 300% 50%; }
 }
@@ -313,7 +313,7 @@ div.stButton > button:hover {
     background-size: 300% 100% !important;
     animation: goldShinePremium 3s linear infinite !important;
     color: #ffffff !important;
-    box-shadow: 0 0 25px rgba(252, 211, 77, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 0 25px rgba(252, 211, 77, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;
     font-weight: 700 !important;
     border-radius: 12px !important;
@@ -322,13 +322,6 @@ div.stButton > button:hover {
 }
 .model-option-premium button:hover {
     border-color: #fef3c7 !important;
-    background: linear-gradient(90deg,
-        #451a03 0%,
-        #78350f 20%,
-        #b45309 40%,
-        #f59e0b 60%,
-        #b45309 80%,
-        #78350f 100%) !important;
     box-shadow: 0 0 45px rgba(252, 211, 77, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
     transform: scale(1.02) !important;
 }
@@ -655,11 +648,11 @@ def _build_terminal_delta():
     )
 
 def get_terminal_loader_html(text="Yuki sedang berpikir", token="..."):
-    """Loader terminal-style SEQUENTIAL. Tiap fase 7 detik, total 56 detik, looping."""
+    """Loader terminal-style SEQUENTIAL dengan angka dinamis via JavaScript."""
     token_chars = _build_terminal_token(token)
     delta_stack = _build_terminal_delta()
     return f"""
-        <div class="terminal-card">
+        <div class="terminal-card" id="terminal-loader">
             <img src="{LOGO_URL}" class="term-logo" alt="logo">
             <div class="term-body">
                 <div class="term-line">
@@ -671,11 +664,11 @@ def get_terminal_loader_html(text="Yuki sedang berpikir", token="..."):
                 <div class="term-params">
                     <span class="term-param">
                         <span class="term-key">temp=</span>
-                        <span class="term-param-pulse">0.72</span>
+                        <span class="term-param-pulse" id="temp-val">0.72</span>
                     </span>
                     <span class="term-param">
                         <span class="term-key">step=</span>
-                        <span class="term-param-pulse">128</span>
+                        <span class="term-param-pulse" id="step-val">128</span>
                     </span>
                     <span class="term-param">
                         <span class="term-key">Δ=</span>
@@ -683,12 +676,23 @@ def get_terminal_loader_html(text="Yuki sedang berpikir", token="..."):
                     </span>
                     <span class="term-param">
                         <span class="term-key">ctx=</span>
-                        <span class="term-param-pulse">8.2k tok</span>
+                        <span class="term-param-pulse" id="ctx-val">8.2k tok</span>
                     </span>
                 </div>
                 <div class="term-progress"></div>
             </div>
         </div>
+        <script>
+            // Animasi angka berubah setiap 800ms
+            setInterval(function() {{
+                var tempEl = document.getElementById('temp-val');
+                var stepEl = document.getElementById('step-val');
+                var ctxEl = document.getElementById('ctx-val');
+                if (tempEl) tempEl.textContent = (Math.random() * 0.6 + 0.5).toFixed(2);
+                if (stepEl) stepEl.textContent = Math.floor(Math.random() * 500 + 50);
+                if (ctxEl) ctxEl.textContent = (Math.random() * 10 + 2).toFixed(1) + 'k tok';
+            }}, 800);
+        </script>
     """
 
 def stream_response(text):
@@ -894,58 +898,26 @@ else:
                     is_active = (label == st.session_state["home_selected_model"])
                     is_premium = label in PREMIUM_MODELS
                     
-                    # Tentukan warna berdasarkan tier
+                    # Tentukan class dan style berdasarkan tier
                     if is_active:
-                        bg = "#000000"
-                        border = "#ffffff"
+                        css_class = "model-option-active"
                         icon = "✅"
-                        anim = "none"
-                        bg_size = "auto"
-                        box_shadow = "0 0 0 2px rgba(255, 255, 255, 0.3) inset, 0 0 30px rgba(255, 255, 255, 0.2)"
                     elif is_premium:
-                        bg = "linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, #d97706, #b45309, #78350f)"
-                        border = "#fbbf24"
+                        css_class = "model-option-premium"
                         icon = "💎"
-                        anim = "goldShinePremium 3s linear infinite"
-                        bg_size = "300% 100%"
-                        box_shadow = "0 0 25px rgba(252, 211, 77, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
                     else:
-                        bg = "linear-gradient(90deg, #312e81, #4f46e5, #6366f1, #818cf8, #6366f1, #4f46e5, #312e81)"
-                        border = "#818cf8"
+                        css_class = "model-option-standard"
                         icon = "⚡"
-                        anim = "blueShineStandard 3s linear infinite"
-                        bg_size = "300% 100%"
-                        box_shadow = "0 0 20px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
                     
                     safe_key = "pick_home_" + model_id.replace("/", "_").replace(".", "_").replace("-", "_")
                     
-                    # Styling langsung via CSS dengan animasi berjalan
-                    st.markdown(f"""
-                        <style>
-                            button[key="{safe_key}"] {{
-                                background: {bg} !important;
-                                background-size: {bg_size} !important;
-                                animation: {anim} !important;
-                                border: 2px solid {border} !important;
-                                color: white !important;
-                                border-radius: 12px !important;
-                                padding: 10px 14px !important;
-                                width: 100% !important;
-                                font-weight: 700 !important;
-                                box-shadow: {box_shadow} !important;
-                                transition: all 0.3s ease !important;
-                                text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
-                            }}
-                            button[key="{safe_key}"]:hover {{
-                                transform: scale(1.03) !important;
-                                box-shadow: 0 0 40px rgba(255,255,255,0.15) !important;
-                            }}
-                        </style>
-                    """, unsafe_allow_html=True)
-                    
-                    if st.button(f"{icon} {label}", key=safe_key, use_container_width=True):
+                    # Gunakan container dengan class untuk styling
+                    container = st.container()
+                    container.markdown(f'<div class="model-option-btn {css_class}">', unsafe_allow_html=True)
+                    if container.button(f"{icon} {label}", key=safe_key, use_container_width=True):
                         st.session_state["home_selected_model"] = label
                         st.rerun()
+                    container.markdown('</div>', unsafe_allow_html=True)
         
         # ==== CHAT INPUT (PASTI MUNCUL) ====
         home_input = st.chat_input("✨ Ask Yuki anything... ✨", key="home_chat")
