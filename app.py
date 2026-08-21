@@ -938,7 +938,7 @@ else:
     # ============================================================
     # 9. HALAMAN 2: ARENA BATTLE (MULTI AI)
     # ============================================================
-    elif selected_menu == "⚔️ Multi Ai":
+    if selected_menu == "⚔️ Multi Ai":
         st.title("⚔️ Ampera Coding Arena (Multi Ai)")
         st.caption("Pilih dua model berbeda, kirim tantangan koding, dan lihat animasi loading terminal-style di kotaknya masing-masing!")
 
