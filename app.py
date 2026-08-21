@@ -428,6 +428,220 @@ html body .model-option-btn.model-option-active button::before {
 .model-option-btn:last-child {
     margin-bottom: 0 !important;
 }
+/* ==== PROFESSIONAL LOADER ==== */
+.professional-loader {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 27, 75, 0.9));
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(129, 140, 248, 0.3);
+    border-radius: 16px;
+    padding: 20px;
+    margin: 10px 0;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(129, 140, 248, 0.1);
+    overflow: hidden;
+    position: relative;
+}
+
+.professional-loader::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #818cf8, #ec4899, #818cf8, transparent);
+    animation: shimmerLine 2s linear infinite;
+}
+
+@keyframes shimmerLine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.loader-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.loader-logo-container {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.loader-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    object-fit: cover;
+    border: 2px solid rgba(129, 140, 248, 0.5);
+    animation: logoFloat 3s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+    0%, 100% { transform: translateY(0); box-shadow: 0 0 20px rgba(129, 140, 248, 0.4); }
+    50% { transform: translateY(-4px); box-shadow: 0 0 35px rgba(236, 72, 153, 0.6); }
+}
+
+.loader-status-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background: #22c55e;
+    border-radius: 50%;
+    border: 2px solid rgba(15, 23, 42, 0.95);
+    animation: statusPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+.loader-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.loader-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #818cf8, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.loader-subtitle {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.loader-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.loader-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 10px;
+    border: 1px solid rgba(129, 140, 248, 0.15);
+}
+
+.loader-icon {
+    font-size: 1.2rem;
+    animation: iconBounce 1s ease-in-out infinite;
+}
+
+@keyframes iconBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+.loader-text {
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    flex: 1;
+}
+
+.loader-dots span {
+    display: inline-block;
+    animation: dotBounce 1.4s ease-in-out infinite;
+    font-weight: 700;
+    color: #818cf8;
+}
+
+.loader-dots span:nth-child(1) { animation-delay: 0s; }
+.loader-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotBounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-6px); opacity: 1; }
+}
+
+.loader-progress-container {
+    height: 4px;
+    background: rgba(129, 140, 248, 0.1);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.loader-progress-bar {
+    height: 100%;
+    width: 30%;
+    background: linear-gradient(90deg, #818cf8, #ec4899, #38bdf8);
+    border-radius: 999px;
+    animation: progressSlide 1.5s ease-in-out infinite;
+}
+
+@keyframes progressSlide {
+    0% { width: 10%; margin-left: 0; }
+    50% { width: 40%; margin-left: 30%; }
+    100% { width: 10%; margin-left: 90%; }
+}
+
+.loader-metrics {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.metric {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 12px;
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 8px;
+    border: 1px solid rgba(129, 140, 248, 0.1);
+    flex: 1;
+    min-width: 80px;
+}
+
+.metric-label {
+    font-size: 0.65rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.metric-value {
+    font-size: 0.8rem;
+    color: #e2e8f0;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.metric-active {
+    color: #22c55e;
+    animation: metricGlow 2s ease-in-out infinite;
+}
+
+@keyframes metricGlow {
+    0%, 100% { text-shadow: 0 0 5px rgba(34, 197, 94, 0.3); }
+    50% { text-shadow: 0 0 15px rgba(34, 197, 94, 0.6); }
+}
+
+.token-stream {
+    color: #f0abfc;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+}
+
 /* ==== THINKING CARD (splash/Home) ==== */
 @keyframes thinkingGlow {
     0%, 100% { box-shadow: 0 0 10px rgba(129, 140, 248, 0.3); border-color: rgba(129, 140, 248, 0.35); }
@@ -682,49 +896,48 @@ def _build_terminal_delta():
         for idx, n in enumerate(nums)
     )
 
-def get_terminal_loader_html(text="Yuki sedang berpikir", token="...", temp=None, step=None, ctx=None):
-    """Loader terminal-style SEQUENTIAL dengan angka dinamis."""
-    import random
+def get_terminal_loader_html(text="Yuki sedang berpikir", token="..."):
+    """Loader terminal-style yang profesional dan modern."""
     token_chars = _build_terminal_token(token)
-    delta_stack = _build_terminal_delta()
-    
-    # Gunakan nilai random jika tidak diberikan
-    if temp is None:
-        temp = round(random.uniform(0.5, 1.1), 2)
-    if step is None:
-        step = random.randint(50, 550)
-    if ctx is None:
-        ctx = f"{round(random.uniform(2.0, 12.0), 1)}k tok"
     
     return f"""
-        <div class="terminal-card">
-            <img src="{LOGO_URL}" class="term-logo" alt="logo">
-            <div class="term-body">
-                <div class="term-line">
-                    <span class="term-prefix">▶</span>
-                    <span class="term-msg">{text}</span>
-                    <span class="term-dots"><span>.</span><span>.</span><span>.</span></span>
-                    <span class="term-token-wrap">[{token_chars}]<span class="term-caret"></span></span>
+        <div class="professional-loader">
+            <div class="loader-header">
+                <div class="loader-logo-container">
+                    <img src="{LOGO_URL}" class="loader-logo" alt="Yuki">
+                    <span class="loader-status-dot"></span>
                 </div>
-                <div class="term-params">
-                    <span class="term-param">
-                        <span class="term-key">temp=</span>
-                        <span class="term-param-pulse">{temp}</span>
-                    </span>
-                    <span class="term-param">
-                        <span class="term-key">step=</span>
-                        <span class="term-param-pulse">{step}</span>
-                    </span>
-                    <span class="term-param">
-                        <span class="term-key">Δ=</span>
-                        <span class="term-delta-stack">{delta_stack}</span>
-                    </span>
-                    <span class="term-param">
-                        <span class="term-key">ctx=</span>
-                        <span class="term-param-pulse">{ctx}</span>
-                    </span>
+                <div class="loader-info">
+                    <span class="loader-title">Yuki AI</span>
+                    <span class="loader-subtitle">Processing Request</span>
                 </div>
-                <div class="term-progress"></div>
+            </div>
+            
+            <div class="loader-body">
+                <div class="loader-message">
+                    <span class="loader-icon">⚡</span>
+                    <span class="loader-text">{text}</span>
+                    <span class="loader-dots"><span>.</span><span>.</span><span>.</span></span>
+                </div>
+                
+                <div class="loader-progress-container">
+                    <div class="loader-progress-bar"></div>
+                </div>
+                
+                <div class="loader-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Status</span>
+                        <span class="metric-value metric-active">Computing</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Tokens</span>
+                        <span class="metric-value token-stream">[{token_chars}]</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Engine</span>
+                        <span class="metric-value">Neural v2.6</span>
+                    </div>
+                </div>
             </div>
         </div>
     """
