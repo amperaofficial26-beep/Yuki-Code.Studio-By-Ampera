@@ -295,6 +295,11 @@ div.stButton > button:hover {
     0% { background-position: 0% 50%; }
     100% { background-position: 300% 50%; }
 }
+/* --- STANDARD: GPT-OSS 20B (UNGU BIRU BERJALAN) --- */
+@keyframes blueShineStandard {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+}
 .model-option-premium button {
     border: 2px solid rgba(252, 211, 77, 0.8) !important;
     background: linear-gradient(90deg,
@@ -888,34 +893,46 @@ else:
                         bg = "#000000"
                         border = "#ffffff"
                         icon = "✅"
+                        anim = "none"
+                        bg_size = "auto"
+                        box_shadow = "0 0 0 2px rgba(255, 255, 255, 0.3) inset, 0 0 30px rgba(255, 255, 255, 0.2)"
                     elif is_premium:
                         bg = "linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, #d97706, #b45309, #78350f)"
                         border = "#fbbf24"
                         icon = "💎"
+                        anim = "goldShinePremium 3s linear infinite"
+                        bg_size = "300% 100%"
+                        box_shadow = "0 0 25px rgba(252, 211, 77, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
                     else:
-                        bg = "linear-gradient(135deg, #4f46e5, #3b82f6)"
-                        border = "#6366f1"
+                        bg = "linear-gradient(90deg, #312e81, #4f46e5, #6366f1, #818cf8, #6366f1, #4f46e5, #312e81)"
+                        border = "#818cf8"
                         icon = "⚡"
+                        anim = "blueShineStandard 3s linear infinite"
+                        bg_size = "300% 100%"
+                        box_shadow = "0 0 20px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
                     
                     safe_key = "pick_home_" + model_id.replace("/", "_").replace(".", "_").replace("-", "_")
                     
-                    # Styling langsung via CSS
+                    # Styling langsung via CSS dengan animasi berjalan
                     st.markdown(f"""
                         <style>
                             button[key="{safe_key}"] {{
                                 background: {bg} !important;
+                                background-size: {bg_size} !important;
+                                animation: {anim} !important;
                                 border: 2px solid {border} !important;
                                 color: white !important;
                                 border-radius: 12px !important;
                                 padding: 10px 14px !important;
                                 width: 100% !important;
                                 font-weight: 700 !important;
-                                box-shadow: 0 0 25px rgba(255,255,255,0.05) !important;
+                                box-shadow: {box_shadow} !important;
                                 transition: all 0.3s ease !important;
+                                text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
                             }}
                             button[key="{safe_key}"]:hover {{
                                 transform: scale(1.03) !important;
-                                box-shadow: 0 0 40px rgba(255,255,255,0.1) !important;
+                                box-shadow: 0 0 40px rgba(255,255,255,0.15) !important;
                             }}
                         </style>
                     """, unsafe_allow_html=True)
