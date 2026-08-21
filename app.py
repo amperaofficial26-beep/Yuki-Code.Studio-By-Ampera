@@ -150,33 +150,29 @@ div.stButton > button:hover {
 }
 
 [data-testid="stChatInput"] {
-    background: rgba(15, 23, 42, 0.85) !important;
+    background: rgba(15, 23, 42, 0.6) !important;
     backdrop-filter: blur(16px) !important;
-    border: 1px solid rgba(129, 140, 248, 0.3) !important;
+    border: 1px solid rgba(129, 140, 248, 0.2) !important;
     border-radius: 9999px !important;
     padding: 4px 12px !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
 }
 [data-testid="stChatInput"]:focus-within {
     border-color: #818cf8 !important;
-    box-shadow: 0 0 25px rgba(129, 140, 248, 0.5) !important;
+    box-shadow: 0 0 20px rgba(129, 140, 248, 0.4) !important;
 }
 [data-testid="stChatInput"] textarea { color: #f8fafc !important; }
-
-@keyframes placeholderRainbow {
-    0% { color: #818cf8; }
-    16% { color: #ec4899; }
-    33% { color: #38bdf8; }
-    50% { color: #fcd34d; }
-    66% { color: #22c55e; }
-    83% { color: #f97316; }
-    100% { color: #818cf8; }
-}
 [data-testid="stChatInput"] textarea::placeholder {
     font-weight: 600 !important;
     letter-spacing: 0.02em !important;
     animation: placeholderRainbow 4s linear infinite !important;
     opacity: 1 !important;
+}
+[data-testid="stChatInput"] > div > button {
+    background: linear-gradient(135deg, #4f46e5, #3b82f6) !important;
+    border: none !important;
+    border-radius: 50% !important;
+    color: white !important;
 }
 
 /* ==== MODEL PICKER ==== */
