@@ -111,8 +111,65 @@ h1, h2, h3 {
     font-family: 'Poppins', sans-serif !important;
 }
 
-/* ==== SIDEBAR ==== */
-.logo-container {
+/* ==== SIDEBAR TOGGLE ==== */
+.sidebar-toggle-btn {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 10000;
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, #818cf8, #6366f1);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(129, 140, 248, 0.5);
+    transition: all 0.3s ease;
+}
+.sidebar-toggle-btn:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 6px 25px rgba(129, 140, 248, 0.7);
+}
+
+/* Collapse button di dalam sidebar */
+.sidebar-collapse {
+    position: absolute;
+    top: 16px;
+    right: 12px;
+    width: 30px;
+    height: 30px;
+    background: rgba(129, 140, 248, 0.15);
+    border: 1px solid rgba(129, 140, 248, 0.3);
+    border-radius: 8px;
+    color: #818cf8;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+.sidebar-collapse:hover {
+    background: rgba(129, 140, 248, 0.3);
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Sidebar collapsed state */
+[data-testid="stSidebar"].sidebar-collapsed {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+[data-testid="stSidebar"]:not(.sidebar-collapsed) {
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+}
     display: flex; align-items: center; gap: 12px; padding: 6px 4px;
     margin-bottom: 4rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -1094,7 +1151,35 @@ if not st.session_state["has_entered"]:
 # 7. APLIKASI UTAMA SETELAH MASUK
 # ============================================================
 else:
+    # ==== SIDEBAR TOGGLE (tombol saat sidebar ditutup) ====
+    st.markdown("""
+        <button class="sidebar-toggle-btn" id="sidebarToggle" onclick="openSidebar()">
+            ☰
+        </button>
+        <script>
+            function openSidebar() {
+                var sidebar = document.querySelector('[data-testid="stSidebar"]');
+                var toggle = document.getElementById('sidebarToggle');
+                sidebar.classList.remove('sidebar-collapsed');
+                toggle.style.display = 'none';
+            }
+            function closeSidebar() {
+                var sidebar = document.querySelector('[data-testid="stSidebar"]');
+                var toggle = document.getElementById('sidebarToggle');
+                sidebar.classList.add('sidebar-collapsed');
+                toggle.style.display = 'flex';
+            }
+        </script>
+    """, unsafe_allow_html=True)
+    
+    # ==== SIDEBAR ====
     with st.sidebar:
+        # Tombol tutup sidebar
+        st.markdown("""
+            <button class="sidebar-collapse" onclick="closeSidebar()" title="Tutup Sidebar">
+                ✕
+            </button>
+        """, unsafe_allow_html=True)
         st.markdown("""
             <div class="logo-container">
                 <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop" class="logo-img" alt="Logo Arena">
