@@ -963,16 +963,14 @@ else:
                 
                 # Tampilkan loader dengan animasi angka berubah
                 start_time = time.time()
-                while True:
-                    temp = round(random.uniform(0.5, 1.1), 2)
-                    step = random.randint(50, 550)
-                    ctx = f"{round(random.uniform(2.0, 12.0), 1)}k tok"
-                    
-                    loading_ph.markdown(get_terminal_loader_html(..., temp=temp, step=step, ctx=ctx))
-                    
-                    if time.time() - start_time >= 1.5:
-                        break
-                    time.sleep(0.3)
+                # Tampilkan loader sekali dengan animasi CSS
+                    loading_ph.markdown(
+                        get_terminal_loader_html(
+                            text=f"{short_model_name} sedang berpikir",
+                            token="reasoning",
+                        ),
+                        unsafe_allow_html=True,
+                    )
 
                 # Panggil API
                 try:
