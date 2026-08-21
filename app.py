@@ -814,31 +814,31 @@ else:
 
     selected_menu = st.session_state["current_page"]
 
-   # ============================================================
-# 8. HALAMAN 1: HOME DASHBOARD
-# ============================================================
-if selected_menu == "🏠 Home Dashboard":
-    if "home_chat_history" not in st.session_state:
-        st.session_state["home_chat_history"] = []
-    if "home_selected_model" not in st.session_state:
-        st.session_state["home_selected_model"] = list(AVAILABLE_MODELS.keys())[0]
-
-    # Tampilkan history chat jika ada
-    if len(st.session_state["home_chat_history"]) > 0:
-        if st.button("➕ Percakapan Baru", key="new_chat_home"):
+    # ============================================================
+    # 8. HALAMAN 1: HOME DASHBOARD
+    # ============================================================
+    if selected_menu == "🏠 Home Dashboard":
+        if "home_chat_history" not in st.session_state:
             st.session_state["home_chat_history"] = []
-            st.rerun()
-        
-        for msg in st.session_state["home_chat_history"]:
-            if msg["role"] == "user":
-                st.markdown(f"""
-                    <div class="user-bubble-container">
-                        <div class="user-bubble">{msg["content"]}</div>
-                    </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown(msg["content"])
-                st.markdown("---")
+        if "home_selected_model" not in st.session_state:
+            st.session_state["home_selected_model"] = list(AVAILABLE_MODELS.keys())[0]
+    
+        # Tampilkan history chat jika ada
+        if len(st.session_state["home_chat_history"]) > 0:
+            if st.button("➕ Percakapan Baru", key="new_chat_home"):
+                st.session_state["home_chat_history"] = []
+                st.rerun()
+            
+            for msg in st.session_state["home_chat_history"]:
+                if msg["role"] == "user":
+                    st.markdown(f"""
+                        <div class="user-bubble-container">
+                            <div class="user-bubble">{msg["content"]}</div>
+                        </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown(msg["content"])
+                    st.markdown("---")
     else:
         # Tampilan awal (Get Started)
         st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
