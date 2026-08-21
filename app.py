@@ -2,9 +2,7 @@ import streamlit as st
 from openai import OpenAI
 import time
 
-# ============================================================
-# 1. KONFIGURASI HALAMAN & API
-# ============================================================
+# Konfigurasi halaman
 st.set_page_config(
     page_title="Ampera Multi AI - Yuki Coding Studio",
     page_icon="🏛️",
@@ -15,18 +13,15 @@ st.set_page_config(
 groq_key = st.secrets.get("GROQ_API_KEY", "")
 client = OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1") if groq_key else None
 
-# ============================================================
-# 2. MODEL & PROMPT
-# ============================================================
+# Model & Prompt
 AVAILABLE_MODELS = {
-    "⚡ GPT-OSS 20B — Chat & Coding Ringan":      "openai/gpt-oss-20b",
-    "💎 GPT-OSS 120B — Reasoning Mendalam":        "openai/gpt-oss-120b",
-    "💎 Compound — Browsing Web & Eksekusi Kode":  "groq/compound",
-    "⚡ Compound Mini — Web Search Ringkas":       "groq/compound-mini",
-    "💎 Qwen3.6 27B — Reasoning & Matematika":     "qwen/qwen3.6-27b",
+    "⚡ GPT-OSS 20B — Chat & Coding Ringan": "openai/gpt-oss-20b",
+    "💎 GPT-OSS 120B — Reasoning Mendalam": "openai/gpt-oss-120b",
+    "💎 Compound — Browsing Web & Eksekusi Kode": "groq/compound",
+    "⚡ Compound Mini — Web Search Ringkas": "groq/compound-mini",
+    "💎 Qwen3.6 27B — Reasoning & Matematika": "qwen/qwen3.6-27b",
 }
 PREMIUM_MODELS = {k for k in AVAILABLE_MODELS if k.startswith("💎")}
-STANDARD_MODELS = {k for k in AVAILABLE_MODELS if k not in PREMIUM_MODELS}
 
 YUKI_SYSTEM_PROMPT = """
 Kamu adalah Yuki, asisten pemrograman AI eksklusif dari Ampera AI.
@@ -39,12 +34,10 @@ JANGAN PERNAH menyebutkan bahwa kamu dibuat oleh "para ilmuwan", "sekelompok tim
 Gaya bicara: Selalu berikan solusi koding yang akurat dan bersih, tetapi selingi dengan komentar jenaka, candaan ringan, dan emoji ekspresif (seperti 🐧, (๑>◡<๑), wkwk, hehe, atau (￢_￢)) agar suasana ngoding tidak membosankan.
 """
 
-# ============================================================
-# 3. CSS GLOBAL
-# ============================================================
+# CSS
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap');
 
 html, body, [class*="css"]:not(.material-symbols-rounded):not(i):not(svg) {
     font-family: 'Inter', sans-serif;
@@ -77,31 +70,29 @@ h1, h2, h3 {
     font-family: 'Poppins', sans-serif !important;
 }
 
-/* ==== SIDEBAR ==== */
+/* Sidebar */
 [data-testid="stSidebar"] {
     background: linear-gradient(180deg, rgba(30, 27, 75, 0.55), rgba(15, 23, 42, 0.75));
     backdrop-filter: blur(16px);
     border-right: 1px solid rgba(255, 255, 255, 0.08);
-    padding-top: 10px;
 }
 
 .logo-container {
-    display: flex; align-items: center; gap: 12px; padding: 6px 4px;
-    margin-bottom: 4rem;
+    display: flex; align-items: center; gap: 12px; padding: 6px;
+    margin-bottom: 2rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     padding-bottom: 14px;
 }
 
 @keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 0 15px rgba(129, 140, 248, 0.4); border-color: rgba(129, 140, 248, 0.4); }
-    50% { box-shadow: 0 0 25px rgba(236, 72, 153, 0.7); border-color: rgba(236, 72, 153, 0.7); }
+    0%, 100% { box-shadow: 0 0 15px rgba(129, 140, 248, 0.4); }
+    50% { box-shadow: 0 0 25px rgba(236, 72, 153, 0.7); }
 }
 
 .logo-img {
     width: 44px; height: 44px; border-radius: 12px; object-fit: cover;
     animation: pulseGlow 3s infinite;
     border: 1px solid rgba(129, 140, 248, 0.4);
-    flex-shrink: 0;
 }
 
 .logo-text {
@@ -110,8 +101,6 @@ h1, h2, h3 {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-family: 'Poppins', sans-serif;
-    line-height: 1.2; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis;
 }
 
 .sidebar-section-header {
@@ -119,19 +108,16 @@ h1, h2, h3 {
     color: #94a3b8 !important;
     margin-top: 1.8rem; margin-bottom: 0.6rem;
     text-transform: uppercase; letter-spacing: 0.05em;
-    padding-left: 4px;
 }
 
-/* ==== TOMBOL UMUM ==== */
+/* Buttons */
 div.stButton > button {
     background: rgba(30, 41, 59, 0.65) !important;
     border: 1px solid rgba(129, 140, 248, 0.25) !important;
     color: #f8fafc !important;
     border-radius: 12px !important;
     font-weight: 500;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease !important;
 }
 div.stButton > button:hover {
     transform: translateY(-2px) scale(1.01);
@@ -141,20 +127,17 @@ div.stButton > button:hover {
     box-shadow: 0 0 20px rgba(129, 140, 248, 0.5) !important;
 }
 
-/* ==== CHAT INPUT (Glass Effect) ==== */
+/* Chat Input Glass Effect */
 [data-testid="stBottom"], [data-testid="stBottomBlockContainer"], [data-testid="stChatInputContainer"] {
     background: transparent !important;
-    background-color: transparent !important;
     border-top: none !important;
     box-shadow: none !important;
 }
-
 [data-testid="stBottom"] div { background-color: transparent !important; border: none !important; }
 
 [data-testid="stChatInput"] {
     background: rgba(255, 255, 255, 0.05) !important;
     backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-radius: 9999px !important;
     padding: 4px 12px !important;
@@ -162,11 +145,10 @@ div.stButton > button:hover {
 }
 [data-testid="stChatInput"]:focus-within {
     border-color: rgba(129, 140, 248, 0.5) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 20px rgba(129, 140, 248, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 20px rgba(129, 140, 248, 0.3) !important;
 }
 [data-testid="stChatInput"] textarea { color: #f8fafc !important; background: transparent !important; }
-/* ==== CHAT INPUT RAINBOW PLACEHOLDER ==== */
+
 @keyframes rainbowText {
     0% { color: #818cf8; }
     16% { color: #ec4899; }
@@ -176,7 +158,6 @@ div.stButton > button:hover {
     83% { color: #f97316; }
     100% { color: #818cf8; }
 }
-
 [data-testid="stChatInput"] textarea::placeholder {
     font-weight: 600 !important;
     letter-spacing: 0.02em !important;
@@ -190,11 +171,10 @@ div.stButton > button:hover {
     color: white !important;
 }
 
-/* ==== MODEL PICKER ==== */
+/* Model Picker */
 [data-testid="stPopover"] > button {
     width: 48px !important; height: 48px !important;
     border-radius: 50% !important; padding: 0 !important;
-    min-height: 48px !important; min-width: 48px !important;
     background: linear-gradient(135deg, #818cf8, #ec4899, #38bdf8) !important;
     background-size: 300% 300% !important;
     border: 2px solid rgba(255, 255, 255, 0.3) !important;
@@ -251,7 +231,7 @@ div.stButton > button:hover {
     100% { background-position: 300% 50%; }
 }
 
-/* ==== USER BUBBLE ==== */
+/* User Bubble */
 .user-bubble-container { display: flex; justify-content: flex-end; margin-bottom: 20px; }
 .user-bubble {
     background: linear-gradient(135deg, #3b82f6, #6366f1);
@@ -262,7 +242,7 @@ div.stButton > button:hover {
     box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
-/* ==== PROFESSIONAL LOADER ==== */
+/* Professional Loader */
 .professional-loader {
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 27, 75, 0.9));
     backdrop-filter: blur(20px);
@@ -408,13 +388,11 @@ div.stButton > button:hover {
 </style>
 """, unsafe_allow_html=True)
 
-# ============================================================
-# 4. FUNGSI LOADER
-# ============================================================
+# Functions
 LOGO_URL = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&h=120&fit=crop"
 
 def _build_token_chars(token_text):
-    return "".join(f'<span>{ch}</span>' for ch in token_text)
+    return "".join(f"<span>{ch}</span>" for ch in token_text)
 
 def get_loader_html(text="Yuki sedang berpikir", token="..."):
     token_chars = _build_token_chars(token)
@@ -428,7 +406,7 @@ def get_loader_html(text="Yuki sedang berpikir", token="..."):
                 </div>
             </div>
             <div class="loader-message">
-                <span>⚡</span>
+                <span>&#9889;</span>
                 <span class="loader-text">{text}</span>
                 <span class="loader-dots"><span>.</span><span>.</span><span>.</span></span>
             </div>
@@ -452,19 +430,13 @@ def get_loader_html(text="Yuki sedang berpikir", token="..."):
         </div>
     """
 
-# ============================================================
-# 5. SESSION STATE
-# ============================================================
+# Session State
 if "has_entered" not in st.session_state:
     st.session_state["has_entered"] = False
 if "current_page" not in st.session_state:
-    st.session_state["current_page"] = "🏠 Home Dashboard"
-if "sidebar_collapsed" not in st.session_state:
-    st.session_state["sidebar_collapsed"] = False
+    st.session_state["current_page"] = "Home Dashboard"
 
-# ============================================================
-# 6. SPLASH SCREEN
-# ============================================================
+# Splash Screen
 if not st.session_state["has_entered"]:
     st.markdown("""
     <style>
@@ -510,96 +482,61 @@ if not st.session_state["has_entered"]:
             </div>
         """, unsafe_allow_html=True)
 
-        if st.button("🚀 MASUK", use_container_width=True):
+        if st.button("MASUK", use_container_width=True):
             st.session_state["has_entered"] = True
             st.rerun()
 
-        st.markdown('<div style="text-align: center; margin-top: 50px; color: #4b5563; font-size: 12px;">© 2026 Yuki Coding Studio</div>', unsafe_allow_html=True)
+        st.markdown('<div style="text-align: center; margin-top: 50px; color: #4b5563; font-size: 12px;">&copy; 2026 Yuki Coding Studio</div>', unsafe_allow_html=True)
 
-# ============================================================
-# 7. APLIKASI UTAMA
-# ============================================================
+# Main App
 else:
-    # ==== SIDEBAR (Collapse Handler) ====
-    if st.session_state.get("sidebar_collapsed"):
-        # Mini sidebar with icons only
-        with st.sidebar:
-            st.markdown('<div style="padding: 10px;"></div>', unsafe_allow_html=True)
-            
-            # Icon navigation
-            nav_cols = st.columns(4)
-            nav_items = [
-                ("🏠", "🏠 Home Dashboard", "nav_home"),
-                ("⚔️", "⚔️ Multi Ai", "nav_multi"),
-                ("📊", "📊 Leaderboard", "nav_leader"),
-                ("🔍", "🔍 Search", "nav_search"),
-            ]
-            
-            for i, (icon, page, key) in enumerate(nav_items):
-                with nav_cols[i]:
-                    if st.button(icon, key=key, use_container_width=True, help=page):
-                        st.session_state["current_page"] = page
-                        st.session_state["sidebar_collapsed"] = False
-                        st.rerun()
-            
-            st.markdown('<div style="padding: 10px;"></div>', unsafe_allow_html=True)
-            
-            # Tombol buka sidebar
-            if st.button("☰ Buka Sidebar", key="mini_expand", use_container_width=True):
-                st.session_state["sidebar_collapsed"] = False
-                st.rerun()
-    else:
-        # Full sidebar
-        with st.sidebar:
-            if st.button("✕ Tutup", key="close_sidebar", help="Tutup Sidebar"):
-                st.session_state["sidebar_collapsed"] = True
-                st.rerun()
-            
-            st.markdown(f"""
-                <div class="logo-container">
-                    <img src="{LOGO_URL}" class="logo-img" alt="Logo">
-                    <div class="logo-text">AMPERA MULTI AI</div>
-                </div>
-            """, unsafe_allow_html=True)
+    # Sidebar
+    with st.sidebar:
+        st.markdown(f"""
+            <div class="logo-container">
+                <img src="{LOGO_URL}" class="logo-img" alt="Logo">
+                <div class="logo-text">AMPERA MULTI AI</div>
+            </div>
+        """, unsafe_allow_html=True)
 
-            if st.button("🏠 Home Dashboard", use_container_width=True, key="sidebar_home"):
-                st.session_state["current_page"] = "🏠 Home Dashboard"
-                st.rerun()
-            if st.button("⚔️ Multi Ai", use_container_width=True, key="sidebar_arena"):
-                st.session_state["current_page"] = "⚔️ Multi Ai"
-                st.rerun()
-            if st.button("📊 Leaderboard", use_container_width=True, key="sidebar_leaderboard"):
-                st.session_state["current_page"] = "📊 Leaderboard"
-                st.rerun()
-            if st.button("🔍 Search", use_container_width=True, key="sidebar_search"):
-                st.session_state["current_page"] = "🔍 Search"
-                st.rerun()
+        if st.button("Home Dashboard", use_container_width=True, key="sidebar_home"):
+            st.session_state["current_page"] = "Home Dashboard"
+            st.rerun()
+        if st.button("Multi Ai", use_container_width=True, key="sidebar_arena"):
+            st.session_state["current_page"] = "Multi Ai"
+            st.rerun()
+        if st.button("Leaderboard", use_container_width=True, key="sidebar_leaderboard"):
+            st.session_state["current_page"] = "Leaderboard"
+            st.rerun()
+        if st.button("Search", use_container_width=True, key="sidebar_search"):
+            st.session_state["current_page"] = "Search"
+            st.rerun()
 
-            st.markdown('<div class="sidebar-section-header">Notebook</div>', unsafe_allow_html=True)
-            if st.button("➕ Notebook baru", use_container_width=True, key="sidebar_notebook"):
-                st.info("Fitur Notebook baru dipilih!")
+        st.markdown('<div class="sidebar-section-header">Notebook</div>', unsafe_allow_html=True)
+        if st.button("Notebook baru", use_container_width=True, key="sidebar_notebook"):
+            st.info("Fitur Notebook baru dipilih!")
 
-            st.markdown('<div class="sidebar-section-header">Yesterday</div>', unsafe_allow_html=True)
-            if st.button("⚡ Python Binary Search", use_container_width=True, key="sidebar_yesterday_python"):
-                st.session_state["current_page"] = "🏠 Home Dashboard"
-                st.session_state["shortcut_prompt"] = "Jelaskan kembali tentang Python Binary Search."
-                st.rerun()
-            if st.button("🛠️ Fix Bug Index Error", use_container_width=True, key="sidebar_yesterday_bug"):
-                st.session_state["current_page"] = "🏠 Home Dashboard"
-                st.session_state["shortcut_prompt"] = "Bagaimana cara mengatasi IndexError di Python?"
-                st.rerun()
+        st.markdown('<div class="sidebar-section-header">Yesterday</div>', unsafe_allow_html=True)
+        if st.button("Python Binary Search", use_container_width=True, key="sidebar_yesterday_python"):
+            st.session_state["current_page"] = "Home Dashboard"
+            st.session_state["shortcut_prompt"] = "Jelaskan kembali tentang Python Binary Search."
+            st.rerun()
+        if st.button("Fix Bug Index Error", use_container_width=True, key="sidebar_yesterday_bug"):
+            st.session_state["current_page"] = "Home Dashboard"
+            st.session_state["shortcut_prompt"] = "Bagaimana cara mengatasi IndexError di Python?"
+            st.rerun()
 
     selected_menu = st.session_state["current_page"]
 
-    # ==== HOME DASHBOARD ====
-    if selected_menu == "🏠 Home Dashboard":
+    # Home Dashboard
+    if selected_menu == "Home Dashboard":
         if "home_chat_history" not in st.session_state:
             st.session_state["home_chat_history"] = []
         if "home_selected_model" not in st.session_state:
             st.session_state["home_selected_model"] = list(AVAILABLE_MODELS.keys())[0]
 
         if len(st.session_state["home_chat_history"]) > 0:
-            if st.button("➕ Percakapan Baru", key="new_chat_home"):
+            if st.button("Percakapan Baru", key="new_chat_home"):
                 st.session_state["home_chat_history"] = []
                 st.rerun()
             
@@ -611,30 +548,30 @@ else:
                     st.markdown("---")
         else:
             st.markdown("<h1 style='text-align: center; margin-top: 1rem;'>What would you like to do?</h1>", unsafe_allow_html=True)
-            st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan tekan <b>Enter</b> untuk mengirim, Senpai! (o^▽^o)</p>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center; color: #94a3b8; margin-bottom: 2rem;'>Ketik pesan di bawah dan tekan <b>Enter</b> untuk mengirim, Senpai! (o^&#9651;^o)</p>", unsafe_allow_html=True)
 
             st.markdown("<h3>Get started</h3>", unsafe_allow_html=True)
             gc1, gc2, gc3 = st.columns(3)
 
             with gc1:
-                if st.button("🌐 Landing Page\n\nCreate a modern landing page", use_container_width=True, key="gs_landing"):
+                if st.button("Landing Page\n\nCreate a modern landing page", use_container_width=True, key="gs_landing"):
                     st.session_state["shortcut_prompt"] = "Buatkan kode landing page modern menggunakan HTML dan Tailwind CSS."
                     st.rerun()
-                if st.button("💻 Design to Code\n\nUpload an image and convert", use_container_width=True, key="gs_design"):
+                if st.button("Design to Code\n\nUpload an image and convert", use_container_width=True, key="gs_design"):
                     st.session_state["shortcut_prompt"] = "Bagaimana cara mengubah desain UI menjadi kode program?"
                     st.rerun()
             with gc2:
-                if st.button("📊 Dashboard\n\nInteractive charts & tables", use_container_width=True, key="gs_dashboard"):
+                if st.button("Dashboard\n\nInteractive charts & tables", use_container_width=True, key="gs_dashboard"):
                     st.session_state["shortcut_prompt"] = "Buatkan kerangka aplikasi dashboard interaktif menggunakan Python Streamlit."
                     st.rerun()
-                if st.button("📦 Fullstack App\n\nCreate templated full-stack app", use_container_width=True, key="gs_fullstack"):
+                if st.button("Fullstack App\n\nCreate templated full-stack app", use_container_width=True, key="gs_fullstack"):
                     st.session_state["shortcut_prompt"] = "Berikan arsitektur dasar untuk aplikasi web fullstack."
                     st.rerun()
             with gc3:
-                if st.button("🎮 Make a Game\n\nPlayable browser game", use_container_width=True, key="gs_game"):
+                if st.button("Make a Game\n\nPlayable browser game", use_container_width=True, key="gs_game"):
                     st.session_state["shortcut_prompt"] = "Buatkan game sederhana menggunakan HTML5 Canvas dan JavaScript."
                     st.rerun()
-                if st.button("🏪 Storefront\n\nCreate online shop layout", use_container_width=True, key="gs_store"):
+                if st.button("Storefront\n\nCreate online shop layout", use_container_width=True, key="gs_store"):
                     st.session_state["shortcut_prompt"] = "Buatkan layout halaman keranjang belanja online (e-commerce)."
                     st.rerun()
 
@@ -643,18 +580,18 @@ else:
         # Model Picker
         spacer_col, fab_col = st.columns([12, 1])
         with fab_col:
-            with st.popover("🧠", use_container_width=True):
-                st.markdown("**✨ Pilih Model AI**")
-                st.caption("⚡ Gratis · 💎 Premium")
+            with st.popover("", use_container_width=True):
+                st.markdown("**Pilih Model AI**")
+                st.caption("Gratis | Premium")
                 
                 for label, model_id in AVAILABLE_MODELS.items():
-                    icon = "✅" if label == st.session_state["home_selected_model"] else ("💎" if label in PREMIUM_MODELS else "⚡")
+                    icon = "&#10004;" if label == st.session_state["home_selected_model"] else ("&#128142;" if label in PREMIUM_MODELS else "&#9889;")
                     if st.button(f"{icon} {label}", key=f"pick_{model_id}", use_container_width=True):
                         st.session_state["home_selected_model"] = label
                         st.rerun()
         
         # Chat Input
-        home_input = st.chat_input("✨ Ask Yuki anything... ✨", key="home_chat")
+        home_input = st.chat_input("Ask Yuki anything...", key="home_chat")
         model_choice_label = st.session_state["home_selected_model"]
         selected_model_id = AVAILABLE_MODELS[model_choice_label]
         query_to_process = home_input if home_input else default_val
@@ -682,7 +619,7 @@ else:
                     )
                     response_text = res_home.choices[0].message.content
                 except Exception as e:
-                    response_text = f"❌ Ups, terjadi kesalahan: {e}"
+                    response_text = f"Ups, terjadi kesalahan: {e}"
 
                 loading_ph.empty()
 
@@ -690,18 +627,18 @@ else:
                 st.session_state["home_chat_history"].append({"role": "assistant", "content": response_text})
                 st.rerun()
 
-    # ==== MULTI AI (ARENA) ====
-    elif selected_menu == "⚔️ Multi Ai":
-        st.title("⚔️ Ampera Coding Arena (Multi Ai)")
+    # Multi Ai (Arena)
+    elif selected_menu == "Multi Ai":
+        st.title("Ampera Coding Arena (Multi Ai)")
         st.caption("Pilih dua model berbeda, kirim tantangan koding, dan lihat animasi loading!")
 
         col_a, col_b = st.columns(2)
         with col_a:
-            pilihan_a = st.selectbox("🧠 Petarung A:", options=list(AVAILABLE_MODELS.keys()), index=0, key="arena_a")
+            pilihan_a = st.selectbox("Petarung A:", options=list(AVAILABLE_MODELS.keys()), index=0, key="arena_a")
         with col_b:
-            pilihan_b = st.selectbox("🧠 Petarung B:", options=list(AVAILABLE_MODELS.keys()), index=1, key="arena_b")
+            pilihan_b = st.selectbox("Petarung B:", options=list(AVAILABLE_MODELS.keys()), index=1, key="arena_b")
         
-        arena_input = st.chat_input("⚔️ Kirim tantangan duel coding...", key="arena_chat")
+        arena_input = st.chat_input("Kirim tantangan duel coding...", key="arena_chat")
 
         if arena_input:
             st.session_state["last_arena_prompt"] = arena_input
@@ -713,14 +650,14 @@ else:
             if not groq_key:
                 st.error("GROQ_API_KEY belum diatur!")
             elif pilihan_a == pilihan_b:
-                st.warning("⚠️ Pilih dua model yang berbeda!")
+                st.warning("Pilih dua model yang berbeda!")
             else:
                 col_a, col_b = st.columns(2)
 
                 with col_a:
-                    st.markdown(f'<div style="background: rgba(15,23,42,0.75); border-radius: 14px; padding: 18px;"><div style="font-weight: 600; margin-bottom: 12px;">🔴 {pilihan_a}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div style="background: rgba(15,23,42,0.75); border-radius: 14px; padding: 18px;"><div style="font-weight: 600; margin-bottom: 12px;">{pilihan_a}</div>', unsafe_allow_html=True)
                     loading_a = st.empty()
-                    loading_a.html(get_loader_html(text=f"🔴 {pilihan_a} sedang merespons", token="computing"))
+                    loading_a.html(get_loader_html(text=f"{pilihan_a} sedang merespons", token="computing"))
                     
                     start_a = time.time()
                     try:
@@ -732,12 +669,12 @@ else:
                         time.sleep(4.0 - (time.time() - start_a))
                     loading_a.empty()
                     st.markdown(text_a)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown("</div>", unsafe_allow_html=True)
 
                 with col_b:
-                    st.markdown(f'<div style="background: rgba(15,23,42,0.75); border-radius: 14px; padding: 18px;"><div style="font-weight: 600; margin-bottom: 12px;">🔵 {pilihan_b}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div style="background: rgba(15,23,42,0.75); border-radius: 14px; padding: 18px;"><div style="font-weight: 600; margin-bottom: 12px;">{pilihan_b}</div>', unsafe_allow_html=True)
                     loading_b = st.empty()
-                    loading_b.html(get_loader_html(text=f"🔵 {pilihan_b} sedang merespons", token="analyzing"))
+                    loading_b.html(get_loader_html(text=f"{pilihan_b} sedang merespons", token="analyzing"))
                     
                     start_b = time.time()
                     try:
@@ -749,35 +686,35 @@ else:
                         time.sleep(4.0 - (time.time() - start_b))
                     loading_b.empty()
                     st.markdown(text_b)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown("</div>", unsafe_allow_html=True)
 
                 st.markdown("---")
-                st.info("💡 **Arena Voting:** Mana model yang memberikan hasil koding lebih baik?")
+                st.info("Arena Voting: Mana model yang memberikan hasil koding lebih baik?")
                 v1, v2, v3 = st.columns(3)
                 with v1:
-                    if st.button("👈 Pilih Petarung A", use_container_width=True, key="vote_a"):
+                    if st.button("Pilih Petarung A", use_container_width=True, key="vote_a"):
                         st.success(f"Kamu memvoting {pilihan_a}!")
                 with v2:
-                    if st.button("🤝 Seri", use_container_width=True, key="vote_draw"):
+                    if st.button("Seri", use_container_width=True, key="vote_draw"):
                         st.success("Terima Kasih Atas Penilaian Anda!!")
                 with v3:
-                    if st.button("👉 Pilih Petarung B", use_container_width=True, key="vote_b"):
+                    if st.button("Pilih Petarung B", use_container_width=True, key="vote_b"):
                         st.success(f"Kamu memvoting {pilihan_b}!")
 
-    # ==== LEADERBOARD ====
-    elif selected_menu == "📊 Leaderboard":
-        st.title("📊 Ampera Leaderboard")
+    # Leaderboard
+    elif selected_menu == "Leaderboard":
+        st.title("Ampera Leaderboard")
         st.write("Peringkat model AI berdasarkan performa koding dan voting pengguna:")
         st.markdown("""
         | Rank | Model Name | Elo Rating | Win Rate | Coding Score |
         | :---: | :--- | :---: | :---: | :---: |
-        | 🥇 | **Llama 3.3 (70B)** | **1280** | 68.5% | 9.5 / 10 |
-        | 🥈 | **Llama 3.1 (8B)** | **1210** | 61.2% | 8.8 / 10 |
+        | 1 | **Llama 3.3 (70B)** | **1280** | 68.5% | 9.5 / 10 |
+        | 2 | **Llama 3.1 (8B)** | **1210** | 61.2% | 8.8 / 10 |
         """)
 
-    # ==== SEARCH ====
-    elif selected_menu == "🔍 Search":
-        st.title("🔍 Search")
+    # Search
+    elif selected_menu == "Search":
+        st.title("Search")
         search_q = st.text_input("Cari topik atau riwayat (Tekan Enter)", key="search_input")
         if search_q:
             with st.spinner("Mencari..."):
