@@ -320,10 +320,24 @@ div.stButton > button:hover {
    MODEL TIER STYLING
    ============================================================ */
 
-/* --- STANDARD: GPT-OSS 20B (UNGU BIRU BERJALAN) --- */
-@keyframes blueShineStandard {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 300% 50%; }
+/* GPT-OSS 20B (Standard) - Biru Ungu Berjalan */
+[data-testid="stPopoverBody"] > div > div:nth-child(1) button {
+    background: linear-gradient(90deg, #1e1b4b, #3730a3, #4f46e5, #6366f1, ...) !important;
+    background-size: 300% 100% !important;
+    animation: blueShineStandard 3s linear infinite !important;
+    border: 2px solid #818cf8 !important;
+}
+
+/* Model Premium - Emas Berjalan */
+[data-testid="stPopoverBody"] > div > div:nth-child(2) button,
+[data-testid="stPopoverBody"] > div > div:nth-child(3) button,
+[data-testid="stPopoverBody"] > div > div:nth-child(4) button,
+[data-testid="stPopoverBody"] > div > div:nth-child(5) button {
+    background: linear-gradient(90deg, #78350f, #b45309, #d97706, #fbbf24, ...) !important;
+    background-size: 300% 100% !important;
+    animation: goldShinePremium 3s linear infinite !important;
+    border: 2px solid #fbbf24 !important;
+}
 }
 .model-option-standard button {
     border: 2px solid rgba(99, 102, 241, 0.7) !important;
@@ -950,25 +964,13 @@ else:
                 # Tampilkan loader dengan animasi angka berubah
                 start_time = time.time()
                 while True:
-                    # Update loader dengan nilai random
                     temp = round(random.uniform(0.5, 1.1), 2)
                     step = random.randint(50, 550)
                     ctx = f"{round(random.uniform(2.0, 12.0), 1)}k tok"
                     
-                    loading_ph.markdown(
-                        get_terminal_loader_html(
-                            text=f"{short_model_name} sedang berpikir",
-                            token="reasoning",
-                            temp=temp,
-                            step=step,
-                            ctx=ctx,
-                        ),
-                        unsafe_allow_html=True,
-                    )
+                    loading_ph.markdown(get_terminal_loader_html(..., temp=temp, step=step, ctx=ctx))
                     
-                    # Cek sudah 1.5 detik atau belum
-                    elapsed = time.time() - start_time
-                    if elapsed >= 1.5:
+                    if time.time() - start_time >= 1.5:
                         break
                     time.sleep(0.3)
 
